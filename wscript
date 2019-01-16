@@ -36,21 +36,31 @@ def build(bld):
         target       = 'hx_comm',
         features     = 'cxx',
         source       = bld.path.ant_glob('src/hxcomm/*.cpp'),
-        use          = ['hx_comm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only'],
+        use          = ['hx_comm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
+                        'flange'],
         install_path = '${PREFIX}/lib',
     )
 
     bld.shlib(
-        target       = 'flange_simulator_control',
+        target       = 'flange',
         features     = 'cxx',
         source       = bld.path.ant_glob('src/flange/*.cpp'),
         use          = ['flange_inc', 'rcf-sf-only'],
+        install_path = '${PREFIX}/lib',
     )
 
     bld(
         target       = 'hx_comm_example_arq',
         features     = 'cxx cxxprogram',
-        source       = ['example/hx_comm.cpp'],
+        source       = ['example/hx_comm_arq.cpp'],
+        use          = ['hx_comm'],
+        install_path = '${PREFIX}/bin',
+    )
+
+    bld(
+        target       = 'hx_comm_example_sim',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hx_comm_sim.cpp'],
         use          = ['hx_comm'],
         install_path = '${PREFIX}/bin',
     )
@@ -63,10 +73,18 @@ def build(bld):
     )
 
     bld(
+        target       = 'hx_comm_hwtests',
+        features     = 'gtest cxx cxxprogram',
+        source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
+        skip_run     = True,
+        use          = ['hx_comm'],
+    )
+
+    bld(
         target       = 'flange_swtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/flange/test-*.cpp'),
-        use          = ['flange_simulator_control'],
+        use          = ['flange'],
     )
 
     # Create test summary (to stdout and XML file)

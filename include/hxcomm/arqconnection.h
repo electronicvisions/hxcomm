@@ -44,8 +44,14 @@ public:
 	 */
 	void flush();
 
+	/**
+	 * Check whether packets to be received are available.
+	 * @return Boolean value
+	 */
+	bool receive_data_available();
+
 private:
-	static constexpr uint16_t pid = 0x17a6; // HostARQ UT packet type
+	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	sctrltp::ARQStream m_arq_stream;
 };
 

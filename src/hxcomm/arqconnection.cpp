@@ -50,4 +50,9 @@ void ARQConnection::flush()
 	}
 }
 
+bool ARQConnection::receive_data_available()
+{
+	return m_arq_stream.received_packet_available();
+}
+
 } // namespace hxcomm
