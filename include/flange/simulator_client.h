@@ -71,6 +71,11 @@ public:
 	 */
 	SimulatorEvent::clk_t get_current_time();
 
+	/**
+	 * Set RCF remote call timeout in milliseconds.
+	 * @param timeout Timeout in milliseconds
+	 */
+	void set_remote_timeout(int const timeout);
 private:
 	struct Impl;
 	std::unique_ptr<Impl> m_impl;

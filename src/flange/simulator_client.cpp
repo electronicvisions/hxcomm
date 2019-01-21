@@ -67,4 +67,9 @@ SimulatorEvent::clk_t SimulatorClient::get_current_time()
 	return m_impl->m_sim.current_clk();
 }
 
+void SimulatorClient::set_remote_timeout(int const timeout)
+{
+	m_impl->m_sim.getClientStub().setRemoteCallTimeoutMs(timeout);
+}
+
 } // namespace flange
