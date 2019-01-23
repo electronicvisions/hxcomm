@@ -1,21 +1,22 @@
-#include <iomanip>
 #include <iostream>
-#include <memory>
-#include <queue>
-#include <stdexcept>
 
 #include <boost/program_options.hpp>
 
 #include "flange/simulator_control_if.h"
-#include "hxcomm/jtag.h"
-#include "hxcomm/simconnection.h"
-#include "hxcomm/utmessage.h"
+#include "hxcomm/vx/simconnection.h"
 
 namespace bpo = boost::program_options;
 
-using namespace hxcomm;
+using namespace hxcomm::vx;
 
+using namespace hxcomm::vx::instruction;
+using data = instruction::to_fpga_jtag::data;
+using ins = instruction::to_fpga_jtag::ins;
+using halt = instruction::system::halt;
 
+/**
+ * Example script to reset chip and read JTAG-ID.
+ */
 int main(int argc, char* argv[])
 {
 	// parse arguments
@@ -39,51 +40,44 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	std::queue<ut_message_t> messages;
+	SimConnection connection(str_ip, port);
 
 	// Reset sequence
-	messages.push(UTMessageFactory::init_msg(true));
-	messages.push(UTMessageFactory::reset_timestamp());
-	messages.push(UTMessageFactory::wait_until(10));
-	messages.push(UTMessageFactory::init_msg(false));
-	messages.push(UTMessageFactory::wait_until(100));
-	messages.push(UTMessageFactory::reset_msg());
+	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
+	connection.add(ut_message_to_fpga<timing::setup>());
+	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10)));
+	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(false)));
+	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(100)));
+	connection.add(ut_message_to_fpga<to_fpga_jtag::init>());
 
 	// Set PLL
-	messages.push(UTMessageFactory::set_ir(JTAG::PLL_TARGET_REG));
-	messages.push(UTMessageFactory::set_dr(1, 3, true));
-	messages.push(UTMessageFactory::set_ir(JTAG::SHIFT_PLL));
-	messages.push(UTMessageFactory::set_dr(0xC0C3F200, 32, true));
-	messages.push(UTMessageFactory::set_ir(JTAG::PLL_TARGET_REG));
-	messages.push(UTMessageFactory::set_dr(3, 3, true));
-	messages.push(UTMessageFactory::set_ir(JTAG::SHIFT_PLL));
-	messages.push(UTMessageFactory::set_dr(0xC0C3F200, 32, true));
+	connection.add(ut_message_to_fpga<ins>(ins::PLL_TARGET_REG));
+	connection.add(
+	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(3), 1)));
+	connection.add(ut_message_to_fpga<ins>(ins::SHIFT_PLL));
+	connection.add(ut_message_to_fpga<data>(
+	    data::payload_type(true, data::payload_type::NumBits(32), 0xC0C3F200)));
+	connection.add(ut_message_to_fpga<ins>(ins::PLL_TARGET_REG));
+	connection.add(
+	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(3), 3)));
+	connection.add(ut_message_to_fpga<ins>(ins::SHIFT_PLL));
+	connection.add(ut_message_to_fpga<data>(
+	    data::payload_type(true, data::payload_type::NumBits(32), 0xC0C3F200)));
 
 	// Read ID
-	messages.push(UTMessageFactory::set_ir(JTAG::IDCODE));
-	messages.push(UTMessageFactory::set_dr(0, 32, true));
+	connection.add(ut_message_to_fpga<ins>(ins::IDCODE));
+	connection.add(
+	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(32), 0)));
 
-	if (only_print) {
-		while (!messages.empty()) {
-			std::cout << std::setfill('0') << std::setw(16) << std::hex << messages.front() << "\n";
-			messages.pop();
-		}
-	} else {
-		// Instantiate a Simulation client.
-		hxcomm::SimConnection connection(str_ip, port);
-		connection.set_runnable(true);
-		while (!messages.empty()) {
-			connection.send(messages.front());
-			messages.pop();
-		}
-		while (true) {
-			// receive until timeout for printing all responses
-			try {
-				std::cout << std::setfill('0') << std::setw(16) << std::hex << connection.receive()
-				          << "\n";
-			} catch (std::runtime_error& ignored) {
-				break;
-			}
-		}
+	// Halt execution
+	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10000)));
+	connection.add(ut_message_to_fpga<halt>());
+
+	connection.commit();
+	connection.run_until_halt();
+
+	while (!connection.receive_empty()) {
+		auto message = connection.receive();
+		boost::apply_visitor([&message](auto m) { std::cout << m << std::endl; }, message);
 	}
 }

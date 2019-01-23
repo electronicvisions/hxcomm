@@ -5,8 +5,8 @@
 #include <boost/program_options.hpp>
 #include <gtest/gtest.h>
 
-#include "hxcomm/simconnection.h"
-#include "hxcomm/utmessage.h"
+#include "hxcomm/vx/simconnection.h"
+#include "hxcomm/vx/utmessage.h"
 
 extern int waf_gtest_argc;
 extern char** waf_gtest_argv;
@@ -28,41 +28,46 @@ TEST(SimConnection, ReadoutJtagID)
 	bpo::store(bpo::parse_command_line(waf_gtest_argc, waf_gtest_argv, desc), vm);
 	bpo::notify(vm);
 
-	using namespace hxcomm;
+	using namespace hxcomm::vx;
+	using namespace hxcomm::vx::instruction;
+	using data = instruction::to_fpga_jtag::data;
 
-	std::queue<ut_message_t> messages;
+	SimConnection connection(str_ip, port);
 
 	// Reset sequence
-	messages.push(UTMessageFactory::init_msg(true));
-	messages.push(UTMessageFactory::reset_timestamp());
-	messages.push(UTMessageFactory::wait_until(10));
-	messages.push(UTMessageFactory::init_msg(false));
-	messages.push(UTMessageFactory::wait_until(100));
+	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
+	connection.add(ut_message_to_fpga<timing::setup>());
+	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10)));
+	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(false)));
+	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(100)));
 
 	// JTAG init
-	messages.push(UTMessageFactory::set_clockscaler(3));
-	messages.push(UTMessageFactory::reset_msg());
+	connection.add(ut_message_to_fpga<to_fpga_jtag::scaler>(3));
+	connection.add(ut_message_to_fpga<to_fpga_jtag::init>());
 
 	// Read ID (JTAG instruction register is by specification IDCODE after init)
-	messages.push(UTMessageFactory::set_dr(0, 32, 1));
+	connection.add(
+	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(32), 0)));
 
-	// Instantiate a Simulation client.
-	hxcomm::SimConnection connection(str_ip, port);
+	// Halt execution
+	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10000)));
+	connection.add(ut_message_to_fpga<system::halt>());
 
-	connection.set_runnable(true);
-	while (!messages.empty()) {
-		connection.send(messages.front());
-		messages.pop();
-	}
-	std::vector<ut_message_t> responses;
+	connection.commit();
+
+	connection.run_until_halt();
+
+	std::vector<ut_message_from_fpga_variant> responses;
 	while (true) {
-		// receive until timeout for printing all responses
 		try {
 			responses.push_back(connection.receive());
 		} catch (std::runtime_error& ignored) {
 			break;
 		}
 	}
-	EXPECT_EQ(responses.size(), 1);
-	EXPECT_EQ(static_cast<uint32_t>(responses.back()), 0x48580AF);
+	EXPECT_EQ(responses.size(), 2);
+	EXPECT_EQ(
+	    static_cast<uint32_t>(
+	        boost::get<ut_message_from_fpga<jtag_from_hicann::data>>(responses.front()).decode()),
+	    0x48580AF);
 }

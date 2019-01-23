@@ -4,8 +4,9 @@ from waflib.extras.test_base import summary
 def depends(dep):
     dep('sctrltp')
     dep('lib-rcf')
+    dep('hate')
+    dep('halco')
     dep.recurse('pyflange')
-    dep.recurse('pyhxcomm')
 
 
 def options(opt):
@@ -15,18 +16,18 @@ def options(opt):
     opt.load("test_base")
     opt.load("gtest")
     opt.recurse('pyflange')
-    opt.recurse('pyhxcomm')
 
 
 def configure(conf):
     conf.load('compiler_c')
     conf.load('compiler_cxx')
     conf.load('boost')
-    conf.check_boost(lib='program_options system', uselib_store='BOOST4HXCOMM')
+    conf.check_boost(lib='program_options system coroutine context', uselib_store='BOOST4HXCOMM')
     conf.load("test_base")
     conf.load("gtest")
+    conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
+    conf.check_cxx(lib='tbb', uselib_store="TBB")
     conf.recurse('pyflange')
-    conf.recurse('pyhxcomm')
 
 
 def build(bld):
@@ -43,7 +44,7 @@ def build(bld):
         features     = 'cxx',
         source       = bld.path.ant_glob('src/hxcomm/*.cpp'),
         use          = ['hx_comm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
-                        'flange'],
+                        'flange', 'hate_inc', 'halco_common', 'TBB'],
         install_path = '${PREFIX}/lib',
     )
 
@@ -80,6 +81,30 @@ def build(bld):
     )
 
     bld(
+        target       = 'hx_comm_example_loopback_throughput',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hx_comm_loopback_throughput.cpp'],
+        use          = ['hx_comm'],
+        install_path = '${PREFIX}/bin',
+    )
+
+    bld(
+        target       = 'hx_comm_example_double_buffer_throughput',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hx_comm_double_buffer_throughput.cpp'],
+        use          = ['hx_comm'],
+        install_path = '${PREFIX}/bin',
+    )
+
+    bld(
+        target       = 'hx_comm_example_encode_decode_throughput',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hx_comm_encode_decode_throughput.cpp'],
+        use          = ['hx_comm'],
+        install_path = '${PREFIX}/bin',
+    )
+
+    bld(
         target       = 'hx_comm_swtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp'),
@@ -102,7 +127,6 @@ def build(bld):
     )
 
     bld.recurse('pyflange')
-    bld.recurse('pyhxcomm')
 
     # Create test summary (to stdout and XML file)
     bld.add_post_fun(summary)

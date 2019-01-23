@@ -1,7 +1,9 @@
-#include "hxcomm/simconnection.h"
+#include "hxcomm/vx/simconnection.h"
 
-namespace hxcomm {
+namespace hxcomm::vx {
 
-SimConnection::SimConnection(ip_t ip, port_t port) : SimulatorClient(ip, port) {}
+SimConnection::SimConnection(ip_t ip, port_t port) :
+    hxcomm::SimConnection<ConnectionParameter>(ip, port)
+{}
 
-} // namespace hxcomm
+} // namespace hxcomm::vx

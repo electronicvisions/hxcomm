@@ -9,9 +9,7 @@
 
 #include <boost/program_options.hpp>
 
-#include "hxcomm/jtag.h"
-#include "hxcomm/simconnection.h"
-#include "hxcomm/utmessage.h"
+#include "flange/simulator_client.h"
 
 #include "hx_comm_pipe_async_io_helper.h"
 
@@ -21,8 +19,6 @@ void signal_handler(int /*signum*/)
 }
 
 namespace bpo = boost::program_options;
-
-using namespace hxcomm;
 
 int main(int argc, char* argv[])
 {
@@ -55,7 +51,8 @@ int main(int argc, char* argv[])
 	}
 
 	// Instantiate a Simulation client.
-	std::unique_ptr<SimConnection> sim = std::make_unique<SimConnection>(str_ip, port);
+	std::unique_ptr<flange::SimulatorClient> sim =
+	    std::make_unique<flange::SimulatorClient>(str_ip, port);
 	sim->set_remote_timeout(rcf_response_timeout);
 
 	AsyncStreamReader reader{&std::cin};
@@ -68,7 +65,7 @@ int main(int argc, char* argv[])
 				first = false;
 			}
 			auto input_line = reader.get_line();
-			ut_message_t message = strtoull(input_line.c_str(), NULL, 16);
+			uint64_t message = strtoull(input_line.c_str(), NULL, 16);
 			sim->send(message);
 		}
 
