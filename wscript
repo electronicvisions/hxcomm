@@ -4,12 +4,16 @@ from waflib.extras.test_base import summary
 def depends(dep):
     dep('sctrltp')
 
+
 def options(opt):
     opt.load('compiler_c')
     opt.load('compiler_cxx')
     opt.load('boost')
     opt.load('post_task')
     opt.load("test_base")
+    opt.load("compiler_cxx")
+    opt.load("gtest")
+
 
 def configure(conf):
     conf.load('compiler_c')
@@ -18,11 +22,10 @@ def configure(conf):
     conf.load('post_task')
     conf.check_boost(lib='program_options system', uselib_store='BOOST4HXCOMM')
     conf.load("test_base")
+    conf.load("gtest")
+
 
 def build(bld):
-    # Create test summary (to stdout and XML file)
-    bld.add_post_fun(summary)
-
     bld(target          = 'hx_comm_inc',
         export_includes = 'include'
     )
@@ -42,6 +45,17 @@ def build(bld):
         use          = ['hx_comm'],
         install_path = '${PREFIX}/bin',
     )
+
+    bld(
+        target="hxcomm_swtests",
+        features="gtest cxx cxxprogram",
+        source=bld.path.ant_glob("tests/sw/test-*.cpp"),
+        use="hx_comm"
+    )
+
+    # Create test summary (to stdout and XML file)
+    bld.add_post_fun(summary)
+
 
 def doc(dox):
     pass
