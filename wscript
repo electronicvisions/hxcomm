@@ -4,6 +4,8 @@ from waflib.extras.test_base import summary
 def depends(dep):
     dep('sctrltp')
     dep('lib-rcf')
+    dep.recurse('pyflange')
+    dep.recurse('pyhxcomm')
 
 
 def options(opt):
@@ -12,6 +14,8 @@ def options(opt):
     opt.load('boost')
     opt.load("test_base")
     opt.load("gtest")
+    opt.recurse('pyflange')
+    opt.recurse('pyhxcomm')
 
 
 def configure(conf):
@@ -21,6 +25,8 @@ def configure(conf):
     conf.check_boost(lib='program_options system', uselib_store='BOOST4HXCOMM')
     conf.load("test_base")
     conf.load("gtest")
+    conf.recurse('pyflange')
+    conf.recurse('pyhxcomm')
 
 
 def build(bld):
@@ -94,6 +100,9 @@ def build(bld):
         source       = bld.path.ant_glob('tests/sw/flange/test-*.cpp'),
         use          = ['flange'],
     )
+
+    bld.recurse('pyflange')
+    bld.recurse('pyhxcomm')
 
     # Create test summary (to stdout and XML file)
     bld.add_post_fun(summary)

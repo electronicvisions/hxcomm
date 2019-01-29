@@ -3,18 +3,20 @@
 #include <bitset>
 #include <stdint.h>
 
-namespace hxcomm {
+#include "hxcomm/genpybind.h"
 
-typedef uint8_t ut_scaler_t;
-typedef std::bitset<7> ut_ins_t;
-typedef std::bitset<33> ut_data_t;
-typedef std::bitset<6> ut_data_len_t;
-typedef uint64_t ut_message_t;
-typedef uint32_t ut_time_t;
+namespace hxcomm GENPYBIND_TAG_HXCOMM {
+
+typedef uint8_t ut_scaler_t GENPYBIND(visible);
+typedef std::bitset<7> ut_ins_t GENPYBIND(visible);
+typedef std::bitset<33> ut_data_t GENPYBIND(visible);
+typedef std::bitset<6> ut_data_len_t GENPYBIND(visible);
+typedef uint64_t ut_message_t GENPYBIND(visible);
+typedef uint32_t ut_time_t GENPYBIND(visible);
 
 
 /// Collection of static functions to generate UT messages.
-class UTMessageFactory
+class GENPYBIND(visible) UTMessageFactory
 {
 private:
 	static const size_t header_shift = 56;

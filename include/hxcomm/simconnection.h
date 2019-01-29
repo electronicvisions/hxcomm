@@ -1,15 +1,16 @@
 #pragma once
 
 #include "flange/simulator_client.h"
+#include "hxcomm/genpybind.h"
 
-namespace hxcomm {
+namespace hxcomm GENPYBIND_TAG_HXCOMM {
 
 /**
  * Simulation connection class.
  * Establish and hold Simulation connection to FPGA.
  * Provide convenience functions for sending and receiving UT messages.
  */
-class SimConnection : public flange::SimulatorClient
+class GENPYBIND(visible, inline_base("*")) SimConnection : public flange::SimulatorClient
 {
 public:
 	/**

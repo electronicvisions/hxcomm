@@ -3,19 +3,20 @@
 
 #include "sctrltp/ARQStream.h"
 
+#include "hxcomm/genpybind.h"
 #include "hxcomm/utmessage.h"
 
-namespace hxcomm {
+namespace hxcomm GENPYBIND_TAG_HXCOMM {
 
 /**
  * HostARQ connection class.
  * Establish and hold HostARQ connection to FPGA.
  * Provide convenience functions for sending and receiving UT messages.
  */
-class ARQConnection
+class GENPYBIND(visible) ARQConnection
 {
 public:
-	typedef sctrltp::ARQStream::ip_t ip_address_type;
+	typedef sctrltp::ARQStream::ip_t ip_address_type GENPYBIND(opaque);
 
 	/**
 	 * Create connection to FPGA.

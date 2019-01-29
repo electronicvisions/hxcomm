@@ -2,8 +2,10 @@
 
 #include <cstdint>
 
-namespace hxcomm {
-class JTAG
+#include "hxcomm/genpybind.h"
+
+namespace hxcomm GENPYBIND_TAG_HXCOMM {
+class GENPYBIND(visible) JTAG
 {
 public:
 	/// Actual HICANN-X JTAG instructions according to chip specification

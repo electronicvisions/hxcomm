@@ -4,16 +4,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "flange/genpybind.h"
 #include "flange/simulator_event.h"
 
-namespace flange {
+namespace flange GENPYBIND_TAG_FLANGE {
 
 /**
  * Simulation client connecting via RCF to simulation controlled by SimulatorControl.
  * Establish and hold Simulation connection.
  * Provide convenience functions for sending and receiving packets.
  */
-class SimulatorClient
+class GENPYBIND(visible) SimulatorClient
 {
 public:
 	typedef uint16_t port_t;

@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+from waflib.extras.test_base import summary
+
+def depends(ctx):
+    ctx('hxcomm')
+
+
+def options(opt):
+    pass
+
+
+def configure(cfg):
+    cfg.load('compiler_cxx')
+    cfg.load('python')
+    cfg.check_python_version()
+    cfg.check_python_headers()
+    cfg.load('pytest')
+    cfg.load('genpybind')
+
+    cfg.check(
+        compiler='cxx',
+        features='cxx pyembed',
+        uselib_store='PYBIND11HXCOMM',
+        mandatory=True,
+        header_name='pybind11/pybind11.h',
+    )
+
+
+def build(bld):
+    bld(
+        target='pyhxcomm',
+        source='../include/hxcomm/hxcomm.h',
+        genpybind_tags='hxcomm',
+        features='genpybind cxx cxxshlib pyext',
+        use=['hx_comm', 'PYBIND11HXCOMM'],
+        install_path='${PREFIX}/lib',
+        linkflags='-Wl,-z,defs',
+    )
+
+    bld(
+        target='pyhxcomm_tests',
+        tests='tests/hxcomm-python_bindings.py',
+        features='use pytest',
+        use='pyhxcomm',
+        install_path='${PREFIX}/bin',
+        pythonpath=['tests'],
+    )
+
+    bld.add_post_fun(summary)
