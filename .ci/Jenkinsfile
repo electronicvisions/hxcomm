@@ -2,4 +2,5 @@
 
 wafDefaultPipeline(projects: ["hxcomm"],
                    container: [app: "visionary-dls"],
-                   notificationChannel: "#dls-software")
+                   notificationChannel: "#dls-software",
+                   warningsIgnorePattern: "*/lib-rcf/*")

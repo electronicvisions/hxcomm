@@ -3,6 +3,7 @@ from waflib.extras.test_base import summary
 
 def depends(dep):
     dep('sctrltp')
+    dep('lib-rcf')
 
 
 def options(opt):
@@ -27,12 +28,23 @@ def build(bld):
         export_includes = 'include'
     )
 
+    bld(target          = 'flange_inc',
+        export_includes = 'include'
+    )
+
     bld.shlib(
         target       = 'hx_comm',
         features     = 'cxx',
-        source       = bld.path.ant_glob('src/*.cpp'),
+        source       = bld.path.ant_glob('src/hxcomm/*.cpp'),
         use          = ['hx_comm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only'],
         install_path = '${PREFIX}/lib',
+    )
+
+    bld.shlib(
+        target       = 'flange_simulator_control',
+        features     = 'cxx',
+        source       = bld.path.ant_glob('src/flange/*.cpp'),
+        use          = ['flange_inc', 'rcf-sf-only'],
     )
 
     bld(
@@ -44,10 +56,17 @@ def build(bld):
     )
 
     bld(
-        target="hxcomm_swtests",
-        features="gtest cxx cxxprogram",
-        source=bld.path.ant_glob("tests/sw/test-*.cpp"),
-        use="hx_comm"
+        target       = 'hx_comm_swtests',
+        features     = 'gtest cxx cxxprogram',
+        source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp'),
+        use          = ['hx_comm'],
+    )
+
+    bld(
+        target       = 'flange_swtests',
+        features     = 'gtest cxx cxxprogram',
+        source       = bld.path.ant_glob('tests/sw/flange/test-*.cpp'),
+        use          = ['flange_simulator_control'],
     )
 
     # Create test summary (to stdout and XML file)
