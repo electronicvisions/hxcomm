@@ -17,7 +17,10 @@ typedef ::testing::Types<
     ut_message_to_fpga<instruction::timing::wait_until>,
     ut_message_to_fpga<instruction::system::reset>,
     ut_message_to_fpga<instruction::system::halt>,
+    ut_message_to_fpga<instruction::omnibus_to_fpga::address>,
+    ut_message_to_fpga<instruction::omnibus_to_fpga::data>,
     ut_message_from_fpga<instruction::jtag_from_hicann::data>,
+    ut_message_from_fpga<instruction::omnibus_from_fpga::data>,
     ut_message_from_fpga<instruction::from_fpga_system::halt> >
     SerializableTypes;
 
