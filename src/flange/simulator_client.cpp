@@ -22,9 +22,7 @@ struct SimulatorClient::Impl
 SimulatorClient::SimulatorClient(ip_t ip, port_t port) : m_impl(std::make_unique<Impl>(ip, port)) {}
 
 SimulatorClient::~SimulatorClient()
-{
-	m_impl->m_sim.issue_terminate();
-}
+{}
 
 void SimulatorClient::send(word_type const word)
 {
@@ -70,6 +68,11 @@ SimulatorEvent::clk_t SimulatorClient::get_current_time()
 void SimulatorClient::set_remote_timeout(int const timeout)
 {
 	m_impl->m_sim.getClientStub().setRemoteCallTimeoutMs(timeout);
+}
+
+void SimulatorClient::issue_terminate()
+{
+	m_impl->m_sim.issue_terminate();
 }
 
 } // namespace flange

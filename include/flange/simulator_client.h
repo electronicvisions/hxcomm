@@ -30,7 +30,7 @@ public:
 	SimulatorClient(ip_t ip, port_t port);
 
 	/**
-	 * Terminate simulation and close connection.
+	 * Close connection to simulator.
 	 */
 	~SimulatorClient();
 
@@ -77,6 +77,11 @@ public:
 	 * @param timeout Timeout in milliseconds
 	 */
 	void set_remote_timeout(int const timeout);
+
+	/**
+	 * Send terminate signal to simulator.
+	 */
+	void issue_terminate();
 private:
 	struct Impl;
 	std::unique_ptr<Impl> m_impl;
