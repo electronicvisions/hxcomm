@@ -20,9 +20,7 @@ TEST(halt, EncodeDecode)
 
 TEST(halt_response, EncodeDecode)
 {
-	typename from_fpga_system::halt::payload_type payload(
-	    from_fpga_system::halt::payload_type::ToFpgaCount(draw_non_default_value<uint32_t>(0)),
-	    from_fpga_system::halt::payload_type::FromFpgaCount(draw_non_default_value<uint32_t>(0)));
+	typename from_fpga_system::halt::payload_type payload;
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
