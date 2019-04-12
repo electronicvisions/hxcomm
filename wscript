@@ -105,18 +105,31 @@ def build(bld):
     )
 
     bld(
-        target       = 'hx_comm_swtests',
-        features     = 'gtest cxx cxxprogram',
-        source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp'),
-        use          = ['hx_comm'],
+        target          = 'hx_comm_tests_inc',
+        export_includes = 'tests/common'
+    )
+
+    bld.shlib(
+        target       = 'hx_comm_tests_helper',
+        features     = 'cxx',
+        source       = bld.path.ant_glob('tests/common/test-helper.cpp'),
+        use          = ['hx_comm', 'hx_comm_tests_inc'],
     )
 
     bld(
-        target       = 'hx_comm_hwtests',
+        target       = 'hx_comm_swtests',
         features     = 'gtest cxx cxxprogram',
-        source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
+        source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp'),
+        use          = ['hx_comm', 'hx_comm_tests_helper'],
+    )
+
+    bld(
+        target       = 'hx_comm_simtests',
+        features     = 'gtest cxx cxxprogram',
+        source       = bld.path.ant_glob('tests/sim/hxcomm/test-*.cpp'),
         skip_run     = True,
-        use          = ['hx_comm'],
+        test_main    = 'tests/sim/hxcomm/main.cpp',
+        use          = ['hx_comm', 'hx_comm_tests_helper'],
     )
 
     bld(

@@ -10,7 +10,7 @@ ins::payload_type const ins::SHIFT_PLL{4};
 ins::payload_type const ins::OMNIBUS_ADDRESS{5};
 ins::payload_type const ins::OMNIBUS_DATA{6};
 ins::payload_type const ins::OMNIBUS_REQUEST{7};
-ins::payload_type const ins::BYPASS{15};
+ins::payload_type const ins::BYPASS{127};
 
 
 data::payload_type::payload_type() : m_keep_response(false), m_num_bits(), m_payload() {}

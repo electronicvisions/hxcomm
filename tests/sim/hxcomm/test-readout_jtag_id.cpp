@@ -2,37 +2,21 @@
 #include <queue>
 #include <stdexcept>
 
-#include <boost/program_options.hpp>
 #include <gtest/gtest.h>
 
 #include "hxcomm/vx/simconnection.h"
 #include "hxcomm/vx/utmessage.h"
 
-extern int waf_gtest_argc;
-extern char** waf_gtest_argv;
+extern std::string simulation_ip;
+extern unsigned int simulation_port;
 
 TEST(SimConnection, ReadoutJtagID)
 {
-	namespace bpo = boost::program_options;
-
-	// parse arguments
-	std::string str_ip;
-	int port;
-	bpo::options_description desc("Options");
-	// clang-format off
-	desc.add_options()("readout_jtag_id_ip", bpo::value<std::string>(&str_ip)->default_value("127.0.0.1"))
-	    ("readout_jtag_id_port", bpo::value<int>(&port)->default_value(50001));
-	// clang-format on
-
-	bpo::variables_map vm;
-	bpo::store(bpo::parse_command_line(waf_gtest_argc, waf_gtest_argv, desc), vm);
-	bpo::notify(vm);
-
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 	using data = instruction::to_fpga_jtag::data;
 
-	SimConnection connection(str_ip, port);
+	SimConnection connection(simulation_ip, simulation_port);
 
 	// Reset sequence
 	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
