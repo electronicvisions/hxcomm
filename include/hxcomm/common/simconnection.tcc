@@ -71,8 +71,10 @@ void SimConnection<ConnectionParameter>::work_fill_receive_buffer(ip_t ip, port_
 
 	while (true) {
 		auto const write_pointer = m_receive_buffer.start_write();
-		if (!write_pointer)
+		if (!write_pointer) {
+			m_receive_buffer.notify();
 			return;
+		}
 		{
 			size_t words_written = 0;
 			while (local_sim.receive_data_available() && (words_written < receive_buffer_size)) {
@@ -92,8 +94,10 @@ void SimConnection<ConnectionParameter>::work_decode_messages()
 {
 	while (true) {
 		auto const read_pointer = m_receive_buffer.start_read();
-		if (!read_pointer)
+		if (!read_pointer) {
+			m_receive_buffer.notify();
 			return;
+		}
 		m_decoder(*read_pointer);
 		m_receive_buffer.stop_read();
 	}

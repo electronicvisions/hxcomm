@@ -120,8 +120,10 @@ void ARQConnection<ConnectionParameter>::work_fill_receive_buffer()
 {
 	while (true) {
 		auto const write_pointer = m_receive_buffer.start_write();
-		if (!write_pointer)
+		if (!write_pointer) {
+			m_receive_buffer.notify();
 			return;
+		}
 		{
 			size_t packets_written = 0;
 			while (m_arq_stream.received_packet_available() &&
@@ -143,8 +145,10 @@ void ARQConnection<ConnectionParameter>::work_decode_messages()
 {
 	while (true) {
 		auto const read_pointer = m_receive_buffer.start_read();
-		if (!read_pointer)
+		if (!read_pointer) {
+			m_receive_buffer.notify();
 			return;
+		}
 		for (auto it = read_pointer->cbegin(); it < read_pointer->cend(); ++it) {
 			for (size_t i = 0; i < it->len; ++i) {
 				m_decoder(it->pdu[i]);

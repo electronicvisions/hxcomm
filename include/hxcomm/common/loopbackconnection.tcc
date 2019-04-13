@@ -74,8 +74,10 @@ void LoopbackConnection<UTMessageParameter, SubpacketType>::work_fill_receive_bu
 {
 	while (true) {
 		auto const write_pointer = m_receive_buffer.start_write();
-		if (!write_pointer)
+		if (!write_pointer) {
+			m_receive_buffer.notify();
 			return;
+		}
 		{
 			std::lock_guard<std::mutex> lock(m_intermediate_queue_mutex);
 			size_t const read_size = m_intermediate_queue.size();
@@ -97,8 +99,10 @@ void LoopbackConnection<UTMessageParameter, SubpacketType>::work_decode_messages
 {
 	while (true) {
 		auto const read_pointer = m_receive_buffer.start_read();
-		if (!read_pointer)
+		if (!read_pointer) {
+			m_receive_buffer.notify();
 			return;
+		}
 		m_decoder(*read_pointer);
 		m_receive_buffer.stop_read();
 	}

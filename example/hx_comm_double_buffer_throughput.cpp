@@ -23,8 +23,10 @@ void throughput_measurement(size_t num)
 	auto producer = std::thread([&run, &buffer]() {
 		while (true) {
 			auto ptr = buffer.start_write();
-			if (!ptr)
+			if (!ptr) {
+				buffer.notify();
 				return;
+			}
 			buffer.stop_write();
 		}
 	});
@@ -33,8 +35,10 @@ void throughput_measurement(size_t num)
 	auto consumer = std::thread([&run, &count, &buffer]() {
 		while (true) {
 			auto ptr = buffer.start_read();
-			if (!ptr)
+			if (!ptr) {
+				buffer.notify();
 				return;
+			}
 			buffer.stop_read();
 			count = count + 1;
 		}
