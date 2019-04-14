@@ -113,7 +113,6 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_for(flange::SimulatorEvent::clk_t clock)
 {
 	std::unique_lock<std::mutex> lock(m_runnable_mutex);
-	lock.lock();
 	if (m_sim.get_runnable()) {
 		throw std::runtime_error("Trying to start already running simulation.");
 	}
@@ -147,7 +146,6 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_until_halt()
 {
 	std::unique_lock<std::mutex> lock(m_runnable_mutex);
-	lock.lock();
 	if (m_sim.get_runnable()) {
 		throw std::runtime_error("Trying to start already running simulation.");
 	}
