@@ -157,7 +157,7 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 	lock.unlock();
 
 	constexpr size_t wait_period = 10000;
-	constexpr size_t timeout = 60 * 1000 * 1000 / wait_period;
+	constexpr size_t timeout = 600 * 1000 * 1000 / wait_period;
 	size_t counter = 0;
 	while (!m_listener_halt.get()) {
 		usleep(wait_period);
