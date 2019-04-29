@@ -20,7 +20,14 @@ struct WaitUntil
 	typedef hxcomm::instruction::detail::payload::Number<WaitUntil, value_type> Payload;
 };
 
+/** Syncronize ASIC time with FPGA time. */
+struct SystimeInit
+{
+	constexpr static size_t size = 1;
+	typedef hxcomm::instruction::detail::payload::Bitset<SystimeInit, size> Payload;
+};
+
 /** Dictionary of all timing instructions. */
-typedef hate::type_list<Setup, WaitUntil> Dictionary;
+typedef hate::type_list<Setup, WaitUntil, SystimeInit> Dictionary;
 
 } // namespace hxcomm::vx::instruction::timing

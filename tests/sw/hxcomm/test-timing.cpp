@@ -26,3 +26,14 @@ TEST(WaitUntil, EncodeDecode)
 	decoded.decode(bitstream);
 	ASSERT_EQ(payload, decoded);
 }
+
+
+TEST(SystimeInit, EncodeDecode)
+{
+	typename timing::SystimeInit::Payload payload(random_bitset<timing::SystimeInit::size>());
+
+	auto bitstream = payload.encode();
+	decltype(payload) decoded;
+	decoded.decode(bitstream);
+	ASSERT_EQ(payload, decoded);
+}

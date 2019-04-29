@@ -9,12 +9,12 @@ TEST(Dictionary, ToFPGA)
 	using type_4 = hate::index_type_list_by_integer<4, ToFPGADictionary>::type;
 	EXPECT_TRUE((std::is_same<type_4, timing::Setup>::value));
 
-	constexpr size_t index_6 =
+	constexpr size_t index_7 =
 	    hate::index_type_list_by_type<system::Reset, ToFPGADictionary>::value;
-	EXPECT_EQ(index_6, 6);
+	EXPECT_EQ(index_7, 7);
 
 	EXPECT_EQ(type_4::size, 0);
-	EXPECT_EQ((hate::index_type_list_by_integer<index_6, ToFPGADictionary>::type::size), 1);
+	EXPECT_EQ((hate::index_type_list_by_integer<index_7, ToFPGADictionary>::type::size), 1);
 	EXPECT_EQ((jtag_from_hicann::Data::size), 33);
 }
 
