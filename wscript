@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 import os
+from os.path import join
 from waflib.extras.test_base import summary
-
+from waflib.extras.symwaf2ic import get_toplevel_path
 
 def depends(dep):
     dep('sctrltp')
     dep('lib-rcf')
     dep('hate')
     dep('halco')
+    dep('code-format')
     dep.recurse('pyflange')
 
 
@@ -17,6 +19,7 @@ def options(opt):
     opt.load('boost')
     opt.load("test_base")
     opt.load("gtest")
+    opt.load("doxygen")
     opt.recurse('pyflange')
 
 
@@ -29,6 +32,7 @@ def configure(conf):
     conf.load("gtest")
     conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
     conf.check_cxx(lib='tbb', uselib_store="TBB")
+    conf.load("doxygen")
     conf.recurse('pyflange')
 
 
@@ -162,9 +166,17 @@ def build(bld):
 
     bld.recurse('pyflange')
 
+    bld(
+        features = 'doxygen',
+        name = 'hxcomm_documentation',
+        doxyfile = bld.root.make_node(join(get_toplevel_path(), "code-format", "doxyfile")),
+        install_path = 'doc/hxcomm',
+        pars = {
+            "PROJECT_NAME": "\"HX Communication\"",
+            "INPUT": join(get_toplevel_path(), "hxcomm", "include"),
+            "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
+        },
+    )
+
     # Create test summary (to stdout and XML file)
     bld.add_post_fun(summary)
-
-
-def doc(dox):
-    pass

@@ -43,7 +43,7 @@ public:
 
 	/**
 	 * Create connection to FPGA.
-	 * @param fpgaip IP-address of FPGA
+	 * @param ip IP-address of FPGA
 	 */
 	ARQConnection(ip_t ip);
 
