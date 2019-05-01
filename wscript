@@ -123,13 +123,30 @@ def build(bld):
         use          = ['hx_comm', 'hx_comm_tests_helper'],
     )
 
+    bld(target          = 'hx_comm_hwtests_inc',
+        export_includes = 'tests/hw/hxcomm/connection_hw'
+    )
+
+    bld(
+        target       = 'hx_comm_hwtests',
+        features     = 'gtest cxx cxxprogram',
+        source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
+        skip_run     = True,
+        test_main    = 'tests/hw/hxcomm/main.cpp',
+        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_hwtests_inc'],
+    )
+
+    bld(target          = 'hx_comm_simtests_inc',
+        export_includes = 'tests/hw/hxcomm/connection_sim'
+    )
+
     bld(
         target       = 'hx_comm_simtests',
         features     = 'gtest cxx cxxprogram',
-        source       = bld.path.ant_glob('tests/sim/hxcomm/test-*.cpp'),
+        source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = True,
-        test_main    = 'tests/sim/hxcomm/main.cpp',
-        use          = ['hx_comm', 'hx_comm_tests_helper'],
+        test_main    = 'tests/hw/hxcomm/main.cpp',
+        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_simtests_inc'],
     )
 
     bld(

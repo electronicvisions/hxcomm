@@ -1,22 +1,14 @@
-#include <memory>
-#include <queue>
-#include <stdexcept>
-
 #include <gtest/gtest.h>
 
-#include "hxcomm/vx/simconnection.h"
-#include "hxcomm/vx/utmessage.h"
+#include "connection.h"
 
-extern std::string simulation_ip;
-extern unsigned int simulation_port;
-
-TEST(SimConnection, ReadoutJtagID)
+TEST(TestConnection, ReadoutJtagID)
 {
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 	using data = instruction::to_fpga_jtag::data;
 
-	SimConnection connection(simulation_ip, simulation_port);
+	auto connection = generate_test_connection();
 
 	// Reset sequence
 	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));

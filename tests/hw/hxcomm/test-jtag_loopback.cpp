@@ -1,14 +1,7 @@
-#include <memory>
-#include <queue>
-#include <stdexcept>
-
 #include <gtest/gtest.h>
 
-#include "hxcomm/vx/simconnection.h"
+#include "connection.h"
 #include "test-helper.h"
-
-extern std::string simulation_ip;
-extern unsigned int simulation_port;
 
 /**
  * Generate random JTAG data payload with a random number of sent bits.
@@ -32,12 +25,12 @@ hxcomm::vx::instruction::to_fpga_jtag::data::payload_type random_data()
 /**
  * Write random payload JTAG data words in BYPASS mode and check equality to the write responses.
  */
-TEST(SimConnection, JTAGLoopback)
+TEST(TestConnection, JTAGLoopback)
 {
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 
-	SimConnection connection(simulation_ip, simulation_port);
+	auto connection = generate_test_connection();
 
 	// Reset sequence
 	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
@@ -76,7 +69,7 @@ TEST(SimConnection, JTAGLoopback)
 
 	std::vector<ut_message_from_fpga_variant> responses;
 
-	SimConnection::receive_message_type message;
+	TestConnection::receive_message_type message;
 	while (connection.try_receive(message)) {
 		responses.push_back(message);
 	}
