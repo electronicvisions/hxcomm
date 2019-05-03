@@ -9,15 +9,18 @@ namespace hxcomm::vx::instruction::omnibus_to_fpga {
 /**
  * Instruction to set Omnibus address for a read or write operation.
  * On read this instruction leads to a read response. On write, data is to be provided with a
- * following 'data' instruction.
+ * following 'data' instruction. To the FPGA, byte enables can be used to select byte transmission.
  */
 struct address
 {
-	constexpr static size_t size = 33;
+	constexpr static size_t size = 37;
 	class payload_type
 	{
 	public:
-		explicit payload_type(uint32_t address = 0, bool is_read = false);
+		explicit payload_type(
+		    uint32_t address = 0,
+		    bool is_read = false,
+		    hate::bitset<sizeof(uint32_t)> byte_enables = 0xf);
 
 		bool operator==(payload_type const& other) const;
 		bool operator!=(payload_type const& other) const;
@@ -26,7 +29,8 @@ struct address
 		hate::bitset<size, SubwordType> encode() const
 		{
 			hate::bitset<size, SubwordType> tmp(m_address);
-			tmp.set(sizeof(uint32_t) * CHAR_BIT, m_is_read);
+			tmp.set(sizeof(uint32_t) * CHAR_BIT + sizeof(uint32_t), m_is_read);
+			tmp |= hate::bitset<size, SubwordType>(m_byte_enables) << sizeof(uint32_t) * CHAR_BIT;
 			return tmp;
 		}
 
@@ -34,12 +38,14 @@ struct address
 		void decode(hate::bitset<size, SubwordType> const& data)
 		{
 			m_address = static_cast<uint32_t>(data);
-			m_is_read = data.test(sizeof(uint32_t) * CHAR_BIT);
+			m_is_read = data.test(sizeof(uint32_t) * CHAR_BIT + sizeof(uint32_t));
+			m_byte_enables = (data >> (sizeof(uint32_t) * CHAR_BIT));
 		}
 
 	private:
 		uint32_t m_address;
 		bool m_is_read;
+		hate::bitset<sizeof(uint32_t)> m_byte_enables;
 	};
 };
 
