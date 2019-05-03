@@ -1,3 +1,6 @@
+#include <sstream>
+#include "hxcomm/common/logger.h"
+
 namespace hxcomm {
 
 namespace detail {
@@ -26,12 +29,16 @@ Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
     m_coroutine(std::bind(
         &Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine,
         this,
-        std::placeholders::_1))
+        std::placeholders::_1)),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.Decoder"))
 {}
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(word_type const word)
 {
+	HXCOMM_LOG_DEBUG(
+	    m_logger, "operator(): Got PHY word to decode: 0x"
+	                  << std::setfill('0') << std::setw(sizeof(word_type) * 2) << std::hex << word);
 	m_coroutine(word);
 }
 
@@ -40,6 +47,12 @@ template <typename Iterable>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
     Iterable const& iterable)
 {
+	for (auto it = iterable.cbegin(); it != iterable.cend(); ++it) {
+		HXCOMM_LOG_DEBUG(
+		    m_logger, "operator(): Got PHY word to decode: 0x"
+		                  << std::setfill('0') << std::setw(sizeof(word_type) * 2) << std::hex
+		                  << *it);
+	}
 	std::copy(iterable.cbegin(), iterable.cend(), begin(m_coroutine));
 }
 
@@ -120,6 +133,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message_
 				    filling_level -= (filling_level % num_bits_word);
 			    }
 		    }
+		    HXCOMM_LOG_DEBUG(m_logger, "decode_message(): Decoded UT message: " << message);
 		    boost::fusion::for_each(listener, [message](auto& l) { l(message); });
 		    queue.push(std::move(message));
 	    }...};

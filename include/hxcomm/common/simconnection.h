@@ -17,6 +17,10 @@
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/utmessage.h"
 
+namespace log4cxx {
+class Logger;
+} // namespace log4cxx
+
 namespace hxcomm {
 
 /**
@@ -170,6 +174,7 @@ private:
 	std::mutex m_runnable_mutex;
 
 	bool m_terminate_on_destruction;
+	log4cxx::Logger* m_logger;
 };
 
 } // namespace hxcomm

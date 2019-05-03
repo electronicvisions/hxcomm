@@ -1,3 +1,4 @@
+#include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
 
 namespace hxcomm {
@@ -15,12 +16,16 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_worker_fill_receive_buffer(
         &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this, ip, port),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
-    m_terminate_on_destruction(false)
-{}
+    m_terminate_on_destruction(false),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
+{
+	HXCOMM_LOG_TRACE(logger, "SimConnection(): Sim connection started.");
+}
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::~SimConnection()
 {
+	HXCOMM_LOG_TRACE(m_logger, "~SimConnection(): Stopping Sim connection.");
 	m_run_receive = false;
 	m_receive_buffer.notify();
 	m_worker_fill_receive_buffer.join();
@@ -37,6 +42,7 @@ template <typename ConnectionParameter>
 template <class MessageType>
 void SimConnection<ConnectionParameter>::add(MessageType const& message)
 {
+	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	m_encoder(message);
 }
 
@@ -50,6 +56,7 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::commit()
 {
 	m_encoder.flush();
+	HXCOMM_LOG_INFO(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
 	while (!m_send_queue.empty()) {
 		m_sim.send(m_send_queue.front());
 		m_send_queue.pop();

@@ -1,4 +1,5 @@
 #include "hate/math.h"
+#include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
 
 namespace hxcomm {
@@ -54,7 +55,8 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(
         &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
-    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this)
+    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {}
 
 template <typename ConnectionParameter>
@@ -69,12 +71,16 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(
         &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
-    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this)
-{}
+    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
+{
+	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
+}
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::~ARQConnection()
 {
+	HXCOMM_LOG_TRACE(m_logger, "~ARQConnection(): Stopping ARQ connection.");
 	m_run_receive = false;
 	m_receive_buffer.notify();
 	m_worker_fill_receive_buffer.join();
@@ -85,6 +91,7 @@ template <typename ConnectionParameter>
 template <class MessageType>
 void ARQConnection<ConnectionParameter>::add(MessageType const& message)
 {
+	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	m_encoder(message);
 }
 
@@ -98,7 +105,10 @@ template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::commit()
 {
 	m_encoder.flush();
-	for (auto const packet : m_send_queue.move_to_packet_vector()) {
+	auto packets = m_send_queue.move_to_packet_vector();
+	size_t const num_packets = packets.size();
+	HXCOMM_LOG_INFO(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
+	for (auto const packet : packets) {
 		m_arq_stream.send(packet, sctrltp::ARQStream::NOTHING);
 	}
 	m_arq_stream.flush();

@@ -7,6 +7,10 @@
 
 #include "hxcomm/common/utmessage.h"
 
+namespace log4cxx {
+class Logger;
+} // namespace log4cxx
+
 namespace hxcomm {
 
 /**
@@ -124,6 +128,8 @@ private:
 	typename coroutine_type::push_type m_coroutine;
 
 	void coroutine(typename coroutine_type::pull_type& source);
+
+	log4cxx::Logger* m_logger;
 };
 
 } // namespace hxcomm

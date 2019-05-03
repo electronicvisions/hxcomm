@@ -10,6 +10,7 @@ def depends(dep):
     dep('hate')
     dep('halco')
     dep('code-format')
+    dep('logger')
     dep.recurse('pyflange')
 
 
@@ -21,6 +22,10 @@ def options(opt):
     opt.load("gtest")
     opt.load("doxygen")
     opt.recurse('pyflange')
+    opt.add_option("--hxcomm-loglevel",
+                   choices=["trace", "debug", "info", "warning", "error", "fatal"],
+                   default="info",
+                   help="Maximal loglevel to compile in.")
 
 
 def configure(conf):
@@ -35,6 +40,15 @@ def configure(conf):
     conf.check_cxx(lib='tbb', uselib_store="TBB")
     conf.load("doxygen")
     conf.recurse('pyflange')
+    conf.define(
+        "HXCOMM_LOG_THRESHOLD",
+        {'trace':   0,
+         'debug':   1,
+         'info':    2,
+         'warning': 3,
+         'error':   4,
+         'fatal':   5}[conf.options.hxcomm_loglevel]
+    )
 
 
 def build(bld):
@@ -48,7 +62,8 @@ def build(bld):
         target       = 'hxcomm',
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
-                        'flange', 'hate_inc', 'halco_hicann_dls_vx', 'TBB'],
+                        'flange', 'hate_inc', 'halco_hicann_dls_vx', 'TBB', 'logger_obj'],
+        install_path = '${PREFIX}/lib',
     )
 
     bld.shlib(

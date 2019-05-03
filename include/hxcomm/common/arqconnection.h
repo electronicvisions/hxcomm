@@ -15,6 +15,10 @@
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/utmessage.h"
 
+namespace log4cxx {
+class Logger;
+} // namespace log4cxx
+
 namespace hxcomm {
 
 /**
@@ -162,6 +166,8 @@ private:
 
 	void work_decode_messages();
 	std::thread m_worker_decode_messages;
+
+	log4cxx::Logger* m_logger;
 };
 
 } // namespace hxcomm
