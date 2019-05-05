@@ -10,8 +10,9 @@ TEST(omnibus_to_fpga_address, EncodeDecode)
 {
 	auto addr = draw_non_default_value<uint32_t>(0);
 	bool read = static_cast<bool>(random_integer(0, 1));
+	auto byte_enables = random_bitset<4>();
 
-	typename address::payload_type payload(addr, read);
+	typename address::payload_type payload(addr, read, byte_enables);
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
