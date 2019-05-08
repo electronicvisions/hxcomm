@@ -10,18 +10,18 @@ template <class T>
 class CommonUTMessageTests : public ::testing::Test
 {};
 
-typedef ::testing::Types<
-    ut_message_to_fpga<instruction::to_fpga_jtag::init>,
-    ut_message_to_fpga<instruction::to_fpga_jtag::scaler>,
-    ut_message_to_fpga<instruction::to_fpga_jtag::ins>,
-    ut_message_to_fpga<instruction::to_fpga_jtag::data>,
-    ut_message_to_fpga<instruction::timing::setup>,
-    ut_message_to_fpga<instruction::timing::wait_until>,
-    ut_message_to_fpga<instruction::system::reset>,
-    ut_message_to_fpga<instruction::system::halt>,
-    ut_message_from_fpga<instruction::jtag_from_hicann::data>,
-    ut_message_from_fpga<instruction::from_fpga_system::halt> >
-    UTMessageTypes;
+template <typename ToTL, typename FromTL>
+struct to_testing_types;
+
+template <typename... ToIs, typename... FromIs>
+struct to_testing_types<hate::type_list<ToIs...>, hate::type_list<FromIs...>>
+{
+	typedef ::testing::Types<ut_message_to_fpga<ToIs>..., ut_message_from_fpga<FromIs>...> type;
+};
+
+typedef
+    typename to_testing_types<instruction::to_fpga_dictionary, instruction::from_fpga_dictionary>::
+        type UTMessageTypes;
 
 TYPED_TEST_CASE(CommonUTMessageTests, UTMessageTypes);
 
