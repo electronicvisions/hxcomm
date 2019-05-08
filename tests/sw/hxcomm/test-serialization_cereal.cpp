@@ -2,27 +2,17 @@
 
 #include "hxcomm/vx/utmessage.h"
 
+#include "test-to_testing_types.h"
+
 using namespace hxcomm::vx;
 
 template <class T>
 class CommonSerializationTests : public ::testing::Test
 {};
 
-typedef ::testing::Types<
-    ut_message_to_fpga<instruction::to_fpga_jtag::init>,
-    ut_message_to_fpga<instruction::to_fpga_jtag::scaler>,
-    ut_message_to_fpga<instruction::to_fpga_jtag::ins>,
-    ut_message_to_fpga<instruction::to_fpga_jtag::data>,
-    ut_message_to_fpga<instruction::timing::setup>,
-    ut_message_to_fpga<instruction::timing::wait_until>,
-    ut_message_to_fpga<instruction::system::reset>,
-    ut_message_to_fpga<instruction::system::halt>,
-    ut_message_to_fpga<instruction::omnibus_to_fpga::address>,
-    ut_message_to_fpga<instruction::omnibus_to_fpga::data>,
-    ut_message_from_fpga<instruction::jtag_from_hicann::data>,
-    ut_message_from_fpga<instruction::omnibus_from_fpga::data>,
-    ut_message_from_fpga<instruction::from_fpga_system::halt> >
-    SerializableTypes;
+typedef
+    typename to_testing_types<instruction::to_fpga_dictionary, instruction::from_fpga_dictionary>::
+        type SerializableTypes;
 
 TYPED_TEST_CASE(CommonSerializationTests, SerializableTypes);
 

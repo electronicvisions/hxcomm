@@ -3,21 +3,13 @@
 
 #include "hxcomm/vx/utmessage.h"
 
+#include "test-to_testing_types.h"
+
 using namespace hxcomm::vx;
-using namespace hxcomm::vx::instruction;
 
 template <class T>
 class CommonUTMessageTests : public ::testing::Test
 {};
-
-template <typename ToTL, typename FromTL>
-struct to_testing_types;
-
-template <typename... ToIs, typename... FromIs>
-struct to_testing_types<hate::type_list<ToIs...>, hate::type_list<FromIs...>>
-{
-	typedef ::testing::Types<ut_message_to_fpga<ToIs>..., ut_message_from_fpga<FromIs>...> type;
-};
 
 typedef
     typename to_testing_types<instruction::to_fpga_dictionary, instruction::from_fpga_dictionary>::
