@@ -1,5 +1,7 @@
 #!/usr/bin/env python
+import os
 from waflib.extras.test_base import summary
+
 
 def depends(dep):
     dep('sctrltp')
@@ -31,6 +33,8 @@ def configure(conf):
 
 
 def build(bld):
+    bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
+
     bld(target          = 'hx_comm_inc',
         export_includes = 'include'
     )
@@ -131,7 +135,7 @@ def build(bld):
         target       = 'hx_comm_hwtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
-        skip_run     = True,
+        skip_run     = not bld.env.DLSvx_HARDWARE_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
         use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_hwtests_inc'],
     )

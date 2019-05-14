@@ -29,7 +29,8 @@ int main(int argc, char* argv[])
 	namespace bpo = boost::program_options;
 	bpo::options_description desc("Options");
 	// clang-format off
-	desc.add_options()("fpga_ip", bpo::value<std::string>(&fpga_ip)->required());
+	// Currently (2019-05-14) the only setup, still ugly -> issue #3161
+	desc.add_options()("fpga_ip", bpo::value<std::string>(&fpga_ip)->default_value("192.168.4.4"));
 	// clang-format on
 
 	bpo::variables_map vm;
