@@ -68,7 +68,7 @@ Packet<SubpacketType, MaxSize>::Packet() : data(), m_size(0)
 template <typename SubpacketType, size_t MaxSize>
 void Packet<SubpacketType, MaxSize>::set_size(size_t const size)
 {
-	assert(size < MaxSize);
+	assert(size <= MaxSize);
 	m_size = size;
 }
 
