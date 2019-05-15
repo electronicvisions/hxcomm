@@ -1,7 +1,7 @@
 namespace hxcomm {
 
-template <typename UTMessageParameter, typename SubpacketType>
-LoopbackConnection<UTMessageParameter, SubpacketType>::LoopbackConnection() :
+template <typename UTMessageParameter>
+LoopbackConnection<UTMessageParameter>::LoopbackConnection() :
     m_intermediate_queue_mutex(),
     m_intermediate_queue(),
     m_send_queue(),
@@ -11,13 +11,13 @@ LoopbackConnection<UTMessageParameter, SubpacketType>::LoopbackConnection() :
     m_run_receive(true),
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(
-        &LoopbackConnection<UTMessageParameter, SubpacketType>::work_fill_receive_buffer, this),
+        &LoopbackConnection<UTMessageParameter>::work_fill_receive_buffer, this),
     m_worker_decode_messages(
-        &LoopbackConnection<UTMessageParameter, SubpacketType>::work_decode_messages, this)
+        &LoopbackConnection<UTMessageParameter>::work_decode_messages, this)
 {}
 
-template <typename UTMessageParameter, typename SubpacketType>
-LoopbackConnection<UTMessageParameter, SubpacketType>::~LoopbackConnection()
+template <typename UTMessageParameter>
+LoopbackConnection<UTMessageParameter>::~LoopbackConnection()
 {
 	m_run_receive = false;
 	m_receive_buffer.notify();
@@ -25,22 +25,22 @@ LoopbackConnection<UTMessageParameter, SubpacketType>::~LoopbackConnection()
 	m_worker_decode_messages.join();
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
+template <typename UTMessageParameter>
 template <class MessageType>
-void LoopbackConnection<UTMessageParameter, SubpacketType>::add(MessageType const& message)
+void LoopbackConnection<UTMessageParameter>::add(MessageType const& message)
 {
 	m_encoder(message);
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-void LoopbackConnection<UTMessageParameter, SubpacketType>::add(
+template <typename UTMessageParameter>
+void LoopbackConnection<UTMessageParameter>::add(
     std::vector<send_message_type> const& messages)
 {
 	m_encoder(messages);
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-void LoopbackConnection<UTMessageParameter, SubpacketType>::commit()
+template <typename UTMessageParameter>
+void LoopbackConnection<UTMessageParameter>::commit()
 {
 	m_encoder.flush();
 	size_t const size = m_send_queue.size();
@@ -51,9 +51,9 @@ void LoopbackConnection<UTMessageParameter, SubpacketType>::commit()
 	}
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-typename LoopbackConnection<UTMessageParameter, SubpacketType>::receive_message_type
-LoopbackConnection<UTMessageParameter, SubpacketType>::receive()
+template <typename UTMessageParameter>
+typename LoopbackConnection<UTMessageParameter>::receive_message_type
+LoopbackConnection<UTMessageParameter>::receive()
 {
 	receive_message_type message;
 	if (__builtin_expect(!m_receive_queue.try_pop(message), false)) {
@@ -62,15 +62,15 @@ LoopbackConnection<UTMessageParameter, SubpacketType>::receive()
 	return message;
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-bool LoopbackConnection<UTMessageParameter, SubpacketType>::try_receive(
+template <typename UTMessageParameter>
+bool LoopbackConnection<UTMessageParameter>::try_receive(
     receive_message_type& message)
 {
 	return m_receive_queue.try_pop(message);
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-void LoopbackConnection<UTMessageParameter, SubpacketType>::work_fill_receive_buffer()
+template <typename UTMessageParameter>
+void LoopbackConnection<UTMessageParameter>::work_fill_receive_buffer()
 {
 	while (true) {
 		auto const write_pointer = m_receive_buffer.start_write();
@@ -94,8 +94,8 @@ void LoopbackConnection<UTMessageParameter, SubpacketType>::work_fill_receive_bu
 	}
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-void LoopbackConnection<UTMessageParameter, SubpacketType>::work_decode_messages()
+template <typename UTMessageParameter>
+void LoopbackConnection<UTMessageParameter>::work_decode_messages()
 {
 	while (true) {
 		auto const read_pointer = m_receive_buffer.start_read();
@@ -108,8 +108,8 @@ void LoopbackConnection<UTMessageParameter, SubpacketType>::work_decode_messages
 	}
 }
 
-template <typename UTMessageParameter, typename SubpacketType>
-bool LoopbackConnection<UTMessageParameter, SubpacketType>::receive_empty() const
+template <typename UTMessageParameter>
+bool LoopbackConnection<UTMessageParameter>::receive_empty() const
 {
 	return m_receive_queue.empty();
 }

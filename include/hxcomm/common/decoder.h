@@ -13,14 +13,12 @@ namespace hxcomm {
  * Decoder sequentially decoding a stream of words into a UT message queue.
  * The queue is expected to provide a push function.
  * @tparam UTMessageParameter UT message parameter
- * @tparam WordType Type of packet words used for communication
  * @tparam MessageQueueType Queue type used for storing decoded UT messages in
  * @tparam Listener An arbitrary number of message listeners to be invoked for each decoded message
  * using their operator()
  */
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
 class Decoder
@@ -29,10 +27,11 @@ public:
 	typedef typename to_ut_message_variant<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::SubwordType,
+	    typename UTMessageParameter::PhywordType,
 	    typename UTMessageParameter::Dictionary>::type receive_message_type;
 
 	typedef MessageQueueType message_queue_type;
-	typedef WordType word_type;
+	typedef typename UTMessageParameter::PhywordType word_type;
 
 	/**
 	 * Initialize decoder with a reference to a message queue to push decoded messages to and
@@ -66,6 +65,7 @@ private:
 	                                          largest_ut_message_size<
 	                                              UTMessageParameter::HeaderAlignment,
 	                                              typename UTMessageParameter::SubwordType,
+	                                              typename UTMessageParameter::PhywordType,
 	                                              typename UTMessageParameter::Dictionary>::value,
 	                                          num_bits_word) +
 	                                      num_bits_word;
@@ -119,7 +119,7 @@ private:
 	template <size_t... Header>
 	void decode_message_table_generator(size_t header, std::index_sequence<Header...>);
 
-	typedef boost::coroutines2::coroutine<WordType> coroutine_type;
+	typedef boost::coroutines2::coroutine<word_type> coroutine_type;
 
 	typename coroutine_type::push_type m_coroutine;
 

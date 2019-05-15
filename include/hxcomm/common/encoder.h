@@ -12,8 +12,13 @@ template <typename... T>
 struct is_ut_message : public std::false_type
 {};
 
-template <size_t HeaderAlignment, typename SubwordType, typename Dictionary, typename Instruction>
-struct is_ut_message<ut_message<HeaderAlignment, SubwordType, Dictionary, Instruction>>
+template <
+    size_t HeaderAlignment,
+    typename SubwordType,
+    typename PhywordType,
+    typename Dictionary,
+    typename Instruction>
+struct is_ut_message<ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>>
     : public std::true_type
 {};
 
@@ -23,19 +28,19 @@ struct is_ut_message<ut_message<HeaderAlignment, SubwordType, Dictionary, Instru
  * Encoder sequentially encoding UT messages to a word queue.
  * The queue is expected to provide a push function for single words.
  * @tparam UTMessageParameter UT message parameter
- * @tparam WordType Word type of word queue
- * @tparam Derived WordQueueType Queue type to push words to
+ * @tparam WordQueueType Queue type to push words to
  */
-template <typename UTMessageParameter, typename WordType, typename WordQueueType>
+template <typename UTMessageParameter, typename WordQueueType>
 class Encoder
 {
 public:
 	typedef typename to_ut_message_variant<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::SubwordType,
+	    typename UTMessageParameter::PhywordType,
 	    typename UTMessageParameter::Dictionary>::type send_message_type;
 
-	typedef WordType word_type;
+	typedef typename UTMessageParameter::PhywordType word_type;
 	typedef WordQueueType word_queue_type;
 
 	/**
@@ -79,6 +84,7 @@ private:
 	                                          largest_ut_message_size<
 	                                              UTMessageParameter::HeaderAlignment,
 	                                              typename UTMessageParameter::SubwordType,
+	                                              typename UTMessageParameter::PhywordType,
 	                                              typename UTMessageParameter::Dictionary>::value,
 	                                          num_bits_word) +
 	                                      num_bits_word;

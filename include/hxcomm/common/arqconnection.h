@@ -32,11 +32,13 @@ public:
 	typedef typename to_ut_message_variant<
 	    ConnectionParameter::Send::HeaderAlignment,
 	    typename ConnectionParameter::Send::SubwordType,
+	    typename ConnectionParameter::Send::PhywordType,
 	    typename ConnectionParameter::Send::Dictionary>::type send_message_type;
 
 	typedef typename to_ut_message_variant<
 	    ConnectionParameter::Receive::HeaderAlignment,
 	    typename ConnectionParameter::Receive::SubwordType,
+	    typename ConnectionParameter::Receive::PhywordType,
 	    typename ConnectionParameter::Receive::Dictionary>::type receive_message_type;
 
 	/**
@@ -101,6 +103,13 @@ private:
 
 	typedef sctrltp::packet::entry_t subpacket_type;
 
+	static_assert(
+	    std::is_same<subpacket_type, typename ConnectionParameter::Send::PhywordType>::value,
+	    "HostARQ entry_t does not match send PhyWord type.");
+	static_assert(
+	    std::is_same<subpacket_type, typename ConnectionParameter::Receive::PhywordType>::value,
+	    "HostARQ entry_t does not match receive PhyWord type.");
+
 	struct SendQueue
 	{
 	public:
@@ -121,7 +130,7 @@ private:
 	typedef SendQueue send_queue_type;
 	send_queue_type m_send_queue;
 
-	Encoder<typename ConnectionParameter::Send, subpacket_type, send_queue_type> m_encoder;
+	Encoder<typename ConnectionParameter::Send, send_queue_type> m_encoder;
 
 	typedef tbb::concurrent_queue<receive_message_type> receive_queue_type;
 	receive_queue_type m_receive_queue;
@@ -129,6 +138,7 @@ private:
 	typedef ListenerHalt<ut_message<
 	    ConnectionParameter::Receive::HeaderAlignment,
 	    typename ConnectionParameter::Receive::SubwordType,
+	    typename ConnectionParameter::Receive::PhywordType,
 	    typename ConnectionParameter::Receive::Dictionary,
 	    typename ConnectionParameter::ReceiveHalt>>
 	    listener_halt_type;
@@ -136,7 +146,6 @@ private:
 
 	Decoder<
 	    typename ConnectionParameter::Receive,
-	    subpacket_type,
 	    receive_queue_type,
 	    listener_halt_type>
 	    m_decoder;

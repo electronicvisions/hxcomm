@@ -11,11 +11,10 @@ using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
 
 /** Return default-constructed ut_message of runtime-specifiable header. */
-template <typename UTMessageParameter, typename SubpacketType>
+template <typename UTMessageParameter>
 struct default_message
 {
-	typedef typename LoopbackConnection<UTMessageParameter, SubpacketType>::receive_message_type
-	    message_type;
+	typedef typename LoopbackConnection<UTMessageParameter>::receive_message_type message_type;
 
 	template <size_t H, size_t... Hs>
 	static message_type message_recurse(size_t header, std::index_sequence<H, Hs...>)
@@ -23,6 +22,7 @@ struct default_message
 		return (header == H) ? ut_message<
 		                           UTMessageParameter::HeaderAlignment,
 		                           typename UTMessageParameter::SubwordType,
+		                           typename UTMessageParameter::PhywordType,
 		                           typename UTMessageParameter::Dictionary,
 		                           typename hate::index_type_list_by_integer<
 		                               H, typename UTMessageParameter::Dictionary>::type>()
@@ -34,7 +34,7 @@ struct default_message
 	{
 		return ut_message<
 		    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
-		    typename UTMessageParameter::Dictionary,
+		    typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
 		    typename hate::index_type_list_by_integer<
 		        H, typename UTMessageParameter::Dictionary>::type>();
 	}
@@ -51,11 +51,10 @@ template <class LoopbackConnectionType>
 typename LoopbackConnectionType::send_message_type random_message()
 {
 	// random message type
-	auto message = default_message<
-	    UTMessageParameter<
-	        LoopbackConnectionType::header_alignment, typename LoopbackConnectionType::subword_type,
-	        typename LoopbackConnectionType::dictionary_type>,
-	    typename LoopbackConnectionType::subpacket_type>::
+	auto message = default_message<UTMessageParameter<
+	    LoopbackConnectionType::header_alignment, typename LoopbackConnectionType::subword_type,
+	    typename LoopbackConnectionType::phyword_type,
+	    typename LoopbackConnectionType::dictionary_type>>::
 	    message(random_integer(
 	        0, hate::type_list_size<typename LoopbackConnectionType::dictionary_type>::value - 1));
 	// random payload
@@ -73,53 +72,37 @@ struct to_testing_types<std::index_sequence<N...> >
 {
 	typedef ::testing::Types<
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, to_fpga_dictionary>,
-	        uint8_t>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint8_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, to_fpga_dictionary>,
-	        uint8_t>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint8_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, to_fpga_dictionary>,
-	        uint8_t>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint8_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, to_fpga_dictionary>,
-	        uint8_t>...,
+	        UTMessageParameter<header_alignments[N], uint64_t, uint8_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, to_fpga_dictionary>,
-	        uint16_t>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint16_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, to_fpga_dictionary>,
-	        uint16_t>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint16_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, to_fpga_dictionary>,
-	        uint16_t>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint16_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, to_fpga_dictionary>,
-	        uint16_t>...,
+	        UTMessageParameter<header_alignments[N], uint64_t, uint16_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, to_fpga_dictionary>,
-	        uint32_t>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint32_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, to_fpga_dictionary>,
-	        uint32_t>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint32_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, to_fpga_dictionary>,
-	        uint32_t>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint32_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, to_fpga_dictionary>,
-	        uint32_t>...,
+	        UTMessageParameter<header_alignments[N], uint64_t, uint32_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, to_fpga_dictionary>,
-	        uint64_t>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint64_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, to_fpga_dictionary>,
-	        uint64_t>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint64_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, to_fpga_dictionary>,
-	        uint64_t>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint64_t, to_fpga_dictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, to_fpga_dictionary>,
-	        uint64_t>...>
+	        UTMessageParameter<header_alignments[N], uint64_t, uint64_t, to_fpga_dictionary>>...>
 	    types;
 };
 

@@ -2,14 +2,14 @@ namespace hxcomm {
 
 namespace detail {
 
-template <size_t HeaderAlignment, typename SubwordType, typename Dictionary>
+template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
 struct ut_message_sizes;
 
-template <size_t HeaderAlignment, typename SubwordType, typename... Ts>
-struct ut_message_sizes<HeaderAlignment, SubwordType, hate::type_list<Ts...> >
+template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Ts>
+struct ut_message_sizes<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...> >
 {
 	constexpr static std::array<size_t, sizeof...(Ts)> value = {
-	    ut_message<HeaderAlignment, SubwordType, hate::type_list<Ts...>, Ts>::word_width...};
+	    ut_message<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...>, Ts>::word_width...};
 };
 
 } // namespace detail
@@ -17,27 +17,25 @@ struct ut_message_sizes<HeaderAlignment, SubwordType, hate::type_list<Ts...> >
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::Decoder(
+Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
     message_queue_type& message_queue, Listener&... listener) :
     m_buffer(),
     m_buffer_filling_level(0),
     m_message_queue(message_queue),
     m_listener(listener...),
     m_coroutine(std::bind(
-        &Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::coroutine,
+        &Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine,
         this,
         std::placeholders::_1))
 {}
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::operator()(
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
     word_type const word)
 {
 	m_coroutine(word);
@@ -45,11 +43,10 @@ void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::opera
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
 template <typename Iterable>
-void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::operator()(
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
     Iterable const& iterable)
 {
 	std::copy(iterable.cbegin(), iterable.cend(), begin(m_coroutine));
@@ -57,10 +54,9 @@ void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::opera
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-bool Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::has_leading_comma(
+bool Decoder<UTMessageParameter, MessageQueueType, Listener...>::has_leading_comma(
     word_type const word) const
 {
 	constexpr word_type comma_mask = (static_cast<word_type>(1) << (num_bits_word - 1));
@@ -69,10 +65,9 @@ bool Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::has_l
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::shift_in_buffer(
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::shift_in_buffer(
     word_type const word)
 {
 	m_buffer.shift_words_left(1);
@@ -82,10 +77,9 @@ void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::shift
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-size_t Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::decode_header() const
+size_t Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_header() const
 {
 	size_t const header = static_cast<size_t>(
 	    hate::bitset<header_size, size_t>((m_buffer >> (m_buffer_filling_level - header_size))));
@@ -102,24 +96,22 @@ size_t Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::dec
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
 constexpr size_t
-Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::get_message_size(
+Decoder<UTMessageParameter, MessageQueueType, Listener...>::get_message_size(
     size_t const header)
 {
 	return detail::ut_message_sizes<
-	    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
+	    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType, typename UTMessageParameter::PhywordType,
 	    typename UTMessageParameter::Dictionary>::value[header];
 }
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::decode_message(
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(
     size_t const header)
 {
 	decode_message_table_generator(
@@ -129,11 +121,10 @@ void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::decod
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
 template <size_t... Header>
-void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::
     decode_message_table_generator(size_t const header, std::index_sequence<Header...>)
 {
 	constexpr static std::array<
@@ -143,7 +134,7 @@ void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::
 	    function_table{[](size_t& filling_level, buffer_type const& buffer,
 	                      message_queue_type& queue, boost::fusion::tuple<Listener&...> listener) {
 		    typedef ut_message<
-		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
+		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType, typename UTMessageParameter::PhywordType,
 		        typename UTMessageParameter::Dictionary,
 		        typename hate::index_type_list_by_integer<
 		            Header, typename UTMessageParameter::Dictionary>::type>
@@ -166,10 +157,9 @@ void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::
 
 template <
     typename UTMessageParameter,
-    typename WordType,
     typename MessageQueueType,
     typename... Listener>
-void Decoder<UTMessageParameter, WordType, MessageQueueType, Listener...>::coroutine(
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine(
     typename coroutine_type::pull_type& source)
 {
 	while (true) {

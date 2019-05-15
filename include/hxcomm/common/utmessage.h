@@ -22,7 +22,12 @@ namespace hxcomm {
  * @tparam Dictionary Dictionary of instructions
  * @tparam Instruction Instruction to encode in UT message
  */
-template <size_t HeaderAlignment, typename SubwordType, typename Dictionary, typename Instruction>
+template <
+    size_t HeaderAlignment,
+    typename SubwordType,
+    typename PhywordType,
+    typename Dictionary,
+    typename Instruction>
 class ut_message
 {
 public:
@@ -33,6 +38,8 @@ public:
 	static constexpr size_t comma_width = 1;
 	/** Number of bits of a subword. */
 	static constexpr size_t subword_width = sizeof(SubwordType) * CHAR_BIT;
+	/** Number of bits of a phyword. */
+	static constexpr size_t phyword_width = sizeof(PhywordType) * CHAR_BIT;
 	/** Number of bits of the header. The comma sits left-aligned in the header. */
 	static constexpr size_t header_width = hate::math::round_up_to_multiple(
 	    comma_width + hate::math::num_bits(hate::type_list_size<Dictionary>::value - 1),
@@ -41,8 +48,15 @@ public:
 	static constexpr size_t num_subwords = hate::math::round_up_integer_division(
 	    header_width + Instruction::size, sizeof(SubwordType) * CHAR_BIT);
 
-	/** Total number of bits of a ut_message. */
-	static constexpr size_t word_width = subword_width * num_subwords;
+	/**
+	 * Total number of bits of a ut_message.
+	 * If the calculated minimal size aligned to subword_width is smaller than phyword_width,
+	 * round up to one full phyword_width, because the UT can process at most one UT message per
+	 * PHY word.
+	 */
+	static constexpr size_t word_width = ((subword_width * num_subwords) < phyword_width)
+	                                         ? phyword_width
+	                                         : (subword_width * num_subwords);
 	/** Number of bits of the payload field. */
 	static constexpr size_t payload_width = Instruction::size;
 
@@ -136,7 +150,7 @@ private:
  * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
  * @tparam Dictionary Dictionary of instructions
  */
-template <size_t HeaderAlignment, typename SubwordType, typename Dictionary>
+template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
 struct to_ut_message_variant;
 
 
@@ -146,7 +160,7 @@ struct to_ut_message_variant;
  * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
  * @tparam Dictionary Dictionary of instructions
  */
-template <size_t HeaderAlignment, typename SubwordType, typename Dictionary>
+template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
 struct largest_ut_message_size;
 
 /**

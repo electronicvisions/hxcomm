@@ -17,20 +17,21 @@ namespace hxcomm {
  * without alteration. Every committed message can be received in order.
  * The send and receive dictionary are therefore the same.
  * @tparam UTMessageParameter UT message parameter
- * @tparam SubpacketType Type of packet words used for communication
  */
-template <typename UTMessageParameter, typename SubpacketType>
+template <typename UTMessageParameter>
 class LoopbackConnection
 {
 public:
 	static constexpr size_t header_alignment = UTMessageParameter::HeaderAlignment;
+	typedef typename UTMessageParameter::PhywordType phyword_type;
 	typedef typename UTMessageParameter::SubwordType subword_type;
 	typedef typename UTMessageParameter::Dictionary dictionary_type;
-	typedef SubpacketType subpacket_type;
+	typedef phyword_type subpacket_type;
 
 	typedef typename to_ut_message_variant<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::SubwordType,
+	    typename UTMessageParameter::PhywordType,
 	    typename UTMessageParameter::Dictionary>::type send_message_type;
 	typedef send_message_type receive_message_type;
 
@@ -90,12 +91,12 @@ private:
 	typedef std::queue<subpacket_type> send_queue_type;
 	send_queue_type m_send_queue;
 
-	Encoder<UTMessageParameter, subpacket_type, send_queue_type> m_encoder;
+	Encoder<UTMessageParameter, send_queue_type> m_encoder;
 
 	typedef tbb::concurrent_queue<receive_message_type> receive_queue_type;
 	receive_queue_type m_receive_queue;
 
-	Decoder<UTMessageParameter, subpacket_type, receive_queue_type> m_decoder;
+	Decoder<UTMessageParameter, receive_queue_type> m_decoder;
 
 	std::atomic<bool> m_run_receive;
 

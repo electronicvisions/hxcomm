@@ -14,11 +14,10 @@ using namespace hxcomm::vx::instruction;
 using send_dict = hxcomm::vx::instruction::to_fpga_dictionary;
 
 /** Return default-constructed ut_message of runtime-specifiable header. */
-template <typename UTMessageParameter, class SubpacketType>
+template <typename UTMessageParameter>
 struct default_message
 {
-	typedef typename LoopbackConnection<UTMessageParameter, SubpacketType>::receive_message_type
-	    message_type;
+	typedef typename LoopbackConnection<UTMessageParameter>::receive_message_type message_type;
 
 	template <size_t H, size_t... Hs>
 	static message_type message_recurse(size_t header, std::index_sequence<H, Hs...>)
@@ -26,6 +25,7 @@ struct default_message
 		return (header == H) ? ut_message<
 		                           UTMessageParameter::HeaderAlignment,
 		                           typename UTMessageParameter::SubwordType,
+		                           typename UTMessageParameter::PhywordType,
 		                           typename UTMessageParameter::Dictionary,
 		                           typename hate::index_type_list_by_integer<
 		                               H, typename UTMessageParameter::Dictionary>::type>()
@@ -37,7 +37,7 @@ struct default_message
 	{
 		return ut_message<
 		    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
-		    typename UTMessageParameter::Dictionary,
+		    typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
 		    typename hate::index_type_list_by_integer<
 		        H, typename UTMessageParameter::Dictionary>::type>();
 	}
@@ -80,15 +80,16 @@ private:
 	T m_data;
 };
 
-template <typename UTMessageParameter, typename SubpacketType>
+template <typename UTMessageParameter>
 void throughput_measurement(size_t num, bool random_header, unsigned int seed)
 {
 	srand(seed);
 
 	std::stringstream ss;
 	ss << "Header alignment: " << UTMessageParameter::HeaderAlignment
-	   << "; subword width: " << sizeof(typename UTMessageParameter::SubwordType) * 8
-	   << "; subpacket width: " << sizeof(SubpacketType) * 8 << std::endl;
+	   << "; subword width: " << sizeof(typename UTMessageParameter::SubwordType) * CHAR_BIT
+	   << "; subpacket width: " << sizeof(typename UTMessageParameter::PhywordType) * CHAR_BIT
+	   << std::endl;
 	std::cout << ss.str();
 
 	auto to_mega_rate = [](size_t count, auto dur_ms) -> double {
@@ -96,12 +97,12 @@ void throughput_measurement(size_t num, bool random_header, unsigned int seed)
 	};
 	size_t byte_count = 0;
 
-	typedef typename default_message<UTMessageParameter, SubpacketType>::message_type message_type;
+	typedef typename default_message<UTMessageParameter>::message_type message_type;
 
 	// generate random messages
 	std::vector<message_type> instructions;
 	for (size_t i = 0; i < num; ++i) {
-		instructions.push_back(default_message<UTMessageParameter, SubpacketType>::message(
+		instructions.push_back(default_message<UTMessageParameter>::message(
 		    random_header ? rand() % hate::type_list_size<send_dict>::value : 1));
 	}
 
@@ -113,9 +114,9 @@ void throughput_measurement(size_t num, bool random_header, unsigned int seed)
 
 	// encoding
 	{
-		typedef FastQueue<SubpacketType> word_queue_type;
+		typedef FastQueue<typename UTMessageParameter::PhywordType> word_queue_type;
 		word_queue_type packets;
-		Encoder<UTMessageParameter, SubpacketType, word_queue_type> encoder(packets);
+		Encoder<UTMessageParameter, word_queue_type> encoder(packets);
 
 		auto begin = std::chrono::high_resolution_clock::now();
 
@@ -131,12 +132,13 @@ void throughput_measurement(size_t num, bool random_header, unsigned int seed)
 	// decoding
 	{
 		// generate encoded word stream
-		std::queue<SubpacketType> packets;
-		Encoder<UTMessageParameter, SubpacketType, std::queue<SubpacketType>> encoder(packets);
+		std::queue<typename UTMessageParameter::PhywordType> packets;
+		Encoder<UTMessageParameter, std::queue<typename UTMessageParameter::PhywordType>> encoder(
+		    packets);
 		encoder(instructions);
 
 		// align stream in memory for easy access
-		std::vector<SubpacketType> packets_vector;
+		std::vector<typename UTMessageParameter::PhywordType> packets_vector;
 		size_t const size = packets.size();
 		for (size_t i = 0; i < size; ++i) {
 			packets_vector.push_back(packets.front());
@@ -144,7 +146,7 @@ void throughput_measurement(size_t num, bool random_header, unsigned int seed)
 		}
 
 		FastQueue<message_type> responses;
-		Decoder<UTMessageParameter, SubpacketType, decltype(responses)> decoder(responses);
+		Decoder<UTMessageParameter, decltype(responses)> decoder(responses);
 
 		auto begin = std::chrono::high_resolution_clock::now();
 
@@ -182,17 +184,17 @@ int main(int argc, char* argv[])
 		return EXIT_SUCCESS;
 	}
 
-	throughput_measurement<UTMessageParameter<8, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<8, uint32_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<8, uint16_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<8, uint8_t, send_dict>, uint64_t>(num, random, seed);
+	throughput_measurement<UTMessageParameter<8, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<8, uint32_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<8, uint16_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<8, uint8_t, uint64_t, send_dict>>(num, random, seed);
 
-	throughput_measurement<UTMessageParameter<8, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<7, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<6, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<5, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<4, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<3, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<2, uint64_t, send_dict>, uint64_t>(num, random, seed);
-	throughput_measurement<UTMessageParameter<1, uint64_t, send_dict>, uint64_t>(num, random, seed);
+	throughput_measurement<UTMessageParameter<8, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<7, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<6, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<5, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<4, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<3, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<2, uint64_t, uint64_t, send_dict>>(num, random, seed);
+	throughput_measurement<UTMessageParameter<1, uint64_t, uint64_t, send_dict>>(num, random, seed);
 }

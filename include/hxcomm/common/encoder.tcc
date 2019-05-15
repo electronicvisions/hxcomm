@@ -1,16 +1,16 @@
 namespace hxcomm {
 
-template <typename UTMessageParameter, typename WordType, typename WordQueueType>
-Encoder<UTMessageParameter, WordType, WordQueueType>::Encoder(word_queue_type& word_queue) :
+template <typename UTMessageParameter, typename WordQueueType>
+Encoder<UTMessageParameter, WordQueueType>::Encoder(word_queue_type& word_queue) :
     m_buffer(),
     m_buffer_filling_level(0),
     m_word_queue(word_queue)
 {}
 
-template <typename UTMessageParameter, typename WordType, typename WordQueueType>
+template <typename UTMessageParameter, typename WordQueueType>
 template <class MessageType>
 typename std::enable_if<detail::is_ut_message<MessageType>::value, void>::type
-Encoder<UTMessageParameter, WordType, WordQueueType>::operator()(MessageType const& message)
+Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& message)
 {
 	static_assert(
 	    hate::is_in_type_list<
@@ -35,18 +35,18 @@ Encoder<UTMessageParameter, WordType, WordQueueType>::operator()(MessageType con
 	m_buffer_filling_level -= (num_words_to_shift_out * m_buffer.num_bits_per_word);
 }
 
-template <typename UTMessageParameter, typename WordType, typename WordQueueType>
+template <typename UTMessageParameter, typename WordQueueType>
 template <typename Iterable>
 typename std::enable_if<!detail::is_ut_message<Iterable>::value, void>::type
-Encoder<UTMessageParameter, WordType, WordQueueType>::operator()(Iterable const& messages)
+Encoder<UTMessageParameter, WordQueueType>::operator()(Iterable const& messages)
 {
 	for (auto it = messages.cbegin(); it < messages.cend(); ++it) {
 		boost::apply_visitor([this](auto&& m) { this->operator()(m); }, *it);
 	}
 }
 
-template <typename UTMessageParameter, typename WordType, typename WordQueueType>
-void Encoder<UTMessageParameter, WordType, WordQueueType>::flush()
+template <typename UTMessageParameter, typename WordQueueType>
+void Encoder<UTMessageParameter, WordQueueType>::flush()
 {
 	if (m_buffer_filling_level) {
 		// set comma
