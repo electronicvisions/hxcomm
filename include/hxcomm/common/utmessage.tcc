@@ -186,7 +186,8 @@ std::ostream& operator<<(
 	auto const words = message.get_raw().to_array();
 	for (auto iter = words.rbegin(); iter != words.rend(); iter++) {
 		std::stringstream ss;
-		ss << std::hex << std::setfill('0') << std::setw(message.subword_width / 4) << *iter;
+		ss << std::hex << std::setfill('0') << std::setw(message.subword_width / 4)
+		   << static_cast<largest_ut_message_subword_type>(*iter);
 		os << ss.str();
 	}
 	os << ")";

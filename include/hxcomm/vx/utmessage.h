@@ -9,7 +9,7 @@ typedef uint64_t ut_message_to_fpga_subword_type;
 typedef uint64_t ut_message_to_fpga_phyword_type;
 
 constexpr size_t ut_message_from_fpga_header_alignment = 8;
-typedef uint64_t ut_message_from_fpga_subword_type;
+typedef uint8_t ut_message_from_fpga_subword_type;
 typedef uint64_t ut_message_from_fpga_phyword_type;
 
 template <typename I>

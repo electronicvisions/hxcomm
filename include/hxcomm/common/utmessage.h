@@ -12,6 +12,8 @@ class access;
 
 namespace hxcomm {
 
+typedef uint64_t largest_ut_message_subword_type;
+
 /**
  * Container for a UT message used for host-FPGA communication.
  * It is aligned to subword width. The header is left-aligned, the payload is right-aligned. The
@@ -68,6 +70,10 @@ public:
 	typedef hate::bitset<header_width, SubwordType> header_type;
 	/** Type of the payload field. */
 	typedef hate::bitset<payload_width, SubwordType> payload_type;
+
+	static_assert(
+	    sizeof(SubwordType) <= sizeof(largest_ut_message_subword_type),
+	    "SubwordType size not supported as too large.");
 
 	/** Default construct UTMessage with zeroed payload. */
 	constexpr UTMessage();
