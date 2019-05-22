@@ -1,3 +1,5 @@
+#include "hxcomm/common/signal.h"
+
 namespace hxcomm {
 
 template <typename ConnectionParameter>
@@ -124,6 +126,8 @@ void SimConnection<ConnectionParameter>::run_for(flange::SimulatorEvent::clk_t c
 		throw std::runtime_error("Trying to start already running simulation.");
 	}
 
+	SignalOverrideIntTerm signal_override;
+
 	flange::SimulatorEvent::clk_t current_time = m_sim.get_current_time();
 
 	// start simulation
@@ -131,13 +135,10 @@ void SimConnection<ConnectionParameter>::run_for(flange::SimulatorEvent::clk_t c
 	lock.unlock();
 
 	constexpr size_t wait_period = 10000;
-	constexpr size_t timeout = 60 * 1000 * 1000 / wait_period;
-	size_t counter = 0;
 	while (m_sim.get_runnable()) {
-		usleep(wait_period);
-		if (counter++ > timeout) {
-			throw std::runtime_error(
-			    "Timeout while waiting for simulation to progress to clock cycle.");
+		int ret = usleep(wait_period);
+		if ((ret != 0) && errno != EINTR) {
+			throw std::runtime_error("Error during usleep call.");
 		}
 		if (m_sim.get_current_time() >= current_time + clock) {
 			break;
@@ -157,6 +158,8 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 		throw std::runtime_error("Trying to start already running simulation.");
 	}
 
+	SignalOverrideIntTerm signal_override;
+
 	m_listener_halt.reset();
 
 	// start simulation
@@ -164,12 +167,10 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 	lock.unlock();
 
 	constexpr size_t wait_period = 10000;
-	constexpr size_t timeout = 600 * 1000 * 1000 / wait_period;
-	size_t counter = 0;
 	while (!m_listener_halt.get()) {
-		usleep(wait_period);
-		if (counter++ > timeout) {
-			throw std::runtime_error("Timeout while waiting for simulation to halt.");
+		int ret = usleep(wait_period);
+		if ((ret != 0) && errno != EINTR) {
+			throw std::runtime_error("Error during usleep call.");
 		}
 	}
 

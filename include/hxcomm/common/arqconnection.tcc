@@ -1,3 +1,4 @@
+#include "hxcomm/common/signal.h"
 #include "hate/math.h"
 
 namespace hxcomm {
@@ -172,13 +173,13 @@ bool ARQConnection<ConnectionParameter>::receive_empty() const
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::run_until_halt()
 {
+	SignalOverrideIntTerm signal_override;
+
 	constexpr size_t wait_period = 10000;
-	constexpr size_t timeout = 60 * 1000 * 1000 / wait_period;
-	size_t counter = 0;
 	while (!m_listener_halt.get()) {
-		usleep(wait_period);
-		if (counter++ > timeout) {
-			throw std::runtime_error("Timeout while waiting for simulation to halt.");
+		int ret = usleep(wait_period);
+		if ((ret != 0) && errno != EINTR) {
+			throw std::runtime_error("Error during usleep call.");
 		}
 	}
 	m_listener_halt.reset();
