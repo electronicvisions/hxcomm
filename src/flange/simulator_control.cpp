@@ -1,9 +1,10 @@
+#include "flange/simulator_control.h"
+
 extern "C"
 {
 #include <unistd.h>
 }
 
-#include "flange/simulator_control.h"
 #include "flange/simulator_control_if.h"
 
 namespace flange {

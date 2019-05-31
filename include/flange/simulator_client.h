@@ -1,8 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <string>
 
 #include "flange/genpybind.h"
 #include "flange/simulator_event.h"
@@ -52,7 +53,7 @@ public:
 	 * On true start / continue with execution.
 	 * @param value Value to set runnable state to
 	 */
-	void set_runnable(bool const value);
+	void set_runnable(bool value);
 
 	/**
 	 * Get runnable state of the simulation.
@@ -76,7 +77,7 @@ public:
 	 * Set RCF remote call timeout in milliseconds.
 	 * @param timeout Timeout in milliseconds
 	 */
-	void set_remote_timeout(int const timeout);
+	void set_remote_timeout(int timeout);
 
 	/**
 	 * Send terminate signal to simulator.

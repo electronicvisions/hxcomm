@@ -1,3 +1,5 @@
+#include "flange/simulator_dpi.h"
+
 extern "C"
 {
 #include <unistd.h>
@@ -5,7 +7,6 @@ extern "C"
 
 #include "flange/simulator_control.h"
 #include "flange/simulator_control_if.h"
-#include "flange/simulator_dpi.h"
 
 // the C-API uses global variables to track the service and RCF server instances
 static std::vector<flange::SimulatorControl*> g_service;

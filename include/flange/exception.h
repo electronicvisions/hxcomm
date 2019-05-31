@@ -8,11 +8,11 @@ namespace flange {
 class timeout : public virtual std::exception
 {
 public:
-	explicit timeout(std::string const& msg) : m_msg(msg) {}
+	explicit timeout(std::string const& msg);
 
 	virtual ~timeout() noexcept override = default;
 
-	virtual const char* what() const noexcept override { return m_msg.c_str(); }
+	virtual const char* what() const noexcept override;
 
 private:
 	std::string const m_msg;

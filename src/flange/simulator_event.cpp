@@ -1,8 +1,8 @@
+#include "flange/simulator_event.h"
+
 #include <stdexcept>
 
 #include <SF/utility.hpp>
-
-#include "flange/simulator_event.h"
 
 namespace flange {
 
