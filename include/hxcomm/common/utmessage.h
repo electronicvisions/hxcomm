@@ -1,14 +1,9 @@
 #pragma once
-#include "hxcomm/common/cerealization.h"
 
 #include "hate/bitset.h"
 #include "hate/math.h"
 #include "hate/type_list.h"
 #include "hate/visibility.h"
-
-namespace cereal {
-class access;
-} // namespace cereal
 
 namespace hxcomm {
 
@@ -142,11 +137,6 @@ public:
 	bool operator!=(UTMessage const& other) const;
 
 private:
-	friend class cereal::access;
-
-	template <typename Archive>
-	void cerealize(Archive& ar);
-
 	payload_type m_data;
 };
 

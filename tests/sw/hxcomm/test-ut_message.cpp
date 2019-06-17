@@ -1,7 +1,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/vx/utmessage.h"
+
+#include <cereal/archives/json.hpp>
 
 #include "test-to_testing_types.h"
 

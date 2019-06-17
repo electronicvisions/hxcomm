@@ -194,17 +194,4 @@ std::ostream& operator<<(
 	return os;
 }
 
-template <
-    size_t HeaderAlignment,
-    typename SubwordType,
-    typename PhywordType,
-    typename Dictionary,
-    typename Instruction>
-template <typename Archive>
-void UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::cerealize(
-    Archive& ar)
-{
-	ar(CEREAL_NVP(m_data));
-}
-
 } // namespace hxcomm
