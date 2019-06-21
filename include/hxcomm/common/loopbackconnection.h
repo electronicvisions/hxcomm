@@ -22,6 +22,8 @@ template <typename UTMessageParameter>
 class LoopbackConnection
 {
 public:
+	typedef UTMessageParameter ut_message_parameter_type;
+
 	static constexpr size_t header_alignment = UTMessageParameter::HeaderAlignment;
 	typedef typename UTMessageParameter::PhywordType phyword_type;
 	typedef typename UTMessageParameter::SubwordType subword_type;
