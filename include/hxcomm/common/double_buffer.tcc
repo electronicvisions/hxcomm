@@ -2,11 +2,18 @@ namespace hxcomm {
 
 template <typename T>
 DoubleBuffer<T>::DoubleBuffer(std::atomic<bool>& run) :
-    m_data{T(), T()},
+    m_data{new T(), new T()},
     m_write_position(0),
     m_read_position(0),
     m_run(run)
 {}
+
+template <typename T>
+DoubleBuffer<T>::~DoubleBuffer()
+{
+	delete m_data[0];
+	delete m_data[1];
+}
 
 template <typename T>
 void DoubleBuffer<T>::notify()
@@ -26,7 +33,7 @@ T* DoubleBuffer<T>::start_write()
 	if (!m_run) {
 		return nullptr;
 	}
-	return &m_data[m_write_position];
+	return m_data[m_write_position];
 }
 
 template <typename T>
@@ -49,7 +56,7 @@ T const* DoubleBuffer<T>::start_read()
 	if (!m_run) {
 		return nullptr;
 	}
-	return &m_data[m_read_position];
+	return m_data[m_read_position];
 }
 
 template <typename T>

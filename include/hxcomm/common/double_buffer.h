@@ -24,6 +24,11 @@ public:
 	DoubleBuffer(std::atomic<bool>& run);
 
 	/**
+	 * Destruct double buffer.
+	 */
+	~DoubleBuffer();
+
+	/**
 	 * Start write access. Blocks on full buffer until stop_read marked an entry as writable.
 	 * If m_run value is false return even if no writable buffer is available.
 	 * @return Pointer to next writable buffer entry
@@ -55,7 +60,7 @@ public:
 	void notify();
 
 private:
-	T m_data[2];
+	T* m_data[2];
 
 	std::atomic<size_t> m_read_available_count = 0;
 
