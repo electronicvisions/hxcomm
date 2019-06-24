@@ -117,14 +117,10 @@ private:
 
 		void push(subpacket_type const& subpacket);
 
-		size_t num_packets() const;
-
-		sctrltp::packet& front_packet();
-		sctrltp::packet const& front_packet() const;
-		void pop_packet();
+		std::vector<sctrltp::packet> move_to_packet_vector();
 
 	private:
-		std::queue<sctrltp::packet> m_queue;
+		std::vector<subpacket_type> m_subpackets;
 	};
 
 	typedef SendQueue send_queue_type;

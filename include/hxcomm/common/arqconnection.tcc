@@ -1,51 +1,43 @@
+#include "hate/math.h"
+
 namespace hxcomm {
 
 template <typename ConnectionParameter>
-ARQConnection<ConnectionParameter>::SendQueue::SendQueue() : m_queue()
-{
-	sctrltp::packet pkg;
-	pkg.len = 0;
-	pkg.pid = pid;
-	m_queue.push(pkg);
-}
+ARQConnection<ConnectionParameter>::SendQueue::SendQueue() : m_subpackets()
+{}
 
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::SendQueue::push(subpacket_type const& subpacket)
 {
-	if (m_queue.back().len < MAX_PDUWORDS) {
-		m_queue.back().pdu[m_queue.back().len] = subpacket;
-		m_queue.back().len++;
-	} else {
-		sctrltp::packet pkg;
-		pkg.len = 1;
-		pkg.pid = pid;
-		pkg.pdu[0] = subpacket;
-		m_queue.push(pkg);
+	m_subpackets.push_back(subpacket);
+}
+
+template <typename ConnectionParameter>
+std::vector<sctrltp::packet> ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
+{
+	size_t const num_packets =
+	    hate::math::round_up_integer_division(m_subpackets.size(), MAX_PDUWORDS);
+	size_t const last_packet_modulo = m_subpackets.size() % MAX_PDUWORDS;
+	size_t const last_packet_len = last_packet_modulo ? last_packet_modulo : MAX_PDUWORDS;
+
+	std::vector<sctrltp::packet> packets(num_packets);
+
+	auto fill_packet = [&packets, this](size_t const packet_index, size_t const len) {
+		size_t const base_subpacket_index = packet_index * MAX_PDUWORDS;
+		for (size_t i = 0; i < len; ++i) {
+			packets[packet_index][i] = m_subpackets[base_subpacket_index + i];
+		}
+		packets[packet_index].len = len;
+		packets[packet_index].pid = pid;
+	};
+
+	for (size_t i = 0; i < num_packets - 1; ++i) {
+		fill_packet(i, MAX_PDUWORDS);
 	}
-}
+	fill_packet(num_packets - 1, last_packet_len);
 
-template <typename ConnectionParameter>
-size_t ARQConnection<ConnectionParameter>::SendQueue::num_packets() const
-{
-	return m_queue.size();
-}
-
-template <typename ConnectionParameter>
-sctrltp::packet& ARQConnection<ConnectionParameter>::SendQueue::front_packet()
-{
-	return m_queue.front();
-}
-
-template <typename ConnectionParameter>
-sctrltp::packet const& ARQConnection<ConnectionParameter>::SendQueue::front_packet() const
-{
-	return m_queue.front();
-}
-
-template <typename ConnectionParameter>
-void ARQConnection<ConnectionParameter>::SendQueue::pop_packet()
-{
-	m_queue.pop();
+	m_subpackets.clear();
+	return packets;
 }
 
 
@@ -90,10 +82,8 @@ template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::commit()
 {
 	m_encoder.flush();
-	size_t const num_packets = m_send_queue.num_packets();
-	for (size_t i = 0; i < num_packets; ++i) {
-		m_arq_stream.send(m_send_queue.front_packet(), sctrltp::ARQStream::NOTHING);
-		m_send_queue.pop_packet();
+	for (auto const packet : m_send_queue.move_to_packet_vector()) {
+		m_arq_stream.send(packet, sctrltp::ARQStream::NOTHING);
 	}
 	m_arq_stream.flush();
 }
