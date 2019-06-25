@@ -4,23 +4,23 @@
 namespace hxcomm {
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Is>
-struct to_ut_message_variant<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
+struct ToUTMessageVariant<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
 {
-	typedef boost::variant<ut_message<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>...>
+	typedef boost::variant<UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>...>
 	    type;
 };
 
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Is>
-struct largest_ut_message_size<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
+struct LargestUTMessageSize<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
 {
 	static constexpr size_t value = std::max(
-	    {ut_message<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>::word_width...});
+	    {UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>::word_width...});
 };
 
 
 template <size_t HeaderAlignment, typename Dictionary>
-struct ut_message_header_width
+struct UTMessageHeaderWidth
 {
 	static constexpr size_t value = hate::math::round_up_to_multiple(
 	    1 /* comma width */ +
@@ -31,76 +31,76 @@ struct ut_message_header_width
 
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::ut_message() : m_data()
+constexpr UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::UTMessage() : m_data()
 {}
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::ut_message(
+constexpr UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::UTMessage(
     payload_type const& payload) :
     m_data(payload)
 {}
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::ut_message(
-    typename Instruction::payload_type const& payload) :
+constexpr UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::UTMessage(
+    typename Instruction::Payload const& payload) :
     m_data(payload.template encode<SubwordType>())
 {}
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr typename ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::word_type
-ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::get_raw() const
+constexpr typename UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::word_type
+UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::get_raw() const
 {
 	constexpr word_type header = (word_type(get_header()) << (word_width - header_width));
 	return header | m_data;
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr typename ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::header_type
-ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::get_header()
+constexpr typename UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::header_type
+UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::get_header()
 {
 	return hate::index_type_list_by_type<Instruction, Dictionary>::value;
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr typename ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::payload_type
-ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::get_payload() const
+constexpr typename UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::payload_type
+UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::get_payload() const
 {
 	return m_data;
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr void ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::set_payload(
+constexpr void UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::set_payload(
     payload_type const& value)
 {
 	m_data = value;
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr typename Instruction::payload_type
-ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::decode() const
+constexpr typename Instruction::Payload
+UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::decode() const
 {
-	typename Instruction::payload_type payload;
+	typename Instruction::Payload payload;
 	payload.decode(get_payload());
 	return payload;
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-constexpr void ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::encode(
-    typename Instruction::payload_type const& value)
+constexpr void UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::encode(
+    typename Instruction::Payload const& value)
 {
 	set_payload(value.template encode<SubwordType>());
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-bool ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::operator==(
-    ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& other) const
+bool UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::operator==(
+    UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& other) const
 {
 	return (m_data == other.m_data);
 }
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
-bool ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::operator!=(
-    ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& other) const
+bool UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::operator!=(
+    UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& other) const
 {
 	return !(*this == other);
 }
@@ -108,9 +108,9 @@ bool ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instructi
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
 std::ostream& operator<<(
     std::ostream& os,
-    ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& message)
+    UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& message)
 {
-	os << "ut_message(";
+	os << "UTMessage(";
 	auto const words = message.get_raw().to_array();
 	for (auto iter = words.rbegin(); iter != words.rend(); iter++) {
 		std::stringstream ss;
@@ -123,7 +123,7 @@ std::ostream& operator<<(
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary, typename Instruction>
 template <typename Archive>
-void ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::cerealize(Archive& ar)
+void UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>::cerealize(Archive& ar)
 {
 	ar(CEREAL_NVP(m_data));
 }

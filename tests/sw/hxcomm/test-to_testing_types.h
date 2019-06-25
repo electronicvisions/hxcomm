@@ -13,5 +13,5 @@ struct to_testing_types;
 template <typename... ToIs, typename... FromIs>
 struct to_testing_types<hate::type_list<ToIs...>, hate::type_list<FromIs...>>
 {
-	typedef ::testing::Types<ut_message_to_fpga<ToIs>..., ut_message_from_fpga<FromIs>...> type;
+	typedef ::testing::Types<UTMessageToFPGA<ToIs>..., UTMessageFromFPGA<FromIs>...> type;
 };

@@ -6,21 +6,21 @@
 namespace hxcomm::vx::instruction::timing {
 
 /** Initialize timer to 0. */
-struct setup
+struct Setup
 {
 	constexpr static size_t size = 0;
-	typedef hxcomm::instruction::detail::payload::bitset<setup, size> payload_type;
+	typedef hxcomm::instruction::detail::payload::Bitset<Setup, size> Payload;
 };
 
 /** Block further execution until incrementing timer reaches specified count. */
-struct wait_until
+struct WaitUntil
 {
 	typedef uint32_t value_type;
 	constexpr static size_t size = sizeof(value_type) * CHAR_BIT;
-	typedef hxcomm::instruction::detail::payload::number<wait_until, value_type> payload_type;
+	typedef hxcomm::instruction::detail::payload::Number<WaitUntil, value_type> Payload;
 };
 
 /** Dictionary of all timing instructions. */
-typedef hate::type_list<setup, wait_until> dictionary;
+typedef hate::type_list<Setup, WaitUntil> Dictionary;
 
 } // namespace hxcomm::vx::instruction::timing

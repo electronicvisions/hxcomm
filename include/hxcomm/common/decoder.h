@@ -24,7 +24,7 @@ template <
 class Decoder
 {
 public:
-	typedef typename to_ut_message_variant<
+	typedef typename ToUTMessageVariant<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::SubwordType,
 	    typename UTMessageParameter::PhywordType,
@@ -62,7 +62,7 @@ private:
 	static constexpr size_t num_bits_word = sizeof(word_type) * CHAR_BIT;
 
 	static constexpr size_t buffer_size = hate::math::round_up_to_multiple(
-	                                          largest_ut_message_size<
+	                                          LargestUTMessageSize<
 	                                              UTMessageParameter::HeaderAlignment,
 	                                              typename UTMessageParameter::SubwordType,
 	                                              typename UTMessageParameter::PhywordType,
@@ -71,7 +71,7 @@ private:
 	                                      num_bits_word;
 
 
-	static constexpr size_t header_size = ut_message_header_width<
+	static constexpr size_t header_size = UTMessageHeaderWidth<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::Dictionary>::value;
 

@@ -11,8 +11,8 @@ class CommonSerializationTests : public ::testing::Test
 {};
 
 typedef
-    typename to_testing_types<instruction::to_fpga_dictionary, instruction::from_fpga_dictionary>::
-        type SerializableTypes;
+    typename to_testing_types<instruction::ToFPGADictionary, instruction::FromFPGADictionary>::type
+        SerializableTypes;
 
 TYPED_TEST_CASE(CommonSerializationTests, SerializableTypes);
 

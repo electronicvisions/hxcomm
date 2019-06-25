@@ -28,7 +28,7 @@ template <
     typename PhywordType,
     typename Dictionary,
     typename Instruction>
-class ut_message
+class UTMessage
 {
 public:
 	typedef Instruction instruction_type;
@@ -49,7 +49,7 @@ public:
 	    header_width + Instruction::size, sizeof(SubwordType) * CHAR_BIT);
 
 	/**
-	 * Total number of bits of a ut_message.
+	 * Total number of bits of a UTMessage.
 	 * If the calculated minimal size aligned to subword_width is smaller than phyword_width,
 	 * round up to one full phyword_width, because the UT can process at most one UT message per
 	 * PHY word.
@@ -60,7 +60,7 @@ public:
 	/** Number of bits of the payload field. */
 	static constexpr size_t payload_width = Instruction::size;
 
-	/** Word-type of a ut_message. */
+	/** Word-type of a UTMessage. */
 	typedef hate::bitset<word_width, SubwordType> word_type;
 	/** Type of the valid field. */
 	typedef bool comma_type;
@@ -69,24 +69,24 @@ public:
 	/** Type of the payload field. */
 	typedef hate::bitset<payload_width, SubwordType> payload_type;
 
-	/** Default construct ut_message with zeroed payload. */
-	constexpr ut_message();
+	/** Default construct UTMessage with zeroed payload. */
+	constexpr UTMessage();
 
 	/**
-	 * Construct ut_message with header and payload.
-	 * @param payload Payload bitset to fill ut_message payload field with
+	 * Construct UTMessage with header and payload.
+	 * @param payload Payload bitset to fill UTMessage payload field with
 	 */
-	constexpr ut_message(payload_type const& payload);
+	constexpr UTMessage(payload_type const& payload);
 
 	/**
-	 * Construct ut_message with header and payload.
-	 * @param payload Payload to fill ut_message payload field with
+	 * Construct UTMessage with header and payload.
+	 * @param payload Payload to fill UTMessage payload field with
 	 */
-	constexpr ut_message(typename Instruction::payload_type const& payload);
+	constexpr UTMessage(typename Instruction::Payload const& payload);
 
 	/**
 	 * Get underlying bitset.
-	 * @return Value of ut_message as word_type
+	 * @return Value of UTMessage as word_type
 	 */
 	constexpr word_type get_raw() const;
 
@@ -112,27 +112,27 @@ public:
 	 * Encode message from an instruction's payload type.
 	 * @param value Payload to encode
 	 */
-	constexpr void encode(typename Instruction::payload_type const& value);
+	constexpr void encode(typename Instruction::Payload const& value);
 
 	/**
 	 * Decode message to its instruction's payload type.
 	 * @return Payload of message
 	 */
-	constexpr typename Instruction::payload_type decode() const;
+	constexpr typename Instruction::Payload decode() const;
 
 	/**
 	 * Equality operator.
-	 * @param other ut_message to compare to
+	 * @param other UTMessage to compare to
 	 * @return Boolean result of comparison
 	 */
-	bool operator==(ut_message const& other) const;
+	bool operator==(UTMessage const& other) const;
 
 	/**
 	 * Inequality operator.
-	 * @param other ut_message to compare to
+	 * @param other UTMessage to compare to
 	 * @return Boolean result of comparison
 	 */
-	bool operator!=(ut_message const& other) const;
+	bool operator!=(UTMessage const& other) const;
 
 private:
 	friend class cereal::access;
@@ -151,7 +151,7 @@ private:
  * @tparam Dictionary Dictionary of instructions
  */
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
-struct to_ut_message_variant;
+struct ToUTMessageVariant;
 
 
 /**
@@ -161,7 +161,7 @@ struct to_ut_message_variant;
  * @tparam Dictionary Dictionary of instructions
  */
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
-struct largest_ut_message_size;
+struct LargestUTMessageSize;
 
 /**
  * Get the header width corresponding to a given set of UT messsage parameters.
@@ -169,7 +169,7 @@ struct largest_ut_message_size;
  * @tparam Dictionary Dictionary of instructions
  */
 template <size_t HeaderAlignment, typename Dictionary>
-struct ut_message_header_width;
+struct UTMessageHeaderWidth;
 
 } // namespace hxcomm
 

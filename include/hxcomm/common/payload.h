@@ -20,13 +20,13 @@ namespace hxcomm::instruction::detail::payload {
  * @tparam N Number of bits of payload
  */
 template <typename Tag, size_t N>
-class bitset : public hate::bitset<N>
+class Bitset : public hate::bitset<N>
 {
 public:
 	typedef hate::bitset<N> value_type;
 
 	template <typename... Args>
-	bitset(Args... args) : hate::bitset<N>(args...)
+	Bitset(Args... args) : hate::bitset<N>(args...)
 	{}
 
 	template <typename SubwordType = unsigned long>
@@ -49,13 +49,13 @@ public:
  * @tparam T underlying number type
  */
 template <typename Tag, typename T>
-class number : public halco::common::detail::BaseType<number<Tag, T>, T>
+class Number : public halco::common::detail::BaseType<Number<Tag, T>, T>
 {
 public:
 	typedef hate::bitset<sizeof(T) * CHAR_BIT> value_type;
-	typedef halco::common::detail::BaseType<number<Tag, T>, T> base_t;
+	typedef halco::common::detail::BaseType<Number<Tag, T>, T> base_t;
 
-	constexpr explicit number(T const value = 0) : base_t(value) {}
+	constexpr explicit Number(T const value = 0) : base_t(value) {}
 
 	template <typename SubwordType = unsigned long>
 	constexpr hate::bitset<value_type::size, SubwordType> encode() const
@@ -85,13 +85,13 @@ private:
  * @tparam Max Maximal value in range
  */
 template <typename Tag, size_t N, typename T, uintmax_t Min, uintmax_t Max>
-class rant : public halco::common::detail::RantWrapper<rant<Tag, N, T, Min, Max>, T, Max, Min>
+class Ranged : public halco::common::detail::RantWrapper<Ranged<Tag, N, T, Min, Max>, T, Max, Min>
 {
 public:
 	typedef hate::bitset<N> value_type;
-	typedef halco::common::detail::RantWrapper<rant<Tag, N, T, Min, Max>, T, Max, Min> rant_t;
+	typedef halco::common::detail::RantWrapper<Ranged<Tag, N, T, Min, Max>, T, Max, Min> rant_t;
 
-	constexpr explicit rant(uintmax_t const value = 0) : rant_t(value) {}
+	constexpr explicit Ranged(uintmax_t const value = 0) : rant_t(value) {}
 
 	template <typename SubwordType = unsigned long>
 	constexpr hate::bitset<N, SubwordType> encode() const

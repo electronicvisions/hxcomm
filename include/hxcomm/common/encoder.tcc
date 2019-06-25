@@ -9,7 +9,7 @@ Encoder<UTMessageParameter, WordQueueType>::Encoder(word_queue_type& word_queue)
 
 template <typename UTMessageParameter, typename WordQueueType>
 template <class MessageType>
-typename std::enable_if<detail::is_ut_message<MessageType>::value, void>::type
+typename std::enable_if<detail::IsUTMessage<MessageType>::value, void>::type
 Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& message)
 {
 	static_assert(
@@ -37,7 +37,7 @@ Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& messag
 
 template <typename UTMessageParameter, typename WordQueueType>
 template <typename Iterable>
-typename std::enable_if<!detail::is_ut_message<Iterable>::value, void>::type
+typename std::enable_if<!detail::IsUTMessage<Iterable>::value, void>::type
 Encoder<UTMessageParameter, WordQueueType>::operator()(Iterable const& messages)
 {
 	for (auto it = messages.cbegin(); it < messages.cend(); ++it) {

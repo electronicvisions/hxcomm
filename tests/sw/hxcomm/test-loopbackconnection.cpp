@@ -10,7 +10,7 @@ using namespace hxcomm;
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
 
-/** Return default-constructed ut_message of runtime-specifiable header. */
+/** Return default-constructed UTMessage of runtime-specifiable header. */
 template <typename UTMessageParameter>
 struct default_message
 {
@@ -19,7 +19,7 @@ struct default_message
 	template <size_t H, size_t... Hs>
 	static message_type message_recurse(size_t header, std::index_sequence<H, Hs...>)
 	{
-		return (header == H) ? ut_message<
+		return (header == H) ? UTMessage<
 		                           UTMessageParameter::HeaderAlignment,
 		                           typename UTMessageParameter::SubwordType,
 		                           typename UTMessageParameter::PhywordType,
@@ -32,7 +32,7 @@ struct default_message
 	template <size_t H>
 	static message_type message_recurse(size_t /*header*/, std::index_sequence<H>)
 	{
-		return ut_message<
+		return UTMessage<
 		    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
 		    typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
 		    typename hate::index_type_list_by_integer<
@@ -72,37 +72,37 @@ struct to_testing_types<std::index_sequence<N...> >
 {
 	typedef ::testing::Types<
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, uint8_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint8_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, uint8_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint8_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, uint8_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint8_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, uint8_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint64_t, uint8_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, uint16_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint16_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, uint16_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint16_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, uint16_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint16_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, uint16_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint64_t, uint16_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, uint32_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint32_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, uint32_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint32_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, uint32_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint32_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, uint32_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint64_t, uint32_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint8_t, uint64_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint8_t, uint64_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint16_t, uint64_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint16_t, uint64_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint32_t, uint64_t, to_fpga_dictionary>>...,
+	        UTMessageParameter<header_alignments[N], uint32_t, uint64_t, ToFPGADictionary>>...,
 	    LoopbackConnection<
-	        UTMessageParameter<header_alignments[N], uint64_t, uint64_t, to_fpga_dictionary>>...>
+	        UTMessageParameter<header_alignments[N], uint64_t, uint64_t, ToFPGADictionary>>...>
 	    types;
 };
 

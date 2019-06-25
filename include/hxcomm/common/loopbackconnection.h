@@ -28,7 +28,7 @@ public:
 	typedef typename UTMessageParameter::Dictionary dictionary_type;
 	typedef phyword_type subpacket_type;
 
-	typedef typename to_ut_message_variant<
+	typedef typename ToUTMessageVariant<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::SubwordType,
 	    typename UTMessageParameter::PhywordType,

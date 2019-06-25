@@ -6,9 +6,9 @@
 
 using namespace hxcomm::vx::instruction;
 
-TEST(init, EncodeDecode)
+TEST(Init, EncodeDecode)
 {
-	typename to_fpga_jtag::init::payload_type payload;
+	typename to_fpga_jtag::Init::Payload payload;
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
@@ -16,9 +16,9 @@ TEST(init, EncodeDecode)
 	ASSERT_EQ(payload, decoded);
 }
 
-TEST(scaler, EncodeDecode)
+TEST(Scaler, EncodeDecode)
 {
-	typename to_fpga_jtag::scaler::payload_type payload(draw_non_default_value(0));
+	typename to_fpga_jtag::Scaler::Payload payload(draw_non_default_value(0));
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
@@ -26,9 +26,9 @@ TEST(scaler, EncodeDecode)
 	ASSERT_EQ(payload, decoded);
 }
 
-TEST(ins, EncodeDecode)
+TEST(Ins, EncodeDecode)
 {
-	auto payload = draw_ranged_non_default_value<to_fpga_jtag::ins::payload_type>(0);
+	auto payload = draw_ranged_non_default_value<to_fpga_jtag::Ins::Payload>(0);
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
@@ -36,16 +36,15 @@ TEST(ins, EncodeDecode)
 	ASSERT_EQ(payload, decoded);
 }
 
-TEST(to_fpga_jtag_data, EncodeDecode)
+TEST(to_fpga_jtag_Data, EncodeDecode)
 {
-	EXPECT_EQ(to_fpga_jtag::data::payload_type::NumBits::min, 3);
-	EXPECT_EQ(to_fpga_jtag::data::payload_type::NumBits::max, 33);
-	auto const num_bits =
-	    draw_ranged_non_default_value<to_fpga_jtag::data::payload_type::NumBits>(33);
+	EXPECT_EQ(to_fpga_jtag::Data::Payload::NumBits::min, 3);
+	EXPECT_EQ(to_fpga_jtag::Data::Payload::NumBits::max, 33);
+	auto const num_bits = draw_ranged_non_default_value<to_fpga_jtag::Data::Payload::NumBits>(33);
 	auto const jtag_payload = random_bitset<33>();
 	bool const keep_response = true;
 
-	auto payload = to_fpga_jtag::data::payload_type(keep_response, num_bits, jtag_payload);
+	auto payload = to_fpga_jtag::Data::Payload(keep_response, num_bits, jtag_payload);
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

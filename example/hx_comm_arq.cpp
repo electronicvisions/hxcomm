@@ -9,8 +9,8 @@ namespace bpo = boost::program_options;
 using namespace hxcomm::vx;
 
 using namespace hxcomm::vx::instruction;
-using data = instruction::to_fpga_jtag::data;
-using ins = instruction::to_fpga_jtag::ins;
+using Data = instruction::to_fpga_jtag::Data;
+using Ins = instruction::to_fpga_jtag::Ins;
 
 /**
  * Example script to reset chip and read JTAG-ID.
@@ -37,35 +37,32 @@ int main(int argc, char* argv[])
 	ARQConnection connection(str_ip);
 
 	// Reset sequence
-	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
-	connection.add(ut_message_to_fpga<timing::setup>());
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10)));
-	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(false)));
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(100)));
-	connection.add(ut_message_to_fpga<to_fpga_jtag::init>());
+	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
+	connection.add(UTMessageToFPGA<timing::Setup>());
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
+	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
+	connection.add(UTMessageToFPGA<to_fpga_jtag::Init>());
 
 	// Set PLL
-	connection.add(ut_message_to_fpga<ins>(ins::PLL_TARGET_REG));
+	connection.add(UTMessageToFPGA<Ins>(Ins::PLL_TARGET_REG));
+	connection.add(UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(3), 1)));
+	connection.add(UTMessageToFPGA<Ins>(Ins::SHIFT_PLL));
 	connection.add(
-	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(3), 1)));
-	connection.add(ut_message_to_fpga<ins>(ins::SHIFT_PLL));
-	connection.add(ut_message_to_fpga<data>(
-	    data::payload_type(true, data::payload_type::NumBits(32), 0xC0C3F200)));
-	connection.add(ut_message_to_fpga<ins>(ins::PLL_TARGET_REG));
+	    UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(32), 0xC0C3F200)));
+	connection.add(UTMessageToFPGA<Ins>(Ins::PLL_TARGET_REG));
+	connection.add(UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(3), 3)));
+	connection.add(UTMessageToFPGA<Ins>(Ins::SHIFT_PLL));
 	connection.add(
-	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(3), 3)));
-	connection.add(ut_message_to_fpga<ins>(ins::SHIFT_PLL));
-	connection.add(ut_message_to_fpga<data>(
-	    data::payload_type(true, data::payload_type::NumBits(32), 0xC0C3F200)));
+	    UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(32), 0xC0C3F200)));
 
 	// Read ID
-	connection.add(ut_message_to_fpga<ins>(ins::IDCODE));
-	connection.add(
-	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(32), 0)));
+	connection.add(UTMessageToFPGA<Ins>(Ins::IDCODE));
+	connection.add(UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(32), 0)));
 
 	// Halt execution
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10000)));
-	connection.add(ut_message_to_fpga<system::halt>());
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
+	connection.add(UTMessageToFPGA<system::Halt>());
 
 	connection.commit();
 

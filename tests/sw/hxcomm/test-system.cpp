@@ -6,9 +6,9 @@
 
 using namespace hxcomm::vx::instruction;
 
-TEST(reset, EncodeDecode)
+TEST(Reset, EncodeDecode)
 {
-	typename system::reset::payload_type payload(random_bitset<1>());
+	typename system::Reset::Payload payload(random_bitset<1>());
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

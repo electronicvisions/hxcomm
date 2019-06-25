@@ -6,9 +6,9 @@
 
 using namespace hxcomm::vx::instruction;
 
-TEST(setup, EncodeDecode)
+TEST(Setup, EncodeDecode)
 {
-	typename timing::setup::payload_type payload;
+	typename timing::Setup::Payload payload;
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
@@ -17,9 +17,9 @@ TEST(setup, EncodeDecode)
 }
 
 
-TEST(wait_until, EncodeDecode)
+TEST(WaitUntil, EncodeDecode)
 {
-	typename timing::wait_until::payload_type payload(draw_non_default_value<uint32_t>(0));
+	typename timing::WaitUntil::Payload payload(draw_non_default_value<uint32_t>(0));
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

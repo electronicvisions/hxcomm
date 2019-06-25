@@ -6,34 +6,33 @@ TEST(TestConnection, ReadoutJtagID)
 {
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
-	using data = instruction::to_fpga_jtag::data;
+	using Data = to_fpga_jtag::Data;
 
 	auto connection = generate_test_connection();
 
 	// Reset sequence
-	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
-	connection.add(ut_message_to_fpga<timing::setup>());
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10)));
-	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(false)));
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(100)));
+	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
+	connection.add(UTMessageToFPGA<timing::Setup>());
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
+	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
 
 	// JTAG init
-	connection.add(ut_message_to_fpga<to_fpga_jtag::scaler>(3));
-	connection.add(ut_message_to_fpga<to_fpga_jtag::init>());
+	connection.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
+	connection.add(UTMessageToFPGA<to_fpga_jtag::Init>());
 
 	// Read ID (JTAG instruction register is by specification IDCODE after init)
-	connection.add(
-	    ut_message_to_fpga<data>(data::payload_type(true, data::payload_type::NumBits(32), 0)));
+	connection.add(UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(32), 0)));
 
 	// Halt execution
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10000)));
-	connection.add(ut_message_to_fpga<system::halt>());
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
+	connection.add(UTMessageToFPGA<system::Halt>());
 
 	connection.commit();
 
 	connection.run_until_halt();
 
-	std::vector<ut_message_from_fpga_variant> responses;
+	std::vector<UTMessageFromFPGAVariant> responses;
 	while (true) {
 		try {
 			responses.push_back(connection.receive());
@@ -44,6 +43,6 @@ TEST(TestConnection, ReadoutJtagID)
 	EXPECT_EQ(responses.size(), 2);
 	EXPECT_EQ(
 	    static_cast<uint32_t>(
-	        boost::get<ut_message_from_fpga<jtag_from_hicann::data>>(responses.front()).decode()),
+	        boost::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses.front()).decode()),
 	    0x48580AF);
 }

@@ -7,9 +7,9 @@
 
 using namespace hxcomm::vx::instruction;
 
-TEST(halt, EncodeDecode)
+TEST(Halt, EncodeDecode)
 {
-	typename system::halt::payload_type payload;
+	typename system::Halt::Payload payload;
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;
@@ -18,9 +18,9 @@ TEST(halt, EncodeDecode)
 }
 
 
-TEST(halt_response, EncodeDecode)
+TEST(HaltResponse, EncodeDecode)
 {
-	typename from_fpga_system::halt::payload_type payload;
+	typename from_fpga_system::Halt::Payload payload;
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

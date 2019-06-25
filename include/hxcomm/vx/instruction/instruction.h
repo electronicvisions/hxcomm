@@ -11,17 +11,17 @@ namespace hxcomm::vx::instruction {
 
 /** Dictionary containing all to_fpga instruction subsets. */
 typedef hate::multi_concat_t<
-    to_fpga_jtag::dictionary,
-    timing::dictionary,
-    system::dictionary,
-    omnibus_to_fpga::dictionary>
-    to_fpga_dictionary;
+    to_fpga_jtag::Dictionary,
+    timing::Dictionary,
+    system::Dictionary,
+    omnibus_to_fpga::Dictionary>
+    ToFPGADictionary;
 
 /** Dictionary containing all from_fpga instruction subsets. */
 typedef hate::multi_concat_t<
-    jtag_from_hicann::dictionary,
-    omnibus_from_fpga::dictionary,
-    from_fpga_system::dictionary>
-    from_fpga_dictionary;
+    jtag_from_hicann::Dictionary,
+    omnibus_from_fpga::Dictionary,
+    from_fpga_system::Dictionary>
+    FromFPGADictionary;
 
 } // namespace hxcomm::vx::instruction

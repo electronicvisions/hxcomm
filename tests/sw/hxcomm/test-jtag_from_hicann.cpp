@@ -6,10 +6,9 @@
 
 using namespace hxcomm::vx::instruction;
 
-TEST(jtag_from_hicann_data, EncodeDecode)
+TEST(jtag_from_hicann_Data, EncodeDecode)
 {
-	typename jtag_from_hicann::data::payload_type payload(
-	    random_bitset<jtag_from_hicann::data::size>());
+	typename jtag_from_hicann::Data::Payload payload(random_bitset<jtag_from_hicann::Data::size>());
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

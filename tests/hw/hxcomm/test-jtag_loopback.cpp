@@ -6,20 +6,20 @@
 /**
  * Generate random JTAG data payload with a random number of sent bits.
  */
-hxcomm::vx::instruction::to_fpga_jtag::data::payload_type random_data()
+hxcomm::vx::instruction::to_fpga_jtag::Data::Payload random_data()
 {
-	using data = hxcomm::vx::instruction::to_fpga_jtag::data;
+	using Data = hxcomm::vx::instruction::to_fpga_jtag::Data;
 	// random number of data bits
-	data::payload_type::NumBits num_bits(
-	    random_integer(data::payload_type::NumBits::min, data::payload_type::NumBits::max));
+	Data::Payload::NumBits num_bits(
+	    random_integer(Data::Payload::NumBits::min, Data::Payload::NumBits::max));
 	// random data
-	hate::bitset<data::max_num_bits_payload> data_value =
-	    random_bitset<data::max_num_bits_payload>();
+	hate::bitset<Data::max_num_bits_payload> data_value =
+	    random_bitset<Data::max_num_bits_payload>();
 	// cap to num_bits bits
 	data_value &=
-	    ((~hate::bitset<data::max_num_bits_payload>()) >> (data::max_num_bits_payload - num_bits));
+	    ((~hate::bitset<Data::max_num_bits_payload>()) >> (Data::max_num_bits_payload - num_bits));
 	// keep_response==true in order to get responses to check for equality
-	return data::payload_type(true, num_bits, data_value);
+	return Data::Payload(true, num_bits, data_value);
 }
 
 /**
@@ -33,41 +33,41 @@ TEST(TestConnection, JTAGLoopback)
 	auto connection = generate_test_connection();
 
 	// Reset sequence
-	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(true)));
-	connection.add(ut_message_to_fpga<timing::setup>());
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10)));
-	connection.add(ut_message_to_fpga<system::reset>(system::reset::payload_type(false)));
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(100)));
+	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
+	connection.add(UTMessageToFPGA<timing::Setup>());
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
+	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
 
 	// JTAG init
-	connection.add(ut_message_to_fpga<to_fpga_jtag::scaler>(3));
-	connection.add(ut_message_to_fpga<to_fpga_jtag::init>());
+	connection.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
+	connection.add(UTMessageToFPGA<to_fpga_jtag::Init>());
 
 	// Number of data words to write.
 	constexpr size_t num = 10;
 
-	std::vector<to_fpga_jtag::data::payload_type> payloads;
+	std::vector<to_fpga_jtag::Data::Payload> payloads;
 	for (size_t i = 0; i < num; ++i) {
 		payloads.push_back(random_data());
 	}
 
 	// Select JTAG register that is guaranteed to have no effect
-	connection.add(ut_message_to_fpga<to_fpga_jtag::ins>(to_fpga_jtag::ins::BYPASS));
+	connection.add(UTMessageToFPGA<to_fpga_jtag::Ins>(to_fpga_jtag::Ins::BYPASS));
 
 	// add write messages
 	for (auto payload : payloads) {
-		connection.add(ut_message_to_fpga<to_fpga_jtag::data>(payload));
+		connection.add(UTMessageToFPGA<to_fpga_jtag::Data>(payload));
 	}
 
 	// Halt execution
-	connection.add(ut_message_to_fpga<timing::wait_until>(timing::wait_until::payload_type(10000)));
-	connection.add(ut_message_to_fpga<system::halt>());
+	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
+	connection.add(UTMessageToFPGA<system::Halt>());
 
 	connection.commit();
 
 	connection.run_until_halt();
 
-	std::vector<ut_message_from_fpga_variant> responses;
+	std::vector<UTMessageFromFPGAVariant> responses;
 
 	TestConnection::receive_message_type message;
 	while (connection.try_receive(message)) {
@@ -80,7 +80,7 @@ TEST(TestConnection, JTAGLoopback)
 	for (size_t i = 0; i < num; ++i) {
 		// shift by one because in between TDI and TDO there's one register in BYPASS mode
 		auto response =
-		    boost::get<ut_message_from_fpga<jtag_from_hicann::data>>(responses[i]).decode() >> 1;
+		    boost::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses[i]).decode() >> 1;
 		auto expected = payloads[i].get_payload().reset(payloads[i].get_num_bits() - 1);
 		EXPECT_EQ(decltype(payloads[i].get_payload())(response), expected);
 	}

@@ -32,13 +32,13 @@ public:
 	typedef flange::SimulatorClient::port_t port_t;
 	typedef flange::SimulatorClient::ip_t ip_t;
 
-	typedef typename to_ut_message_variant<
+	typedef typename ToUTMessageVariant<
 	    ConnectionParameter::Send::HeaderAlignment,
 	    typename ConnectionParameter::Send::SubwordType,
 	    typename ConnectionParameter::Send::PhywordType,
 	    typename ConnectionParameter::Send::Dictionary>::type send_message_type;
 
-	typedef typename to_ut_message_variant<
+	typedef typename ToUTMessageVariant<
 	    ConnectionParameter::Receive::HeaderAlignment,
 	    typename ConnectionParameter::Receive::SubwordType,
 	    typename ConnectionParameter::Receive::PhywordType,
@@ -130,7 +130,7 @@ private:
 	typedef tbb::concurrent_queue<receive_message_type> receive_queue_type;
 	receive_queue_type m_receive_queue;
 
-	typedef ListenerHalt<ut_message<
+	typedef ListenerHalt<UTMessage<
 	    ConnectionParameter::Receive::HeaderAlignment,
 	    typename ConnectionParameter::Receive::SubwordType,
 	    typename ConnectionParameter::Receive::PhywordType,

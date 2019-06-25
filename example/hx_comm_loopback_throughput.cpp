@@ -11,9 +11,9 @@ namespace bpo = boost::program_options;
 
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
-using send_dict = hxcomm::vx::instruction::to_fpga_dictionary;
+using send_dict = hxcomm::vx::instruction::ToFPGADictionary;
 
-/** Return default-constructed ut_message of runtime-specifiable header. */
+/** Return default-constructed UTMessage of runtime-specifiable header. */
 template <typename UTMessageParameter>
 struct default_message
 {
@@ -22,7 +22,7 @@ struct default_message
 	template <size_t H, size_t... Hs>
 	static message_type message_recurse(size_t const header, std::index_sequence<H, Hs...>)
 	{
-		return (header == H) ? ut_message<
+		return (header == H) ? UTMessage<
 		                           UTMessageParameter::HeaderAlignment,
 		                           typename UTMessageParameter::SubwordType,
 		                           typename UTMessageParameter::PhywordType,
@@ -36,7 +36,7 @@ struct default_message
 	static message_type message_recurse(size_t const header, std::index_sequence<H>)
 	{
 		if (header == H) {
-			return ut_message<
+			return UTMessage<
 			    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
 			    typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
 			    typename hate::index_type_list_by_integer<

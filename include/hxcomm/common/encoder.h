@@ -9,7 +9,7 @@ namespace hxcomm {
 namespace detail {
 
 template <typename... T>
-struct is_ut_message : public std::false_type
+struct IsUTMessage : public std::false_type
 {};
 
 template <
@@ -18,7 +18,7 @@ template <
     typename PhywordType,
     typename Dictionary,
     typename Instruction>
-struct is_ut_message<ut_message<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>>
+struct IsUTMessage<UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction>>
     : public std::true_type
 {};
 
@@ -34,7 +34,7 @@ template <typename UTMessageParameter, typename WordQueueType>
 class Encoder
 {
 public:
-	typedef typename to_ut_message_variant<
+	typedef typename ToUTMessageVariant<
 	    UTMessageParameter::HeaderAlignment,
 	    typename UTMessageParameter::SubwordType,
 	    typename UTMessageParameter::PhywordType,
@@ -56,7 +56,7 @@ public:
 	 * @param message Message to encode
 	 */
 	template <typename MessageType>
-	typename std::enable_if<detail::is_ut_message<MessageType>::value, void>::type operator()(
+	typename std::enable_if<detail::IsUTMessage<MessageType>::value, void>::type operator()(
 	    MessageType const& message);
 
 	/**
@@ -68,7 +68,7 @@ public:
 	 * @param messages Message container to encode iteratively
 	 */
 	template <typename Iterable>
-	typename std::enable_if<!detail::is_ut_message<Iterable>::value, void>::type operator()(
+	typename std::enable_if<!detail::IsUTMessage<Iterable>::value, void>::type operator()(
 	    Iterable const& messages);
 
 	/**
@@ -81,7 +81,7 @@ private:
 	static constexpr size_t num_bits_word = sizeof(word_type) * CHAR_BIT;
 
 	static constexpr size_t buffer_size = hate::math::round_up_to_multiple(
-	                                          largest_ut_message_size<
+	                                          LargestUTMessageSize<
 	                                              UTMessageParameter::HeaderAlignment,
 	                                              typename UTMessageParameter::SubwordType,
 	                                              typename UTMessageParameter::PhywordType,

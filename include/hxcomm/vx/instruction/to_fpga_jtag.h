@@ -8,39 +8,39 @@
 namespace hxcomm::vx::instruction::to_fpga_jtag {
 
 /** Reset state machine. */
-struct init
+struct Init
 {
 	constexpr static size_t size = 0;
-	typedef hxcomm::instruction::detail::payload::bitset<init, size> payload_type;
+	typedef hxcomm::instruction::detail::payload::Bitset<Init, size> Payload;
 };
 
 /** Set slow-down scaling factor of clock of the JTAG communication. */
-struct scaler
+struct Scaler
 {
 	typedef uint8_t value_type;
 	constexpr static size_t size = sizeof(value_type) * CHAR_BIT;
-	typedef hxcomm::instruction::detail::payload::number<scaler, value_type> payload_type;
+	typedef hxcomm::instruction::detail::payload::Number<Scaler, value_type> Payload;
 };
 
 /** Select instruction register on the Hicann. */
-struct ins
+struct Ins
 {
 	constexpr static size_t size = 7;
-	typedef hxcomm::instruction::detail::payload::rant<ins, size, uint8_t, 0, 127> payload_type;
+	typedef hxcomm::instruction::detail::payload::Ranged<Ins, size, uint8_t, 0, 127> Payload;
 
-	static const payload_type EXTEST;
-	static const payload_type IDCODE;
-	static const payload_type SAMPLE_PRELOAD;
-	static const payload_type PLL_TARGET_REG;
-	static const payload_type SHIFT_PLL;
-	static const payload_type OMNIBUS_ADDRESS;
-	static const payload_type OMNIBUS_DATA;
-	static const payload_type OMNIBUS_REQUEST;
-	static const payload_type BYPASS;
+	static const Payload EXTEST;
+	static const Payload IDCODE;
+	static const Payload SAMPLE_PRELOAD;
+	static const Payload PLL_TARGET_REG;
+	static const Payload SHIFT_PLL;
+	static const Payload OMNIBUS_ADDRESS;
+	static const Payload OMNIBUS_DATA;
+	static const Payload OMNIBUS_REQUEST;
+	static const Payload BYPASS;
 };
 
 /** Data instruction. */
-struct data
+struct Data
 {
 	constexpr static size_t max_num_bits_payload = 33;
 	constexpr static size_t min_num_bits_payload = 3;
@@ -56,7 +56,7 @@ struct data
 	    padded_num_bits_payload + padded_num_bits_num_bits_payload + padded_num_bits_keep_response;
 
 	/** Payload of a data instruction. */
-	class payload_type
+	class Payload
 	{
 	public:
 		typedef hate::bitset<size> value_type;
@@ -72,8 +72,8 @@ struct data
 			explicit NumBits(uintmax_t const value = max_num_bits_payload) : rant_t(value) {}
 		};
 
-		payload_type();
-		payload_type(
+		Payload();
+		Payload(
 		    bool const keep_response,
 		    NumBits const num_bits,
 		    hate::bitset<max_num_bits_payload> const payload);
@@ -87,8 +87,8 @@ struct data
 		hate::bitset<max_num_bits_payload> get_payload() const;
 		void set_payload(hate::bitset<max_num_bits_payload> const& value);
 
-		bool operator==(payload_type const& other) const;
-		bool operator!=(payload_type const& other) const;
+		bool operator==(Payload const& other) const;
+		bool operator!=(Payload const& other) const;
 
 		template <class SubwordType = unsigned long>
 		hate::bitset<size, SubwordType> encode() const
@@ -117,6 +117,6 @@ struct data
 };
 
 /** Dictionary of all to_fpga_jtag instructions. */
-typedef hate::type_list<init, scaler, ins, data> dictionary;
+typedef hate::type_list<Init, Scaler, Ins, Data> Dictionary;
 
 } // namespace hxcomm::vx::instruction::to_fpga_jtag

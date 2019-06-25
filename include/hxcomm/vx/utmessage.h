@@ -13,31 +13,31 @@ typedef uint64_t ut_message_from_fpga_subword_type;
 typedef uint64_t ut_message_from_fpga_phyword_type;
 
 template <typename I>
-using ut_message_to_fpga = ut_message<
+using UTMessageToFPGA = UTMessage<
     ut_message_to_fpga_header_alignment,
     ut_message_to_fpga_subword_type,
     ut_message_to_fpga_phyword_type,
-    instruction::to_fpga_dictionary,
+    instruction::ToFPGADictionary,
     I>;
 
 template <typename I>
-using ut_message_from_fpga = ut_message<
+using UTMessageFromFPGA = UTMessage<
     ut_message_from_fpga_header_alignment,
     ut_message_from_fpga_subword_type,
     ut_message_from_fpga_phyword_type,
-    instruction::from_fpga_dictionary,
+    instruction::FromFPGADictionary,
     I>;
 
-using ut_message_to_fpga_variant = to_ut_message_variant<
+using UTMessageToFPGAVariant = ToUTMessageVariant<
     ut_message_to_fpga_header_alignment,
     ut_message_to_fpga_subword_type,
     ut_message_to_fpga_phyword_type,
-    instruction::to_fpga_dictionary>::type;
+    instruction::ToFPGADictionary>::type;
 
-using ut_message_from_fpga_variant = to_ut_message_variant<
+using UTMessageFromFPGAVariant = ToUTMessageVariant<
     ut_message_from_fpga_header_alignment,
     ut_message_from_fpga_subword_type,
     ut_message_from_fpga_phyword_type,
-    instruction::from_fpga_dictionary>::type;
+    instruction::FromFPGADictionary>::type;
 
 } // namespace hxcomm::vx

@@ -35,20 +35,20 @@ Before committing any changes, make sure to run `git-clang-format` and add the r
 
 ### Creating the new instruction
 
-A instruction consists of a payload size in bits and a typesafe payload type, see `include/hxcomm/vx/instruction/*.h` for implemented instructions.
+A instruction consists of a payload size in bits and a typesafe `Payload` type, see `include/hxcomm/vx/instruction/*.h` for implemented instructions.
 ```cpp
-struct my_new_instruction
+struct MyNewInstruction
 {
     constexpr size_t size = N;
-    struct payload_type;
+    struct Payload;
 };
 ```
 
-The payload type is to implement an abstraction for fields in the payload, e.g. bools, ranged numbers or bitsets.
+The `Payload` type is to implement an abstraction for fields in the payload, e.g. bools, ranged numbers or bitsets.
 For uniform payloads, i.e. bitsets, numbers and ranged numbers, templates for direct use exist in `include/hxcomm/common/payload.h`.
-In addition, every `payload_type` has to provide an `encode` and a `decode` function encoding or decoding the payload fields from or to a bitset of size `size` with the following signature:
+In addition, every `Payload` type has to provide an `encode` and a `decode` function encoding or decoding the payload fields from or to a bitset of size `size` with the following signature:
 ```cpp
-struct my_new_instruction::payload_type
+struct MyNewInstruction::Payload
 {
     template <typename WordType>
     hate::bitset<size, WordType> encode() const;
@@ -65,7 +65,7 @@ namespace hxcomm::vx::instruction::my_new_instruction_namespace
 ```
 and therein define a dictionary:
 ```cpp
-typedef hate::type_list<my_new_instruction> dictionary;
+typedef hate::type_list<MyNewInstruction> dictionary;
 ```
 
 Now add the instruction at the right location in the appropriate higher-level dictionary.
@@ -77,6 +77,6 @@ However, dictionary stacking/grouping with more than one level is possible, so s
 * For every instruction, the identity operation by encoding and decoding is to be tested individually.
   See `tests/sw/hxcomm/test-omnibus_to_fpga.cpp` for an examplary test implementation.
   - For creation of typical payload field values in a random manner, `tests/sw/hxcomm/test-helper.h` provides convenience functions.
-* By adding the new instruction to a dictionary on which one of the toplevel dictionaries `to_fpga_dictionary` and `from_fpga_dictionary` depend, corresponding `ut_messages` are automatically tested for serialization possibility, which comes for free, and `ut_message` `encoding` and `decoding`.
+* By adding the new instruction to a dictionary on which one of the toplevel dictionaries `to_fpga_dictionary` and `from_fpga_dictionary` depend, corresponding `UTMessage` types are automatically tested for serialization possibility, which comes for free, and `UTMessage` `encoding` and `decoding`.
 
-Having done the above steps, the new instruction is available in `ut_message_{to/from}_fpga_variant` in `include/hxcomm/vx/ut_message.h` and can now be directly used in hardware tests, residing under `tests/hw/hxcomm/test-*.cpp` or in the `fisch` software layer.
+Having done the above steps, the new instruction is available in `UTMessage{To/From}FPGAVariant` in `include/hxcomm/vx/ut_message.h` and can now be directly used in hardware tests, residing under `tests/hw/hxcomm/test-*.cpp` or in the `fisch` software layer.

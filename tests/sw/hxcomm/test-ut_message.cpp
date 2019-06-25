@@ -12,8 +12,8 @@ class CommonUTMessageTests : public ::testing::Test
 {};
 
 typedef
-    typename to_testing_types<instruction::to_fpga_dictionary, instruction::from_fpga_dictionary>::
-        type UTMessageTypes;
+    typename to_testing_types<instruction::ToFPGADictionary, instruction::FromFPGADictionary>::type
+        UTMessageTypes;
 
 TYPED_TEST_CASE(CommonUTMessageTests, UTMessageTypes);
 

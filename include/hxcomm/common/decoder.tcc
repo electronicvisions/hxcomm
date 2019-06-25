@@ -3,13 +3,13 @@ namespace hxcomm {
 namespace detail {
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
-struct ut_message_sizes;
+struct UTMessageSizes;
 
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Ts>
-struct ut_message_sizes<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...> >
+struct UTMessageSizes<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...> >
 {
 	constexpr static std::array<size_t, sizeof...(Ts)> value = {
-	    ut_message<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...>, Ts>::word_width...};
+	    UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...>, Ts>::word_width...};
 };
 
 } // namespace detail
@@ -102,8 +102,9 @@ constexpr size_t
 Decoder<UTMessageParameter, MessageQueueType, Listener...>::get_message_size(
     size_t const header)
 {
-	return detail::ut_message_sizes<
-	    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType, typename UTMessageParameter::PhywordType,
+	return detail::UTMessageSizes<
+	    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
+	    typename UTMessageParameter::PhywordType,
 	    typename UTMessageParameter::Dictionary>::value[header];
 }
 
@@ -133,7 +134,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::
 	    sizeof...(Header)>
 	    function_table{[](size_t& filling_level, buffer_type const& buffer,
 	                      message_queue_type& queue, boost::fusion::tuple<Listener&...> listener) {
-		    typedef ut_message<
+		    typedef UTMessage<
 		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType, typename UTMessageParameter::PhywordType,
 		        typename UTMessageParameter::Dictionary,
 		        typename hate::index_type_list_by_integer<

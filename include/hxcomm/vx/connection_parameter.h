@@ -8,12 +8,12 @@ typedef hxcomm::ConnectionParameter<
     ut_message_to_fpga_header_alignment,
     ut_message_to_fpga_subword_type,
     ut_message_to_fpga_phyword_type,
-    instruction::to_fpga_dictionary,
+    instruction::ToFPGADictionary,
     ut_message_from_fpga_header_alignment,
     ut_message_from_fpga_subword_type,
     ut_message_from_fpga_phyword_type,
-    instruction::from_fpga_dictionary,
-    instruction::from_fpga_system::halt>
+    instruction::FromFPGADictionary,
+    instruction::from_fpga_system::Halt>
     ConnectionParameter;
 
 } // namespace hxcomm::vx
