@@ -9,16 +9,14 @@ template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, ty
 struct UTMessageSizes<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...> >
 {
 	constexpr static std::array<size_t, sizeof...(Ts)> value = {
-	    UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...>, Ts>::word_width...};
+	    UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Ts...>, Ts>::
+	        word_width...};
 };
 
 } // namespace detail
 
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
     message_queue_type& message_queue, Listener&... listener) :
     m_buffer(),
@@ -31,20 +29,13 @@ Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
         std::placeholders::_1))
 {}
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
-void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
-    word_type const word)
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(word_type const word)
 {
 	m_coroutine(word);
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 template <typename Iterable>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
     Iterable const& iterable)
@@ -52,10 +43,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
 	std::copy(iterable.cbegin(), iterable.cend(), begin(m_coroutine));
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 bool Decoder<UTMessageParameter, MessageQueueType, Listener...>::has_leading_comma(
     word_type const word) const
 {
@@ -63,10 +51,7 @@ bool Decoder<UTMessageParameter, MessageQueueType, Listener...>::has_leading_com
 	return (word & comma_mask);
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::shift_in_buffer(
     word_type const word)
 {
@@ -75,10 +60,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::shift_in_buffer
 	m_buffer_filling_level += num_bits_word;
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 size_t Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_header() const
 {
 	size_t const header = static_cast<size_t>(
@@ -94,12 +76,8 @@ size_t Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_header
 	return header;
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
-constexpr size_t
-Decoder<UTMessageParameter, MessageQueueType, Listener...>::get_message_size(
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
+constexpr size_t Decoder<UTMessageParameter, MessageQueueType, Listener...>::get_message_size(
     size_t const header)
 {
 	return detail::UTMessageSizes<
@@ -108,25 +86,18 @@ Decoder<UTMessageParameter, MessageQueueType, Listener...>::get_message_size(
 	    typename UTMessageParameter::Dictionary>::value[header];
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
-void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(
-    size_t const header)
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(size_t const header)
 {
 	decode_message_table_generator(
 	    header, std::make_index_sequence<
 	                hate::type_list_size<typename UTMessageParameter::Dictionary>::value>());
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 template <size_t... Header>
-void Decoder<UTMessageParameter, MessageQueueType, Listener...>::
-    decode_message_table_generator(size_t const header, std::index_sequence<Header...>)
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message_table_generator(
+    size_t const header, std::index_sequence<Header...>)
 {
 	constexpr static std::array<
 	    void (*)(
@@ -135,8 +106,8 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::
 	    function_table{[](size_t& filling_level, buffer_type const& buffer,
 	                      message_queue_type& queue, boost::fusion::tuple<Listener&...> listener) {
 		    typedef UTMessage<
-		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType, typename UTMessageParameter::PhywordType,
-		        typename UTMessageParameter::Dictionary,
+		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
+		        typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
 		        typename hate::index_type_list_by_integer<
 		            Header, typename UTMessageParameter::Dictionary>::type>
 		        ut_message_t;
@@ -156,10 +127,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::
 	function_table[header](m_buffer_filling_level, m_buffer, m_message_queue, m_listener);
 }
 
-template <
-    typename UTMessageParameter,
-    typename MessageQueueType,
-    typename... Listener>
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine(
     typename coroutine_type::pull_type& source)
 {

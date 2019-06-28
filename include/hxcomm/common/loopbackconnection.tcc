@@ -12,8 +12,7 @@ LoopbackConnection<UTMessageParameter>::LoopbackConnection() :
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(
         &LoopbackConnection<UTMessageParameter>::work_fill_receive_buffer, this),
-    m_worker_decode_messages(
-        &LoopbackConnection<UTMessageParameter>::work_decode_messages, this)
+    m_worker_decode_messages(&LoopbackConnection<UTMessageParameter>::work_decode_messages, this)
 {}
 
 template <typename UTMessageParameter>
@@ -33,8 +32,7 @@ void LoopbackConnection<UTMessageParameter>::add(MessageType const& message)
 }
 
 template <typename UTMessageParameter>
-void LoopbackConnection<UTMessageParameter>::add(
-    std::vector<send_message_type> const& messages)
+void LoopbackConnection<UTMessageParameter>::add(std::vector<send_message_type> const& messages)
 {
 	m_encoder(messages);
 }
@@ -63,8 +61,7 @@ LoopbackConnection<UTMessageParameter>::receive()
 }
 
 template <typename UTMessageParameter>
-bool LoopbackConnection<UTMessageParameter>::try_receive(
-    receive_message_type& message)
+bool LoopbackConnection<UTMessageParameter>::try_receive(receive_message_type& message)
 {
 	return m_receive_queue.try_pop(message);
 }
