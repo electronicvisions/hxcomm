@@ -110,6 +110,18 @@ public:
 	 */
 	void run_until_halt();
 
+	/**
+	 * Set enable value to terminate simulator on destruction of connection.
+	 * @param value Boolean value
+	 */
+	void set_enable_terminate_on_destruction(bool value);
+
+	/**
+	 * Get enable value to terminate simulator on destruction of connection.
+	 * @return Boolean value
+	 */
+	bool get_enable_terminate_on_destruction() const;
+
 private:
 	flange::SimulatorClient m_sim;
 
@@ -157,6 +169,8 @@ private:
 	std::thread m_worker_decode_messages;
 
 	std::mutex m_runnable_mutex;
+
+	bool m_terminate_on_destruction;
 };
 
 } // namespace hxcomm

@@ -12,7 +12,8 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(
         &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this, ip, port),
-    m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this)
+    m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
+    m_terminate_on_destruction(false)
 {}
 
 template <typename ConnectionParameter>
@@ -22,6 +23,12 @@ SimConnection<ConnectionParameter>::~SimConnection()
 	m_receive_buffer.notify();
 	m_worker_fill_receive_buffer.join();
 	m_worker_decode_messages.join();
+
+	if (m_terminate_on_destruction) {
+		std::unique_lock<std::mutex> lock(m_runnable_mutex);
+		m_sim.set_runnable(true);
+		m_sim.issue_terminate();
+	}
 }
 
 template <typename ConnectionParameter>
@@ -170,6 +177,18 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 	m_sim.set_runnable(false);
 	lock.unlock();
 	m_listener_halt.reset();
+}
+
+template <typename ConnectionParameter>
+void SimConnection<ConnectionParameter>::set_enable_terminate_on_destruction(bool const value)
+{
+	m_terminate_on_destruction = value;
+}
+
+template <typename ConnectionParameter>
+bool SimConnection<ConnectionParameter>::get_enable_terminate_on_destruction() const
+{
+	return m_terminate_on_destruction;
 }
 
 } // namespace hxcomm
