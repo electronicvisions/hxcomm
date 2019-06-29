@@ -26,7 +26,7 @@ public:
 	typedef hate::bitset<N> value_type;
 
 	template <typename... Args>
-	Bitset(Args... args) : hate::bitset<N>(args...)
+	constexpr Bitset(Args... args) : hate::bitset<N>(args...)
 	{}
 
 	template <typename SubwordType = unsigned long>

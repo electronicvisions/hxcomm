@@ -10,6 +10,8 @@ struct Halt
 {
 	constexpr static size_t size = 0;
 	typedef hxcomm::instruction::detail::payload::Bitset<Halt, size> Payload;
+
+	constexpr static Payload halt{};
 };
 
 /** Dictionary of all FPGA system response instructions. */
