@@ -12,7 +12,7 @@ TEST(TestConnection, Halt)
 	auto stream = Stream(connection);
 
 	// Halt execution
-	stream.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
 
 	stream.commit();
 
@@ -21,6 +21,6 @@ TEST(TestConnection, Halt)
 	auto response = stream.receive();
 	EXPECT_TRUE(stream.receive_empty());
 	EXPECT_EQ(
-	    boost::get<UTMessageFromFPGA<from_fpga_system::Halt>>(response),
-	    UTMessageFromFPGA<from_fpga_system::Halt>());
+	    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
+	    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 }

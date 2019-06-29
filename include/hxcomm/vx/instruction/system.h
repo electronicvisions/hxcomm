@@ -15,14 +15,17 @@ struct Reset
 	typedef hxcomm::instruction::detail::payload::Bitset<Reset, size> Payload;
 };
 
-/** Instruction generating a Halt response. */
-struct Halt
+/** Instruction generating a Loopback response. */
+struct Loopback
 {
-	constexpr static size_t size = 0;
-	typedef hxcomm::instruction::detail::payload::Bitset<Halt, size> Payload;
+	constexpr static size_t size = 1;
+	typedef hxcomm::instruction::detail::payload::Bitset<Loopback, size> Payload;
+
+	constexpr static Payload halt = 0;
+	constexpr static Payload tick = 1;
 };
 
 /** Dictionary of all system instructions. */
-typedef hate::type_list<Reset, Halt> Dictionary;
+typedef hate::type_list<Reset, Loopback> Dictionary;
 
 } // namespace hxcomm::vx::instruction::system

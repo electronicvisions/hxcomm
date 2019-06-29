@@ -30,7 +30,7 @@ TEST(TestConnection, RunUntilHalt)
 	auto stream = Stream(connection);
 
 	// Halt execution
-	stream.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
 
 	stream.commit();
 
@@ -44,7 +44,7 @@ TEST(TestConnection, Receive)
 	Stream stream(connection);
 
 	// Halt execution
-	stream.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
 
 	stream.commit();
 
@@ -54,8 +54,8 @@ TEST(TestConnection, Receive)
 	auto response = stream.receive();
 	EXPECT_TRUE(stream.receive_empty());
 	EXPECT_EQ(
-	    boost::get<UTMessageFromFPGA<from_fpga_system::Halt>>(response),
-	    UTMessageFromFPGA<from_fpga_system::Halt>());
+	    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
+	    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 }
 
 TEST(TestConnection, TryReceive)
@@ -65,7 +65,7 @@ TEST(TestConnection, TryReceive)
 	Stream stream(connection);
 
 	// Halt execution
-	stream.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
 
 	stream.commit();
 
@@ -76,8 +76,8 @@ TEST(TestConnection, TryReceive)
 	EXPECT_TRUE(stream.try_receive(response));
 	EXPECT_TRUE(stream.receive_empty());
 	EXPECT_EQ(
-	    boost::get<UTMessageFromFPGA<from_fpga_system::Halt>>(response),
-	    UTMessageFromFPGA<from_fpga_system::Halt>());
+	    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
+	    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 }
 
 TEST(TestConnection, FromEnv)

@@ -67,7 +67,7 @@ TEST(TestConnection, JTAGLoopback)
 
 	// Halt execution
 	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
-	stream.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
 
 	stream.commit();
 

@@ -20,7 +20,7 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(timing::Setup), "hxcomm::vx::instruction::timing::Setup()"},
     {typeid(timing::WaitUntil), "hxcomm::vx::instruction::timing::WaitUntil(0)"},
     {typeid(timing::SystimeInit), "hxcomm::vx::instruction::timing::SystimeInit(0)"},
-    {typeid(system::Halt), "hxcomm::vx::instruction::system::Halt()"},
+    {typeid(system::Loopback), "hxcomm::vx::instruction::system::Loopback(0)"},
     {typeid(system::Reset), "hxcomm::vx::instruction::system::Reset(0)"},
     {typeid(omnibus_to_fpga::Address), "hxcomm::vx::instruction::omnibus_to_fpga::Address(is_read: "
                                        "false, byte_enables: 1111, address: 0)"},
@@ -34,7 +34,7 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(jtag_from_hicann::Data),
      "hxcomm::vx::instruction::jtag_from_hicann::Data(000000000000000000000000000000000)"},
     {typeid(omnibus_from_fpga::Data), "hxcomm::vx::instruction::omnibus_from_fpga::Data(0)"},
-    {typeid(from_fpga_system::Halt), "hxcomm::vx::instruction::from_fpga_system::Halt()"},
+    {typeid(from_fpga_system::Loopback), "hxcomm::vx::instruction::from_fpga_system::Loopback(0)"},
     {typeid(timing_from_fpga::Sysdelta),
      "hxcomm::vx::instruction::timing_from_fpga::Sysdelta(00000000)"},
     {typeid(timing_from_fpga::Systime), "hxcomm::vx::instruction::timing_from_fpga::Systime("
