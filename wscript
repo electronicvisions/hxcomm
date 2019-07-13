@@ -174,6 +174,7 @@ def build(bld):
         pars = {
             "PROJECT_NAME": "\"HX Communication\"",
             "INPUT": join(get_toplevel_path(), "hxcomm", "include"),
+            "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_FLANGE=",
             "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
         },
     )
