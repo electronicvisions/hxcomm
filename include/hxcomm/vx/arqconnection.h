@@ -7,6 +7,8 @@ namespace hxcomm::vx {
 class ARQConnection : public hxcomm::ARQConnection<ConnectionParameter>
 {
 public:
+	ARQConnection();
+
 	ARQConnection(ip_t ip);
 };
 

@@ -5,9 +5,7 @@
 
 #include "connection.h"
 
-#ifdef HXCOMM_TEST_ARQ_CONNECTION
-std::string fpga_ip;
-#else
+#ifndef HXCOMM_TEST_ARQ_CONNECTION
 std::string simulation_ip;
 unsigned int simulation_port;
 #endif
@@ -15,7 +13,7 @@ unsigned int simulation_port;
 TestConnection generate_test_connection()
 {
 #ifdef HXCOMM_TEST_ARQ_CONNECTION
-	return TestConnection(fpga_ip);
+	return TestConnection();
 #else
 	return TestConnection(simulation_ip, simulation_port);
 #endif
@@ -25,19 +23,7 @@ int main(int argc, char* argv[])
 {
 	testing::InitGoogleTest(&argc, argv);
 
-#ifdef HXCOMM_TEST_ARQ_CONNECTION
-	namespace bpo = boost::program_options;
-	bpo::options_description desc("Options");
-	// clang-format off
-	// Currently (2019-05-14) the only setup, still ugly -> issue #3161
-	desc.add_options()("fpga_ip", bpo::value<std::string>(&fpga_ip)->default_value("192.168.4.4"));
-	// clang-format on
-
-	bpo::variables_map vm;
-	bpo::store(
-	    bpo::basic_command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
-	bpo::notify(vm);
-#else
+#ifndef HXCOMM_TEST_ARQ_CONNECTION
 	namespace bpo = boost::program_options;
 	bpo::options_description desc("Options");
 	// clang-format off

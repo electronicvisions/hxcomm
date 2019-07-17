@@ -42,6 +42,12 @@ public:
 	    typename ConnectionParameter::Receive::Dictionary>::type receive_message_type;
 
 	/**
+	 * Create connection to FPGA with IP address found in environment.
+	 * @throws std::runtime_error On no or more than one FPGA IP address available in environment
+	 */
+	ARQConnection();
+
+	/**
 	 * Create connection to FPGA.
 	 * @param ip IP-address of FPGA
 	 */

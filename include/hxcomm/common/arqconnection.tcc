@@ -42,6 +42,21 @@ std::vector<sctrltp::packet> ARQConnection<ConnectionParameter>::SendQueue::move
 
 
 template <typename ConnectionParameter>
+ARQConnection<ConnectionParameter>::ARQConnection() :
+    m_arq_stream(),
+    m_send_queue(),
+    m_encoder(m_send_queue),
+    m_receive_queue(),
+    m_listener_halt(),
+    m_decoder(m_receive_queue, m_listener_halt),
+    m_run_receive(true),
+    m_receive_buffer(m_run_receive),
+    m_worker_fill_receive_buffer(
+        &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
+    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this)
+{}
+
+template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_arq_stream(ip),
     m_send_queue(),
