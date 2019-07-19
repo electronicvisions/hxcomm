@@ -22,7 +22,7 @@ singularity exec --app visionary-dls /containers/stable/latest waf install --tes
 
 Typically you would use the shared object in another project.
 See `tests/hw/hxcomm/test-jtag_loopback.cpp` for an example.
-
+Doxygen-generated code documentation is deployed [here](https://jenkins.bioai.eu/job/bld_nightly-hxcomm/Documentation_20_28hxcomm_29/) nightly by Jenkins.
 
 ## Contributing
 
