@@ -20,7 +20,8 @@ typedef uint64_t largest_ut_message_subword_type;
  * leftmost header bit is reserved for a comma, which for valid UT messages is always set to false.
  * The header is calculated as the instruction's position in the dictionary.
  * @tparam HeaderAlignment Alignment of header in bits
- * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
+ * @tparam SubwordType Type of subword which's width corresponds to the message's alignment
+ * @tparam PhywordType Type of PHY-word which's width corresponds to the message's minimal width
  * @tparam Dictionary Dictionary of instructions
  * @tparam Instruction Instruction to encode in UT message
  */
@@ -161,7 +162,7 @@ struct ToUTMessageVariant;
 
 
 /**
- * Get the largest UT message size in bits for a given set of UT messsage parameters.
+ * Get the largest UT message size in bits for a given set of UT message parameters.
  * @tparam HeaderAlignment Alignment of header in bits
  * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
  * @tparam Dictionary Dictionary of instructions
@@ -170,7 +171,7 @@ template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, ty
 struct LargestUTMessageSize;
 
 /**
- * Get the header width corresponding to a given set of UT messsage parameters.
+ * Get the header width corresponding to a given set of UT message parameters.
  * @tparam HeaderAlignment Alignment of header in bits
  * @tparam Dictionary Dictionary of instructions
  */
