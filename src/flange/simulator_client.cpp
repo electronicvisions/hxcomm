@@ -75,4 +75,9 @@ void SimulatorClient::issue_terminate()
 	m_impl->m_sim.issue_terminate();
 }
 
+void SimulatorClient::issue_reset(SimulatorEvent::clk_t const count)
+{
+	m_impl->m_sim.issue_reset(count);
+}
+
 } // namespace flange

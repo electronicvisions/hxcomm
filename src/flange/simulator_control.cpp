@@ -16,7 +16,8 @@ SimulatorControl::SimulatorControl() :
     m_current_clk(0),
     m_runnable(false),
     m_pause_after_next_event_from_sim(false),
-    m_terminate_asap(false)
+    m_terminate_asap(false),
+    m_reset(0)
 {}
 
 void SimulatorControl::set_runnable(bool state)
@@ -35,6 +36,12 @@ void SimulatorControl::issue_terminate()
 {
 	RCF::Lock lock(m_service_lock);
 	m_terminate_asap = true;
+}
+
+void SimulatorControl::issue_reset(SimulatorEvent::clk_t const count)
+{
+	RCF::Lock lock(m_service_lock);
+	m_reset = count;
 }
 
 void SimulatorControl::push_event(SimulatorEvent const& se)

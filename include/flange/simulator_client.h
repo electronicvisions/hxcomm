@@ -83,6 +83,13 @@ public:
 	 * Send terminate signal to simulator.
 	 */
 	void issue_terminate();
+
+	/**
+	 * Send reset signal to simulator.
+	 * @param count Number of clock cycles to pull reset
+	 */
+	void issue_reset(SimulatorEvent::clk_t count = 1);
+
 private:
 	struct Impl;
 	std::unique_ptr<Impl> m_impl;

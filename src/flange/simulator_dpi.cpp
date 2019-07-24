@@ -82,8 +82,10 @@ bool dpi_comm_tx(dpi_handle_t handle, uint64_t data)
 	return true; // unused arbitrary return value
 }
 
-bool dpi_comm_rx(dpi_handle_t handle, bool rx_ready, bool* terminate, uint64_t* rx_data)
+bool dpi_comm_rx(
+    dpi_handle_t handle, bool rx_ready, bool* terminate, bool* reset, uint64_t* rx_data)
 {
+	*reset = false;
 	*terminate = false;
 	*rx_data = 0;
 	flange::SimulatorEvent::clk_t now = 0;
@@ -113,6 +115,13 @@ bool dpi_comm_rx(dpi_handle_t handle, bool rx_ready, bool* terminate, uint64_t* 
 	// special case: TERMINATE ASAP!
 	if (g_service[handle]->m_terminate_asap) {
 		*terminate = true;
+		return false;
+	}
+
+	// special case: reset!
+	if (g_service[handle]->m_reset > 0) {
+		*reset = true;
+		g_service[handle]->m_reset -= 1;
 		return false;
 	}
 

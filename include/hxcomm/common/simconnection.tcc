@@ -21,6 +21,9 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
+
+    // reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	m_sim.issue_reset();
 }
 
 template <typename ConnectionParameter>

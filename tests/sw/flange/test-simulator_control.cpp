@@ -15,6 +15,8 @@ TEST(SimulatorControl, General)
 
 	EXPECT_NO_THROW(ctrl.issue_terminate());
 
+	EXPECT_NO_THROW(ctrl.issue_reset(123));
+
 	SimulatorEvent event;
 	EXPECT_NO_THROW(ctrl.push_event(event));
 

@@ -27,6 +27,9 @@ public:
 	/// Set terminate state
 	void issue_terminate();
 
+	/// Set reset state for count cycle(s).
+	void issue_reset(SimulatorEvent::clk_t count);
+
 	/// Add SimulatorEvent to "to_sim" queue
 	void push_event(SimulatorEvent const& se);
 
@@ -48,7 +51,7 @@ private:
 	friend void ::dpi_comm_shutdown(dpi_handle_t handle);
 	friend bool ::dpi_comm_tx(dpi_handle_t handle, uint64_t tx_data);
 	friend bool ::dpi_comm_rx(
-	    dpi_handle_t handle, bool rx_ready, bool* terminate, uint64_t* rx_data);
+	    dpi_handle_t handle, bool rx_ready, bool* terminate, bool* reset, uint64_t* rx_data);
 
 	mutable RCF::Mutex m_service_lock;
 	std::deque<SimulatorEvent> m_to_sim;
@@ -57,6 +60,7 @@ private:
 	bool m_runnable;
 	bool m_pause_after_next_event_from_sim;
 	bool m_terminate_asap;
+	SimulatorEvent::clk_t m_reset;
 };
 
 } // namespace flange
