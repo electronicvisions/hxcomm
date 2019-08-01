@@ -23,24 +23,41 @@ template <typename Tag, size_t N>
 class Bitset : public hate::bitset<N>
 {
 public:
+	/** Underlying value type. */
 	typedef hate::bitset<N> value_type;
 
+	/**
+	 * Construct a bitset payload.
+	 * @tparam Args Argument types to construct from
+	 * @param args Agruments to construct from
+	 */
 	template <typename... Args>
-	constexpr Bitset(Args... args) : hate::bitset<N>(args...)
+	constexpr Bitset(Args... args) : value_type(args...)
 	{}
 
+	/**
+	 * Encode into a bitset of size N (no-op for Bitset).
+	 * @tparam SubwordType Word type used in bitset representation
+	 * @return Payload encoded as bitset
+	 */
 	template <typename SubwordType = unsigned long>
 	constexpr hate::bitset<N, SubwordType> encode() const
 	{
 		return *this;
 	}
 
+	/**
+	 * Decode from a bitset of size N (no-op for Bitset).
+	 * @tparam SubwordType Word type used in bitset representation
+	 * @param data Bitset data to decode
+	 */
 	template <typename SubwordType = unsigned long>
 	void decode(hate::bitset<N, SubwordType> const& data)
 	{
 		*this = data;
 	}
 };
+
 
 /**
  * Payload for number-type data.
@@ -53,16 +70,31 @@ class Number : public halco::common::detail::BaseType<Number<Tag, T>, T>
 {
 public:
 	typedef hate::bitset<sizeof(T) * CHAR_BIT> value_type;
+	/** Underlying base type. */
 	typedef halco::common::detail::BaseType<Number<Tag, T>, T> base_t;
 
+	/**
+	 * Construct a Number payload.
+	 * @param value Value to construct from
+	 */
 	constexpr explicit Number(T const value = 0) : base_t(value) {}
 
+	/**
+	 * Encode into a bitset of size N.
+	 * @tparam SubwordType Word type used in bitset representation
+	 * @return Payload encoded as bitset
+	 */
 	template <typename SubwordType = unsigned long>
 	constexpr hate::bitset<value_type::size, SubwordType> encode() const
 	{
 		return this->value();
 	}
 
+	/**
+	 * Decode from a bitset of size N.
+	 * @tparam SubwordType Word type used in bitset representation
+	 * @param data Bitset data to decode
+	 */
 	template <typename SubwordType = unsigned long>
 	void decode(hate::bitset<value_type::size, SubwordType> const& data)
 	{
@@ -76,6 +108,7 @@ private:
 	    "number only works with <= word width number type.");
 };
 
+
 /**
  * Payload for ranged-type data.
  * @tparam Tag Type of tag class
@@ -88,16 +121,31 @@ template <typename Tag, size_t N, typename T, uintmax_t Min, uintmax_t Max>
 class Ranged : public halco::common::detail::RantWrapper<Ranged<Tag, N, T, Min, Max>, T, Max, Min>
 {
 public:
-	typedef hate::bitset<N> value_type;
+	/** Underlying base type. */
 	typedef halco::common::detail::RantWrapper<Ranged<Tag, N, T, Min, Max>, T, Max, Min> rant_t;
 
+	/**
+	 * Construct a Ranged number payload.
+	 * @param value Value to construct from
+	 */
 	constexpr explicit Ranged(uintmax_t const value = 0) : rant_t(value) {}
 
+	/**
+	 * Encode into a bitset of size N.
+	 * @tparam SubwordType Word type used in bitset representation
+	 * @return Payload encoded as bitset
+	 */
 	template <typename SubwordType = unsigned long>
 	constexpr hate::bitset<N, SubwordType> encode() const
 	{
 		return this->value();
 	}
+
+	/**
+	 * Decode from a bitset of size N.
+	 * @tparam SubwordType Word type used in bitset representation
+	 * @param data Bitset data to decode
+	 */
 	template <typename SubwordType = unsigned long>
 	void decode(hate::bitset<N, SubwordType> const& data)
 	{

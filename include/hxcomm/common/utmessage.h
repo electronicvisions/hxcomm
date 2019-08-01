@@ -7,6 +7,7 @@
 
 namespace hxcomm {
 
+/** Largest SubwordType supported by the UTMessage implementation. */
 typedef uint64_t largest_ut_message_subword_type;
 
 /**
@@ -145,6 +146,7 @@ private:
  * Get UT message variant type corresponding to UT message parameters.
  * @tparam HeaderAlignment Alignment of header in bits
  * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
+ * @tparam PhywordType Type of PHY-word which's width corresponds to the message's minimal width
  * @tparam Dictionary Dictionary of instructions
  */
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
@@ -155,10 +157,12 @@ struct ToUTMessageVariant;
  * Get the largest UT message size in bits for a given set of UT message parameters.
  * @tparam HeaderAlignment Alignment of header in bits
  * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
+ * @tparam PhywordType Type of PHY-word which's width corresponds to the message's minimal width
  * @tparam Dictionary Dictionary of instructions
  */
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
 struct LargestUTMessageSize;
+
 
 /**
  * Get the header width corresponding to a given set of UT message parameters.

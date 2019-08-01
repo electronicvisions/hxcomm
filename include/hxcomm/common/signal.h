@@ -3,6 +3,9 @@
 
 namespace hxcomm {
 
+/**
+ * Class overriding the SIGINT and the SIGTERM signal handler to a exit handler during life-time.
+ */
 class SignalOverrideIntTerm
 {
 public:

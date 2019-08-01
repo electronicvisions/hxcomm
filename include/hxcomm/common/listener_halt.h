@@ -13,8 +13,16 @@ template <typename HaltMessageType>
 class ListenerHalt
 {
 public:
+	/**
+	 * Construct Halt listener.
+	 */
 	ListenerHalt() : m_value(false) {}
 
+	/**
+	 * Operator invoked for every decoded message checking whether the message contains a Halt.
+	 * @tparam MessageType Type of UT message to check
+	 * @param message UT message instance to check
+	 */
 	template <typename MessageType>
 	void operator()(MessageType const& message)
 	{
@@ -25,8 +33,14 @@ public:
 		}
 	}
 
+	/**
+	 * Get whether the listener registered a Halt message.
+	 */
 	size_t get() { return m_value.load(std::memory_order_acquire); }
 
+	/**
+	 * Reset listener state to not having registered a Halt message.
+	 */
 	void reset() { m_value = false; }
 
 private:
