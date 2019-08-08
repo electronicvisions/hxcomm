@@ -2,7 +2,7 @@
 
 wafDefaultPipeline(projects: ["hxcomm"],
                    container: [app: "visionary-dls"],
-                   testSlurmResource: [partition: "cube", wafer: 4, "fpga-without-aout": 3],
+                   testSlurmResource: [partition: "cube", wafer: 62, "fpga-without-aout": 3],
                    testOptions: "--test-execall -j1",
                    notificationChannel: "#dls-software",
                    warningsIgnorePattern: "*/lib-rcf/*")
