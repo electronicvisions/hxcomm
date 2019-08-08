@@ -12,7 +12,7 @@ module load localdir
 
 # first build
 waf setup --project hxcomm
-srun -p compile singularity exec --app visionary-dls /containers/stable/latest waf configure install --test-execnone
+srun -p compile -c8 -- singularity exec --app visionary-dls /containers/stable/latest waf configure install --test-execnone
 
 # run (software) tests
 singularity exec --app visionary-dls /containers/stable/latest waf install --test-execall
@@ -65,11 +65,11 @@ namespace hxcomm::vx::instruction::my_new_instruction_namespace
 ```
 and therein define a dictionary:
 ```cpp
-typedef hate::type_list<MyNewInstruction> dictionary;
+typedef hate::type_list<MyNewInstruction> Dictionary;
 ```
 
 Now add the instruction at the right location in the appropriate higher-level dictionary.
-This will most probably be either the `to_fpga_dictionary` or the `from_fpga_dictionary` in `include/hxcomm/vx/instruction/instruction.h`.
+This will most probably be either the `ToFPGADictionary` or the `FromFPGADictionary` in `include/hxcomm/vx/instruction/instruction.h`.
 However, dictionary stacking/grouping with more than one level is possible, so subgroups can be defined.
 
 ### Testing the new instruction
@@ -77,6 +77,6 @@ However, dictionary stacking/grouping with more than one level is possible, so s
 * For every instruction, the identity operation by encoding and decoding is to be tested individually.
   See `tests/sw/hxcomm/test-omnibus_to_fpga.cpp` for an examplary test implementation.
   - For creation of typical payload field values in a random manner, `tests/sw/hxcomm/test-helper.h` provides convenience functions.
-* By adding the new instruction to a dictionary on which one of the toplevel dictionaries `to_fpga_dictionary` and `from_fpga_dictionary` depend, corresponding `UTMessage` types are automatically tested for serialization possibility, which comes for free, and `UTMessage` `encoding` and `decoding`.
+* By adding the new instruction to a dictionary on which one of the toplevel dictionaries `ToFPGADictionary` and `FromFPGADictionary` depend, corresponding `UTMessage` types are automatically tested for serialization possibility, which comes for free, and `UTMessage` `encoding` and `decoding`.
 
-Having done the above steps, the new instruction is available in `UTMessage{To/From}FPGAVariant` in `include/hxcomm/vx/ut_message.h` and can now be directly used in hardware tests, residing under `tests/hw/hxcomm/test-*.cpp` or in the `fisch` software layer.
+Having done the above steps, the new instruction is available in `UTMessage{To/From}FPGAVariant` in `include/hxcomm/vx/utmessage.h` and can now be directly used in hardware tests, residing under `tests/hw/hxcomm/test-*.cpp` or in the `fisch` software layer.
