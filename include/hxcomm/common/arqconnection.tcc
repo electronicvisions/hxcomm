@@ -26,7 +26,7 @@ std::vector<sctrltp::packet> ARQConnection<ConnectionParameter>::SendQueue::move
 	auto fill_packet = [&packets, this](size_t const packet_index, size_t const len) {
 		size_t const base_subpacket_index = packet_index * MAX_PDUWORDS;
 		for (size_t i = 0; i < len; ++i) {
-			packets[packet_index][i] = m_subpackets[base_subpacket_index + i];
+			packets[packet_index].pdu[i] = m_subpackets[base_subpacket_index + i];
 		}
 		packets[packet_index].len = len;
 		packets[packet_index].pid = pid;
