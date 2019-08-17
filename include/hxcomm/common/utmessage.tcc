@@ -182,7 +182,7 @@ std::ostream& operator<<(
     std::ostream& os,
     UTMessage<HeaderAlignment, SubwordType, PhywordType, Dictionary, Instruction> const& message)
 {
-	os << "UTMessage(";
+	os << "UTMessage(raw: ";
 	auto const words = message.get_raw().to_array();
 	for (auto iter = words.rbegin(); iter != words.rend(); iter++) {
 		std::stringstream ss;
@@ -190,6 +190,7 @@ std::ostream& operator<<(
 		   << static_cast<largest_ut_message_subword_type>(*iter);
 		os << ss.str();
 	}
+	os << ", " << message.decode();
 	os << ")";
 	return os;
 }

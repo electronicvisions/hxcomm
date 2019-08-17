@@ -1,7 +1,9 @@
 #pragma once
 #include <climits>
+#include <boost/type_index.hpp>
 
 #include "halco/hicann-dls/vx/coordinates.h"
+#include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 
 /** Instructions for events from the FPGA. */
@@ -64,6 +66,12 @@ public:
 		m_value = Value(static_cast<uintmax_t>(hate::bitset<14, SubwordType>(data)));
 	}
 
+	friend std::ostream& operator<<(std::ostream& os, MADCSample const& value)
+	{
+		os << "MADCSample(" << value.m_value << ", " << value.m_timestamp << ")";
+		return os;
+	}
+
 private:
 	Value m_value;
 	Timestamp m_timestamp;
@@ -112,6 +120,16 @@ struct MADCSamplePack
 				m_samples[i - 1].decode(typename MADCSample::value_type(
 				    data >> ((num_samples - i) * MADCSample::size)));
 			}
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
+		{
+			os << boost::typeindex::type_id<MADCSamplePack>().pretty_name() << "(";
+			for (size_t i = 0; i < num_samples - 1; ++i) {
+				os << value.m_samples[i] << ", ";
+			}
+			os << value.m_samples.back() << ")";
+			return os;
 		}
 
 	private:
@@ -185,6 +203,13 @@ public:
 		    static_cast<uintmax_t>(hate::bitset<neuron_address_size, SubwordType>(data)));
 	}
 
+	friend std::ostream& operator<<(std::ostream& os, Spike const& value)
+	{
+		os << "Spike(" << value.m_neuron << ", " << value.m_spl1 << ", " << value.m_timestamp
+		   << ")";
+		return os;
+	}
+
 private:
 	neuron_label_type m_neuron;
 	spl1_address_type m_spl1;
@@ -232,6 +257,16 @@ struct SpikePack
 				m_spikes[i - 1].decode(
 				    typename Spike::value_type(data >> ((num_spikes - i) * Spike::size)));
 			}
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
+		{
+			os << boost::typeindex::type_id<SpikePack>().pretty_name() << "(";
+			for (size_t i = 0; i < num_spikes - 1; ++i) {
+				os << value.m_spikes[i] << ", ";
+			}
+			os << value.m_spikes.back() << ")";
+			return os;
 		}
 
 	private:

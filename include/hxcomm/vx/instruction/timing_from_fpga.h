@@ -1,5 +1,6 @@
 #pragma once
 #include <climits>
+#include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 
 /** Timing response instructions from the FPGA. */

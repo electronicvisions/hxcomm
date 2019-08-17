@@ -1,9 +1,10 @@
 #pragma once
 #include <climits>
-
-#include "hxcomm/common/payload.h"
+#include <boost/type_index.hpp>
 
 #include "halco/hicann-dls/vx/coordinates.h"
+#include "hate/type_list.h"
+#include "hxcomm/common/payload.h"
 
 /** Instructions for events to the FPGA. */
 namespace hxcomm::vx::instruction::event_to_fpga {
@@ -46,6 +47,13 @@ public:
 		m_spl1 = spl1_address_type(static_cast<uintmax_t>(data >> neuron_address_size));
 		m_neuron = neuron_label_type(
 		    static_cast<uintmax_t>(hate::bitset<neuron_address_size, SubwordType>(data)));
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, Spike const& value)
+	{
+		os << "Spike(";
+		os << value.m_neuron << ", " << value.m_spl1 << ")";
+		return os;
 	}
 
 private:
@@ -94,6 +102,16 @@ struct SpikePack
 				m_spikes[i - 1].decode(
 				    typename Spike::value_type(data >> ((num_spikes - i) * Spike::size)));
 			}
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
+		{
+			os << boost::typeindex::type_id<SpikePack>().pretty_name() << "(";
+			for (size_t i = 0; i < num_spikes - 1; ++i) {
+				os << value.m_spikes[i] << ", ";
+			}
+			os << value.m_spikes.back() << ")";
+			return os;
 		}
 
 	private:

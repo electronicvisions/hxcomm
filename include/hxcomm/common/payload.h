@@ -1,10 +1,10 @@
 #pragma once
 #include <climits>
 #include <stddef.h>
+#include <boost/type_index.hpp>
 
-#include "halco/common/geometry.h"
 #include "hate/bitset.h"
-#include "hate/type_list.h"
+#include "rant/int.h"
 
 /**
  * Payload formatting.
@@ -56,6 +56,13 @@ public:
 	{
 		*this = data;
 	}
+
+	friend std::ostream& operator<<(std::ostream& os, Bitset const& value)
+	{
+		os << boost::typeindex::type_id<Tag>().pretty_name() << "("
+		   << static_cast<value_type>(value) << ")";
+		return os;
+	}
 };
 
 
@@ -66,18 +73,16 @@ public:
  * @tparam T underlying number type
  */
 template <typename Tag, typename T>
-class Number : public halco::common::detail::BaseType<Number<Tag, T>, T>
+class Number
 {
 public:
-	typedef hate::bitset<sizeof(T) * CHAR_BIT> value_type;
-	/** Underlying base type. */
-	typedef halco::common::detail::BaseType<Number<Tag, T>, T> base_t;
+	constexpr static size_t size = sizeof(T) * CHAR_BIT;
 
 	/**
 	 * Construct a Number payload.
 	 * @param value Value to construct from
 	 */
-	constexpr explicit Number(T const value = 0) : base_t(value) {}
+	constexpr explicit Number(T const value = 0) : m_value(value) {}
 
 	/**
 	 * Encode into a bitset of size N.
@@ -85,9 +90,9 @@ public:
 	 * @return Payload encoded as bitset
 	 */
 	template <typename SubwordType = unsigned long>
-	constexpr hate::bitset<value_type::size, SubwordType> encode() const
+	constexpr hate::bitset<size, SubwordType> encode() const
 	{
-		return this->value();
+		return m_value;
 	}
 
 	/**
@@ -96,16 +101,28 @@ public:
 	 * @param data Bitset data to decode
 	 */
 	template <typename SubwordType = unsigned long>
-	void decode(hate::bitset<value_type::size, SubwordType> const& data)
+	void decode(hate::bitset<size, SubwordType> const& data)
 	{
-		*static_cast<base_t*>(this) = static_cast<T>(data);
+		m_value = static_cast<T>(data);
 	}
 
+	friend std::ostream& operator<<(std::ostream& os, Number const& value)
+	{
+		os << boost::typeindex::type_id<Tag>().pretty_name() << "("
+		   << static_cast<std::conditional_t<std::is_same<unsigned char, T>::value, uintmax_t, T>>(
+		          value.m_value)
+		   << ")";
+		return os;
+	}
+
+	T value() const { return m_value; }
+
+	bool operator==(Number const& other) const { return m_value == other.m_value; }
+	bool operator!=(Number const& other) const { return !(*this == other); }
+
 private:
-	static_assert(std::is_integral<T>::value, "number is supposed to be used with integer type.");
-	static_assert(
-	    value_type::size <= value_type::num_bits_per_word,
-	    "number only works with <= word width number type.");
+	static_assert(std::is_integral<T>::value, "Number is supposed to be used with integer type.");
+	T m_value;
 };
 
 
@@ -118,17 +135,17 @@ private:
  * @tparam Max Maximal value in range
  */
 template <typename Tag, size_t N, typename T, uintmax_t Min, uintmax_t Max>
-class Ranged : public halco::common::detail::RantWrapper<Ranged<Tag, N, T, Min, Max>, T, Max, Min>
+class Ranged
 {
 public:
-	/** Underlying base type. */
-	typedef halco::common::detail::RantWrapper<Ranged<Tag, N, T, Min, Max>, T, Max, Min> rant_t;
+	constexpr static size_t max = Max;
+	constexpr static size_t min = Min;
 
 	/**
 	 * Construct a Ranged number payload.
 	 * @param value Value to construct from
 	 */
-	constexpr explicit Ranged(uintmax_t const value = 0) : rant_t(value) {}
+	constexpr explicit Ranged(uintmax_t const value = 0) : m_value(value) {}
 
 	/**
 	 * Encode into a bitset of size N.
@@ -149,8 +166,28 @@ public:
 	template <typename SubwordType = unsigned long>
 	void decode(hate::bitset<N, SubwordType> const& data)
 	{
-		*static_cast<rant_t*>(this) = static_cast<T>(data);
+		m_value = decltype(m_value)(static_cast<T>(data));
 	}
+
+	friend std::ostream& operator<<(std::ostream& os, Ranged const& value)
+	{
+		os << boost::typeindex::type_id<Tag>().pretty_name() << "("
+		   << static_cast<std::conditional_t<std::is_same<unsigned char, T>::value, uintmax_t, T>>(
+		          value.m_value)
+		   << ")";
+		return os;
+	}
+
+	T value() const { return m_value; }
+
+	operator T() const { return m_value; };
+
+	bool operator==(Ranged const& other) const { return m_value == other.m_value; }
+	bool operator!=(Ranged const& other) const { return !(*this == other); }
+
+private:
+	rant::integral_range<T, Max, Min> m_value;
+	static_assert(std::is_integral<T>::value, "Ranged is supposed to be used with integer type.");
 };
 
 } // namespace hxcomm::instruction::detail::payload

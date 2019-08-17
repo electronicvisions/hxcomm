@@ -1,6 +1,8 @@
 #pragma once
 #include <climits>
+#include <boost/type_index.hpp>
 
+#include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 
 /** Instructions for omnibus communication to the FPGA. */
@@ -42,6 +44,14 @@ struct Address
 			m_byte_enables = (data >> (sizeof(uint32_t) * CHAR_BIT));
 		}
 
+		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
+		{
+			os << boost::typeindex::type_id<Address>().pretty_name() << "(is_read: ";
+			os << std::boolalpha << value.m_is_read << ", byte_enables: " << value.m_byte_enables
+			   << ", address: " << value.m_address << ")";
+			return os;
+		}
+
 	private:
 		uint32_t m_address;
 		bool m_is_read;
@@ -57,7 +67,7 @@ struct Address
 struct Data
 {
 	constexpr static size_t size = sizeof(uint32_t) * CHAR_BIT;
-	typedef hxcomm::instruction::detail::payload::Bitset<Data, size> Payload;
+	typedef hxcomm::instruction::detail::payload::Number<Data, uint32_t> Payload;
 };
 
 /** Dictionary of all Omnibus to FPGA instructions. */

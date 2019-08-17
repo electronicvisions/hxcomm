@@ -1,4 +1,5 @@
 #pragma once
+#include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 
 /** Instructions for setting up an experiment. */

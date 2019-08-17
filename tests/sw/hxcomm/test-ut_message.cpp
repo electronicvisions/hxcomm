@@ -1,3 +1,4 @@
+#include <boost/type_index.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -49,6 +50,47 @@ TYPED_TEST(CommonUTMessageTests, General)
 		ASSERT_NE(config, config_ne);
 		ASSERT_FALSE(config != config_eq);
 	}
+}
+
+TYPED_TEST(CommonUTMessageTests, Ostream)
+{
+	typename TypeParam::instruction_type::Payload payload;
+
+	TypeParam message(payload);
+
+	std::stringstream actual;
+	actual << message;
+
+	std::stringstream expected;
+	expected << "UTMessage(raw: ";
+	auto const words = message.get_raw().to_array();
+	for (auto iter = words.rbegin(); iter != words.rend(); iter++) {
+		std::stringstream ss;
+		ss << std::hex << std::setfill('0') << std::setw(message.subword_width / 4)
+		   << static_cast<hxcomm::largest_ut_message_subword_type>(*iter);
+		expected << ss.str();
+	}
+	expected << ", " << payload << ")";
+
+	EXPECT_EQ(actual.str(), expected.str());
+
+	std::stringstream actual_payload;
+	actual_payload << payload;
+
+	std::stringstream expected_payload_prefix;
+	expected_payload_prefix
+	    << boost::typeindex::type_id<typename TypeParam::instruction_type>().pretty_name() << "(";
+
+	// instruction type prefix
+	EXPECT_EQ(
+	    actual_payload.str().substr(0, expected_payload_prefix.str().length()),
+	    expected_payload_prefix.str());
+
+	// payload-value ostream representation is instruction type dependent and therefore not tested
+	// here
+
+	// payload-value postfix
+	EXPECT_EQ(actual_payload.str().substr(actual_payload.str().length() - 1), ")");
 }
 
 TYPED_TEST(CommonUTMessageTests, CerealizeCoverage)

@@ -22,8 +22,7 @@ TEST(omnibus_to_fpga_Address, EncodeDecode)
 
 TEST(omnibus_to_fpga_Data, EncodeDecode)
 {
-	auto data_value = random_bitset<Data::size>();
-	typename Data::Payload payload(data_value);
+	typename Data::Payload payload(draw_non_default_value<uint32_t>(0));
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

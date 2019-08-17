@@ -1,7 +1,10 @@
 #pragma once
 #include <climits>
+#include <boost/type_index.hpp>
 
+#include "halco/common/geometry.h"
 #include "hate/math.h"
+#include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 
 /** JTAG instructions to the fpga. */
@@ -105,6 +108,15 @@ struct Data
 			                         .reset(padded_num_bits_keep_response)
 			                         .to_uintmax());
 			m_payload = data;
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
+		{
+			os << boost::typeindex::type_id<Data>().pretty_name()
+			   << "(keep_response: " << std::boolalpha << value.m_keep_response
+			   << ", num_bits: " << static_cast<uintmax_t>(value.m_num_bits)
+			   << ", payload: " << value.m_payload << ")";
+			return os;
 		}
 
 	private:
