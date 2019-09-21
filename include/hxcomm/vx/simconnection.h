@@ -4,10 +4,9 @@
 
 namespace hxcomm::vx {
 
-class SimConnection : public hxcomm::SimConnection<ConnectionParameter>
+struct SimConnection : public hxcomm::SimConnection<ConnectionParameter>
 {
-public:
-	SimConnection(ip_t ip, port_t port);
+	using connection_t::connection_t;
 };
 
 } // namespace hxcomm::vx

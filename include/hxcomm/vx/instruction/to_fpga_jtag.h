@@ -31,15 +31,15 @@ struct Ins
 	constexpr static size_t size = 7;
 	typedef hxcomm::instruction::detail::payload::Ranged<Ins, size, uint8_t, 0, 127> Payload;
 
-	static const Payload EXTEST;
-	static const Payload IDCODE;
-	static const Payload SAMPLE_PRELOAD;
-	static const Payload PLL_TARGET_REG;
-	static const Payload SHIFT_PLL;
-	static const Payload OMNIBUS_ADDRESS;
-	static const Payload OMNIBUS_DATA;
-	static const Payload OMNIBUS_REQUEST;
-	static const Payload BYPASS;
+	inline static const Payload EXTEST{0};
+	inline static const Payload IDCODE{1};
+	inline static const Payload SAMPLE_PRELOAD{2};
+	inline static const Payload PLL_TARGET_REG{3};
+	inline static const Payload SHIFT_PLL{4};
+	inline static const Payload OMNIBUS_ADDRESS{5};
+	inline static const Payload OMNIBUS_DATA{6};
+	inline static const Payload OMNIBUS_REQUEST{7};
+	inline static const Payload BYPASS{127};
 };
 
 /** Data instruction. */
@@ -75,23 +75,33 @@ struct Data
 			explicit NumBits(uintmax_t const value = max_num_bits_payload) : rant_t(value) {}
 		};
 
-		Payload();
 		Payload(
-		    bool const keep_response,
-		    NumBits const num_bits,
-		    hate::bitset<max_num_bits_payload> const payload);
+		    bool const keep_response = false,
+		    NumBits const num_bits = NumBits(),
+		    hate::bitset<max_num_bits_payload> const payload = 0u) :
+		    m_keep_response(keep_response),
+		    m_num_bits(num_bits),
+		    m_payload(payload)
+		{}
 
-		bool get_keep_response() const;
-		void set_keep_response(bool value);
 
-		NumBits get_num_bits() const;
-		void set_num_bits(NumBits value);
+		bool get_keep_response() const { return m_keep_response; }
+		void set_keep_response(bool const value) { m_keep_response = value; }
 
-		hate::bitset<max_num_bits_payload> get_payload() const;
-		void set_payload(hate::bitset<max_num_bits_payload> const& value);
+		NumBits get_num_bits() const { return m_num_bits; }
+		void set_num_bits(NumBits const value) { m_num_bits = value; }
 
-		bool operator==(Payload const& other) const;
-		bool operator!=(Payload const& other) const;
+		hate::bitset<max_num_bits_payload> get_payload() const { return m_payload; }
+		void set_payload(hate::bitset<max_num_bits_payload> const& value) { m_payload = value; }
+
+		bool operator==(Payload const& other) const
+		{
+			return (
+			    (m_keep_response == other.m_keep_response) && (m_num_bits == other.m_num_bits) &&
+			    (m_payload == other.m_payload));
+		}
+
+		bool operator!=(Payload const& other) const { return !(*this == other); }
 
 		template <class SubwordType = unsigned long>
 		hate::bitset<size, SubwordType> encode() const

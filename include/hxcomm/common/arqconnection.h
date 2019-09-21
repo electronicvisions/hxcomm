@@ -28,6 +28,7 @@ class ARQConnection
 {
 public:
 	typedef std::string ip_t;
+	typedef ARQConnection connection_t;
 
 	typedef typename ToUTMessageVariant<
 	    ConnectionParameter::Send::HeaderAlignment,

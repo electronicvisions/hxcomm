@@ -20,12 +20,22 @@ struct Address
 	{
 	public:
 		explicit Payload(
-		    uint32_t address = 0,
-		    bool is_read = false,
-		    hate::bitset<sizeof(uint32_t)> byte_enables = 0xf);
+		    uint32_t const address = 0,
+		    bool const is_read = false,
+		    hate::bitset<sizeof(uint32_t)> const byte_enables = 0xf) :
+		    m_address(address),
+		    m_is_read(is_read),
+		    m_byte_enables(byte_enables)
+		{}
 
-		bool operator==(Payload const& other) const;
-		bool operator!=(Payload const& other) const;
+		bool operator==(Payload const& other) const
+		{
+			return (m_is_read == other.m_is_read) && (m_address == other.m_address) &&
+			       (m_byte_enables == other.m_byte_enables);
+		}
+
+		bool operator!=(Payload const& other) const { return !(*this == other); }
+
 
 		template <class SubwordType = unsigned long>
 		hate::bitset<size, SubwordType> encode() const

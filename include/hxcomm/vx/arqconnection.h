@@ -4,12 +4,9 @@
 
 namespace hxcomm::vx {
 
-class ARQConnection : public hxcomm::ARQConnection<ConnectionParameter>
+struct ARQConnection : public hxcomm::ARQConnection<ConnectionParameter>
 {
-public:
-	ARQConnection();
-
-	ARQConnection(ip_t ip);
+	using connection_t::connection_t;
 };
 
 } // namespace hxcomm::vx

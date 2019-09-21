@@ -47,13 +47,11 @@ def build(bld):
         export_includes = 'include'
     )
 
-    bld.shlib(
+    bld(
         target       = 'hx_comm',
-        features     = 'cxx',
-        source       = bld.path.ant_glob('src/hxcomm/*.cpp'),
+        features     = 'use',
         use          = ['hx_comm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
                         'flange', 'hate_inc', 'halco_hicann_dls_vx', 'TBB'],
-        install_path = '${PREFIX}/lib',
     )
 
     bld.shlib(

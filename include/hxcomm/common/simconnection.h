@@ -31,6 +31,7 @@ class SimConnection
 public:
 	typedef flange::SimulatorClient::port_t port_t;
 	typedef flange::SimulatorClient::ip_t ip_t;
+	typedef SimConnection connection_t;
 
 	typedef typename ToUTMessageVariant<
 	    ConnectionParameter::Send::HeaderAlignment,
