@@ -97,14 +97,6 @@ def build(bld):
     )
 
     bld(
-        target       = 'hx_comm_example_double_buffer_throughput',
-        features     = 'cxx cxxprogram',
-        source       = ['example/hx_comm_double_buffer_throughput.cpp'],
-        use          = ['hx_comm'],
-        install_path = '${PREFIX}/bin',
-    )
-
-    bld(
         target          = 'hx_comm_tests_inc',
         export_includes = 'tests/common'
     )
@@ -120,14 +112,14 @@ def build(bld):
         target       = 'hx_comm_swtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
-                           excl='tests/sw/hxcomm/test-encode_decode_throughput.cpp'),
+                           excl='tests/sw/hxcomm/test-*_throughput.cpp'),
         use          = ['hx_comm', 'hx_comm_tests_helper'],
     )
 
     bld(
         target       = 'hx_comm_throughputtests',
         features     = 'gtest cxx cxxprogram',
-        source       = 'tests/sw/hxcomm/test-encode_decode_throughput.cpp',
+        source       = bld.path.ant_glob('tests/sw/hxcomm/test-*_throughput.cpp'),
         use          = ['hx_comm', 'hx_comm_tests_helper'],
         cxxflags     = ['-O2'],
     )
