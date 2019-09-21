@@ -27,7 +27,8 @@ def configure(conf):
     conf.load('compiler_c')
     conf.load('compiler_cxx')
     conf.load('boost')
-    conf.check_boost(lib='program_options system coroutine context', uselib_store='BOOST4HXCOMM')
+    conf.check_boost(lib='coroutine context', uselib_store='BOOST4HXCOMM')
+    conf.check_boost(lib='program_options', uselib_store='BOOST4HXCOMMTOOLS')
     conf.load("test_base")
     conf.load("gtest")
     conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
@@ -66,7 +67,7 @@ def build(bld):
         target       = 'hx_comm_example_arq',
         features     = 'cxx cxxprogram',
         source       = ['example/hx_comm_arq.cpp'],
-        use          = ['hx_comm'],
+        use          = ['hx_comm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
     )
 
@@ -74,7 +75,7 @@ def build(bld):
         target       = 'hx_comm_example_sim',
         features     = 'cxx cxxprogram',
         source       = ['example/hx_comm_sim.cpp'],
-        use          = ['hx_comm'],
+        use          = ['hx_comm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
     )
 
@@ -82,7 +83,7 @@ def build(bld):
         target       = 'hx_comm_example_loopback_throughput',
         features     = 'cxx cxxprogram',
         source       = ['example/hx_comm_loopback_throughput.cpp'],
-        use          = ['hx_comm'],
+        use          = ['hx_comm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
     )
 
@@ -124,7 +125,7 @@ def build(bld):
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = not bld.env.DLSvx_HARDWARE_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
-        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_hwtests_inc'],
+        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_hwtests_inc', 'BOOST4HXCOMMTOOLS'],
     )
 
     bld(target          = 'hx_comm_simtests_inc',
@@ -137,7 +138,7 @@ def build(bld):
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = True,
         test_main    = 'tests/hw/hxcomm/main.cpp',
-        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_simtests_inc'],
+        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
     )
 
     bld(
