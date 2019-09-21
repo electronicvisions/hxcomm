@@ -81,14 +81,6 @@ def build(bld):
     )
 
     bld(
-        target       = 'hx_comm_example_pipe',
-        features     = 'cxx cxxprogram',
-        source       = ['example/hx_comm_pipe.cpp'],
-        use          = ['hx_comm'],
-        install_path = '${PREFIX}/bin',
-    )
-
-    bld(
         target       = 'hx_comm_example_loopback_throughput',
         features     = 'cxx cxxprogram',
         source       = ['example/hx_comm_loopback_throughput.cpp'],
