@@ -5,6 +5,10 @@
 #include "hate/type_list.h"
 #include "hate/visibility.h"
 
+#include "hxcomm/common/largest_utmessage_size.h"
+#include "hxcomm/common/to_utmessage_variant.h"
+#include "hxcomm/common/utmessage_header_width.h"
+
 namespace hxcomm {
 
 /** Largest SubwordType supported by the UTMessage implementation. */
@@ -40,9 +44,7 @@ public:
 	/** Number of bits of a phyword. */
 	static constexpr size_t phyword_width = sizeof(PhywordType) * CHAR_BIT;
 	/** Number of bits of the header. The comma sits left-aligned in the header. */
-	static constexpr size_t header_width = hate::math::round_up_to_multiple(
-	    comma_width + hate::math::num_bits(hate::type_list_size<Dictionary>::value - 1),
-	    HeaderAlignment);
+	static constexpr size_t header_width = UTMessageHeaderWidth<HeaderAlignment, Dictionary>::value;
 	/** Number of subwords. */
 	static constexpr size_t num_subwords = hate::math::round_up_integer_division(
 	    header_width + Instruction::size, sizeof(SubwordType) * CHAR_BIT);
@@ -140,37 +142,6 @@ public:
 private:
 	payload_type m_data;
 };
-
-
-/**
- * Get UT message variant type corresponding to UT message parameters.
- * @tparam HeaderAlignment Alignment of header in bits
- * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
- * @tparam PhywordType Type of PHY-word which's width corresponds to the message's minimal width
- * @tparam Dictionary Dictionary of instructions
- */
-template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
-struct ToUTMessageVariant;
-
-
-/**
- * Get the largest UT message size in bits for a given set of UT message parameters.
- * @tparam HeaderAlignment Alignment of header in bits
- * @tparam SubwordType Type of subword which's width corresponds to the messages alignment
- * @tparam PhywordType Type of PHY-word which's width corresponds to the message's minimal width
- * @tparam Dictionary Dictionary of instructions
- */
-template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename Dictionary>
-struct LargestUTMessageSize;
-
-
-/**
- * Get the header width corresponding to a given set of UT message parameters.
- * @tparam HeaderAlignment Alignment of header in bits
- * @tparam Dictionary Dictionary of instructions
- */
-template <size_t HeaderAlignment, typename Dictionary>
-struct UTMessageHeaderWidth;
 
 } // namespace hxcomm
 

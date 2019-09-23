@@ -1,36 +1,6 @@
 #include <iomanip>
-#include <boost/variant.hpp>
 
 namespace hxcomm {
-
-template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Is>
-struct ToUTMessageVariant<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
-{
-	typedef boost::variant<
-	    UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>...>
-	    type;
-};
-
-
-template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Is>
-struct LargestUTMessageSize<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
-{
-	static constexpr size_t value =
-	    std::max({UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>::
-	                  word_width...});
-};
-
-
-template <size_t HeaderAlignment, typename Dictionary>
-struct UTMessageHeaderWidth
-{
-	static constexpr size_t value = hate::math::round_up_to_multiple(
-	    1 /* comma width */ +
-	        hate::math::num_bits(
-	            hate::type_list_size<Dictionary>::value - 1 /* max. header index */),
-	    HeaderAlignment);
-};
-
 
 template <
     size_t HeaderAlignment,
