@@ -1,5 +1,5 @@
-#include "hxcomm/common/signal.h"
 #include "hate/math.h"
+#include "hxcomm/common/signal.h"
 
 namespace hxcomm {
 
@@ -135,9 +135,13 @@ void ARQConnection<ConnectionParameter>::work_fill_receive_buffer()
 			while (m_arq_stream.received_packet_available() &&
 			       (packets_written < receive_buffer_size)) {
 				m_arq_stream.receive(write_pointer->data[packets_written]);
-				// discard packets with pid different from UT message pid
 				if (write_pointer->data[packets_written].pid == pid) {
 					packets_written++;
+				} else {
+					std::stringstream ss;
+					ss << "Unknown HostARQ packet ID received: "
+					   << write_pointer->data[packets_written].pid;
+					throw std::runtime_error(ss.str());
 				}
 			}
 			write_pointer->set_size(packets_written);
