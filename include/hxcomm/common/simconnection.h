@@ -99,14 +99,12 @@ public:
 	 * Start simulation and wait until simulation progressed a specified number of clock count.
 	 * @param clock Clock cycle duration after when to pause simulation
 	 * @throws std::runtime_error Simulation already running
-	 * @throws std::runtime_error Timeout of 60s for simulation to progress for clock cycle duration
 	 */
 	void run_for(flange::SimulatorEvent::clk_t clock);
 
 	/**
 	 * Start simulation and wait until halt instruction is received from simulation.
 	 * @throws std::runtime_error Simulation already running
-	 * @throws std::runtime_error Timeout of 60s for simulation to halt
 	 */
 	void run_until_halt();
 

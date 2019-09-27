@@ -87,7 +87,7 @@ public:
 	/**
 	 * Try to receive a single UT message.
 	 * @param message Message to receive to
-	 * @return Boolean value whether receive was successfule
+	 * @return Boolean value whether receive was successful
 	 */
 	bool try_receive(receive_message_type& message);
 
@@ -99,7 +99,6 @@ public:
 
 	/**
 	 * Start execution and wait until halt instruction is received from FPGA.
-	 * @throws std::runtime_error Timeout of 60s for execution to halt
 	 */
 	void run_until_halt();
 
