@@ -40,18 +40,14 @@ def configure(conf):
 def build(bld):
     bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
 
-    bld(target          = 'hx_comm_inc',
-        export_includes = 'include'
-    )
-
-    bld(target          = 'flange_inc',
+    bld(target          = 'hxcomm_inc',
         export_includes = 'include'
     )
 
     bld(
-        target       = 'hx_comm',
+        target       = 'hxcomm',
         features     = 'use',
-        use          = ['hx_comm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
+        use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
                         'flange', 'hate_inc', 'halco_hicann_dls_vx', 'TBB'],
     )
 
@@ -59,86 +55,86 @@ def build(bld):
         target       = 'flange',
         features     = 'cxx',
         source       = bld.path.ant_glob('src/flange/*.cpp'),
-        use          = ['flange_inc', 'rcf-sf-only'],
+        use          = ['hxcomm_inc', 'rcf-sf-only'],
         install_path = '${PREFIX}/lib',
     )
 
     bld(
-        target       = 'hx_comm_example_arq',
+        target       = 'hxcomm_example_arq',
         features     = 'cxx cxxprogram',
-        source       = ['example/hx_comm_arq.cpp'],
-        use          = ['hx_comm', 'BOOST4HXCOMMTOOLS'],
+        source       = ['example/hxcomm_arq.cpp'],
+        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
     )
 
     bld(
-        target       = 'hx_comm_example_sim',
+        target       = 'hxcomm_example_sim',
         features     = 'cxx cxxprogram',
-        source       = ['example/hx_comm_sim.cpp'],
-        use          = ['hx_comm', 'BOOST4HXCOMMTOOLS'],
+        source       = ['example/hxcomm_sim.cpp'],
+        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
     )
 
     bld(
-        target       = 'hx_comm_example_loopback_throughput',
+        target       = 'hxcomm_example_loopback_throughput',
         features     = 'cxx cxxprogram',
-        source       = ['example/hx_comm_loopback_throughput.cpp'],
-        use          = ['hx_comm', 'BOOST4HXCOMMTOOLS'],
+        source       = ['example/hxcomm_loopback_throughput.cpp'],
+        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
     )
 
     bld(
-        target          = 'hx_comm_tests_inc',
+        target          = 'hxcomm_tests_inc',
         export_includes = 'tests/common'
     )
 
     bld.shlib(
-        target       = 'hx_comm_tests_helper',
+        target       = 'hxcomm_tests_helper',
         features     = 'cxx',
         source       = bld.path.ant_glob('tests/common/test-helper.cpp'),
-        use          = ['hx_comm', 'hx_comm_tests_inc'],
+        use          = ['hxcomm', 'hxcomm_tests_inc'],
     )
 
     bld(
-        target       = 'hx_comm_swtests',
+        target       = 'hxcomm_swtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
                            excl='tests/sw/hxcomm/test-*_throughput.cpp'),
-        use          = ['hx_comm', 'hx_comm_tests_helper'],
+        use          = ['hxcomm', 'hxcomm_tests_helper'],
     )
 
     bld(
-        target       = 'hx_comm_throughputtests',
+        target       = 'hxcomm_throughputtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*_throughput.cpp'),
-        use          = ['hx_comm', 'hx_comm_tests_helper'],
+        use          = ['hxcomm', 'hxcomm_tests_helper'],
         cxxflags     = ['-O2'],
     )
 
-    bld(target          = 'hx_comm_hwtests_inc',
+    bld(target          = 'hxcomm_hwtests_inc',
         export_includes = 'tests/hw/hxcomm/connection_hw'
     )
 
     bld(
-        target       = 'hx_comm_hwtests',
+        target       = 'hxcomm_hwtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = not bld.env.DLSvx_HARDWARE_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
-        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_hwtests_inc', 'BOOST4HXCOMMTOOLS'],
+        use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_hwtests_inc', 'BOOST4HXCOMMTOOLS'],
     )
 
-    bld(target          = 'hx_comm_simtests_inc',
+    bld(target          = 'hxcomm_simtests_inc',
         export_includes = 'tests/hw/hxcomm/connection_sim'
     )
 
     bld(
-        target       = 'hx_comm_simtests',
+        target       = 'hxcomm_simtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = True,
         test_main    = 'tests/hw/hxcomm/main.cpp',
-        use          = ['hx_comm', 'hx_comm_tests_helper', 'hx_comm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
+        use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
     )
 
     bld(
