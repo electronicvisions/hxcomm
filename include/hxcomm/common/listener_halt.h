@@ -36,7 +36,7 @@ public:
 	/**
 	 * Get whether the listener registered a Halt message.
 	 */
-	size_t get() { return m_value.load(std::memory_order_acquire); }
+	bool get() const { return m_value.load(std::memory_order_acquire); }
 
 	/**
 	 * Reset listener state to not having registered a Halt message.
