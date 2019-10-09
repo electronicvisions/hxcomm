@@ -3,6 +3,7 @@
 #include <boost/type_index.hpp>
 
 #include "halco/hicann-dls/vx/coordinates.h"
+#include "hate/join.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 
@@ -51,8 +52,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, Spike const& value)
 	{
-		os << "Spike(";
-		os << value.m_neuron << ", " << value.m_spl1 << ")";
+		os << "Spike(" << value.m_neuron << ", " << value.m_spl1 << ")";
 		return os;
 	}
 
@@ -106,11 +106,8 @@ struct SpikePack
 
 		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
 		{
-			os << boost::typeindex::type_id<SpikePack>().pretty_name() << "(";
-			for (size_t i = 0; i < num_spikes - 1; ++i) {
-				os << value.m_spikes[i] << ", ";
-			}
-			os << value.m_spikes.back() << ")";
+			os << boost::typeindex::type_id<SpikePack>().pretty_name() << "("
+			   << hate::join_string(value.m_spikes, ", ") << ")";
 			return os;
 		}
 
