@@ -6,6 +6,8 @@ DoubleBuffer<T>::DoubleBuffer(std::atomic<bool>& run) :
     m_read_available_count(0),
     m_write_position(0),
     m_read_position(0),
+    m_mutex(),
+    m_cv(),
     m_run(run)
 {}
 
