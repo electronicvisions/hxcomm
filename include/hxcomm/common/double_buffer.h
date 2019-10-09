@@ -62,7 +62,7 @@ public:
 private:
 	T* m_data[2];
 
-	std::atomic<size_t> m_read_available_count = 0;
+	std::atomic<size_t> m_read_available_count;
 
 	size_t m_write_position;
 	size_t m_read_position;

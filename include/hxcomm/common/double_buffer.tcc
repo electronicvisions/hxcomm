@@ -3,6 +3,7 @@ namespace hxcomm {
 template <typename T>
 DoubleBuffer<T>::DoubleBuffer(std::atomic<bool>& run) :
     m_data{new T(), new T()},
+    m_read_available_count(0),
     m_write_position(0),
     m_read_position(0),
     m_run(run)
