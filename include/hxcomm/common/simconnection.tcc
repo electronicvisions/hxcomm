@@ -19,7 +19,7 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_terminate_on_destruction(false),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
-	HXCOMM_LOG_TRACE(logger, "SimConnection(): Sim connection started.");
+	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 }
 
 template <typename ConnectionParameter>

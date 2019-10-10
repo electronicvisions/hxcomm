@@ -114,10 +114,12 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message_
 {
 	constexpr static std::array<
 	    void (*)(
-	        size_t&, buffer_type const&, message_queue_type&, boost::fusion::tuple<Listener&...>),
+	        size_t&, buffer_type const&, message_queue_type&, boost::fusion::tuple<Listener&...>,
+	        decltype(m_logger) const&),
 	    sizeof...(Header)>
 	    function_table{[](size_t& filling_level, buffer_type const& buffer,
-	                      message_queue_type& queue, boost::fusion::tuple<Listener&...> listener) {
+	                      message_queue_type& queue, boost::fusion::tuple<Listener&...> listener,
+	                      decltype(m_logger) const& logger) {
 		    typedef UTMessage<
 		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
 		        typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
@@ -133,12 +135,13 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message_
 				    filling_level -= (filling_level % num_bits_word);
 			    }
 		    }
-		    HXCOMM_LOG_DEBUG(m_logger, "decode_message(): Decoded UT message: " << message);
+		    HXCOMM_LOG_DEBUG(logger, "decode_message(): Decoded UT message: " << message);
+		    static_cast<void>(logger);
 		    boost::fusion::for_each(listener, [message](auto& l) { l(message); });
 		    queue.push(std::move(message));
 	    }...};
 
-	function_table[header](m_buffer_filling_level, m_buffer, m_message_queue, m_listener);
+	function_table[header](m_buffer_filling_level, m_buffer, m_message_queue, m_listener, m_logger);
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
