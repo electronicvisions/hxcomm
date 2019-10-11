@@ -36,7 +36,6 @@ struct Address
 
 		bool operator!=(Payload const& other) const { return !(*this == other); }
 
-
 		template <class SubwordType = unsigned long>
 		hate::bitset<size, SubwordType> encode() const
 		{
