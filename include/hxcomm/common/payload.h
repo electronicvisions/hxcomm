@@ -116,6 +116,7 @@ public:
 	}
 
 	T value() const { return m_value; }
+	operator T() const { return m_value; }
 
 	bool operator==(Number const& other) const { return m_value == other.m_value; }
 	bool operator!=(Number const& other) const { return !(*this == other); }
