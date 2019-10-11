@@ -28,7 +28,7 @@ TEST(Scaler, EncodeDecode)
 
 TEST(Ins, EncodeDecode)
 {
-	auto payload = draw_ranged_non_default_value<to_fpga_jtag::Ins::Payload>(0);
+	auto payload = to_fpga_jtag::Ins::Payload(random_bitset<to_fpga_jtag::Ins::size>());
 
 	auto bitstream = payload.encode();
 	decltype(payload) decoded;

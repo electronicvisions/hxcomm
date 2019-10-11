@@ -12,7 +12,7 @@ using namespace hxcomm::vx::instruction;
  */
 std::unordered_map<std::type_index, std::string> expected_string_representation = {
     {typeid(to_fpga_jtag::Init), "hxcomm::vx::instruction::to_fpga_jtag::Init()"},
-    {typeid(to_fpga_jtag::Ins), "hxcomm::vx::instruction::to_fpga_jtag::Ins(0)"},
+    {typeid(to_fpga_jtag::Ins), "hxcomm::vx::instruction::to_fpga_jtag::Ins(0000000)"},
     {typeid(to_fpga_jtag::Scaler), "hxcomm::vx::instruction::to_fpga_jtag::Scaler(0)"},
     {typeid(to_fpga_jtag::Data),
      "hxcomm::vx::instruction::to_fpga_jtag::Data(keep_response: false, num_bits: 33, payload: "

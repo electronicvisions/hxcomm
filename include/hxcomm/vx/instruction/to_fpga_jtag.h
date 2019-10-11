@@ -29,17 +29,17 @@ struct Scaler
 struct Ins
 {
 	constexpr static size_t size = 7;
-	typedef hxcomm::instruction::detail::payload::Ranged<Ins, size, uint8_t, 0, 127> Payload;
+	typedef hxcomm::instruction::detail::payload::Bitset<Ins, size> Payload;
 
-	inline static const Payload EXTEST{0};
-	inline static const Payload IDCODE{1};
-	inline static const Payload SAMPLE_PRELOAD{2};
-	inline static const Payload PLL_TARGET_REG{3};
-	inline static const Payload SHIFT_PLL{4};
-	inline static const Payload OMNIBUS_ADDRESS{5};
-	inline static const Payload OMNIBUS_DATA{6};
-	inline static const Payload OMNIBUS_REQUEST{7};
-	inline static const Payload BYPASS{127};
+	constexpr static Payload EXTEST{0};
+	constexpr static Payload IDCODE{1};
+	constexpr static Payload SAMPLE_PRELOAD{2};
+	constexpr static Payload PLL_TARGET_REG{3};
+	constexpr static Payload SHIFT_PLL{4};
+	constexpr static Payload OMNIBUS_ADDRESS{5};
+	constexpr static Payload OMNIBUS_DATA{6};
+	constexpr static Payload OMNIBUS_REQUEST{7};
+	constexpr static Payload BYPASS{127};
 };
 
 /** Data instruction. */
