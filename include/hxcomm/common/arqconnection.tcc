@@ -189,12 +189,14 @@ void ARQConnection<ConnectionParameter>::run_until_halt()
 {
 	SignalOverrideIntTerm signal_override;
 
-	constexpr size_t wait_period = 10000;
+	size_t wait_period = 1;
+	constexpr size_t max_wait_period = 10000;
 	while (!m_listener_halt.get()) {
 		int ret = usleep(wait_period);
 		if ((ret != 0) && errno != EINTR) {
 			throw std::runtime_error("Error during usleep call.");
 		}
+		wait_period = std::min(wait_period * 2, max_wait_period);
 	}
 	m_listener_halt.reset();
 }
