@@ -7,14 +7,11 @@
 using namespace hxcomm::vx::instruction;
 
 template <size_t num_spikes>
-std::array<typename event_to_fpga::Spike, num_spikes> random_spikes()
+typename event_to_fpga::SpikePack<num_spikes>::Payload::spikes_type random_spikes()
 {
-	using spike_type = event_to_fpga::Spike;
-	std::array<spike_type, num_spikes> spikes;
+	typename event_to_fpga::SpikePack<num_spikes>::Payload::spikes_type spikes;
 	for (auto& spike : spikes) {
-		spike = spike_type(
-		    draw_ranged_non_default_value<spike_type::neuron_label_type>(0),
-		    draw_ranged_non_default_value<spike_type::spl1_address_type>(0));
+		spike = random_bitset<event_constants::spike_size>();
 	}
 	return spikes;
 }
@@ -34,5 +31,5 @@ TEST(SpikePack, EncodeDecode)
 {
 	spike_pack_test<1>();
 	spike_pack_test<2>();
-	spike_pack_test<event_to_fpga::max_num_packed>();
+	spike_pack_test<event_constants::max_num_packed>();
 }

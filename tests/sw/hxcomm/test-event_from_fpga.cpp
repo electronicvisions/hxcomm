@@ -35,7 +35,7 @@ TEST(MADCSamplePack, EncodeDecode)
 {
 	madc_sample_pack_test<1>();
 	madc_sample_pack_test<2>();
-	madc_sample_pack_test<event_from_fpga::max_num_packed>();
+	madc_sample_pack_test<event_constants::max_num_packed>();
 }
 
 template <size_t num_spikes>
@@ -45,8 +45,7 @@ std::array<event_from_fpga::Spike, num_spikes> random_spikes()
 	std::array<spike_type, num_spikes> spikes;
 	for (auto& spike : spikes) {
 		spike = spike_type(
-		    draw_ranged_non_default_value<spike_type::neuron_label_type>(0),
-		    draw_ranged_non_default_value<spike_type::spl1_address_type>(0),
+		    random_bitset<event_constants::spike_size>(),
 		    draw_ranged_non_default_value<spike_type::Timestamp>(0));
 	}
 	return spikes;
@@ -67,5 +66,5 @@ TEST(FromFPGASpikePack, EncodeDecode)
 {
 	spike_pack_test<1>();
 	spike_pack_test<2>();
-	spike_pack_test<event_from_fpga::max_num_packed>();
+	spike_pack_test<event_constants::max_num_packed>();
 }

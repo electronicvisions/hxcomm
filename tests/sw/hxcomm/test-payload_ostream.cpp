@@ -25,15 +25,12 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(omnibus_to_fpga::Address), "hxcomm::vx::instruction::omnibus_to_fpga::Address(is_read: "
                                        "false, byte_enables: 1111, address: 0)"},
     {typeid(omnibus_to_fpga::Data), "hxcomm::vx::instruction::omnibus_to_fpga::Data(0)"},
-    {typeid(event_to_fpga::SpikePack<1>), "hxcomm::vx::instruction::event_to_fpga::SpikePack<1ul>("
-                                          "Spike(NeuronLabel(0), SPL1Address(0)))"},
+    {typeid(event_to_fpga::SpikePack<1>),
+     "hxcomm::vx::instruction::event_to_fpga::SpikePack<1ul>(0000000000000000)"},
     {typeid(event_to_fpga::SpikePack<2>),
-     "hxcomm::vx::instruction::event_to_fpga::SpikePack<2ul>(Spike(NeuronLabel(0), "
-     "SPL1Address(0)), Spike(NeuronLabel(0), SPL1Address(0)))"},
-    {typeid(event_to_fpga::SpikePack<3>),
-     "hxcomm::vx::instruction::event_to_fpga::SpikePack<3ul>(Spike(NeuronLabel(0), "
-     "SPL1Address(0)), Spike(NeuronLabel(0), SPL1Address(0)), Spike(NeuronLabel(0), "
-     "SPL1Address(0)))"},
+     "hxcomm::vx::instruction::event_to_fpga::SpikePack<2ul>(0000000000000000, 0000000000000000)"},
+    {typeid(event_to_fpga::SpikePack<3>), "hxcomm::vx::instruction::event_to_fpga::SpikePack<3ul>("
+                                          "0000000000000000, 0000000000000000, 0000000000000000)"},
     {typeid(jtag_from_hicann::Data),
      "hxcomm::vx::instruction::jtag_from_hicann::Data(000000000000000000000000000000000)"},
     {typeid(omnibus_from_fpga::Data), "hxcomm::vx::instruction::omnibus_from_fpga::Data(0)"},
@@ -42,16 +39,15 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
      "hxcomm::vx::instruction::timing_from_fpga::Sysdelta(00000000)"},
     {typeid(timing_from_fpga::Systime), "hxcomm::vx::instruction::timing_from_fpga::Systime("
                                         "0000000000000000000000000000000000000000000)"},
-    {typeid(event_from_fpga::SpikePack<1>),
-     "hxcomm::vx::instruction::event_from_fpga::SpikePack<1ul>(Spike(NeuronLabel(0), "
-     "SPL1Address(0), Timestamp(0)))"},
+    {typeid(event_from_fpga::SpikePack<1>), "hxcomm::vx::instruction::event_from_fpga::SpikePack<"
+                                            "1ul>(Spike(0000000000000000, Timestamp(0)))"},
     {typeid(event_from_fpga::SpikePack<2>),
-     "hxcomm::vx::instruction::event_from_fpga::SpikePack<2ul>(Spike(NeuronLabel(0), "
-     "SPL1Address(0), Timestamp(0)), Spike(NeuronLabel(0), SPL1Address(0), Timestamp(0)))"},
+     "hxcomm::vx::instruction::event_from_fpga::SpikePack<2ul>(Spike(0000000000000000, "
+     "Timestamp(0)), Spike(0000000000000000, Timestamp(0)))"},
     {typeid(event_from_fpga::SpikePack<3>),
-     "hxcomm::vx::instruction::event_from_fpga::SpikePack<3ul>(Spike(NeuronLabel(0), "
-     "SPL1Address(0), Timestamp(0)), Spike(NeuronLabel(0), SPL1Address(0), Timestamp(0)), "
-     "Spike(NeuronLabel(0), SPL1Address(0), Timestamp(0)))"},
+     "hxcomm::vx::instruction::event_from_fpga::SpikePack<3ul>(Spike(0000000000000000, "
+     "Timestamp(0)), Spike(0000000000000000, Timestamp(0)), Spike(0000000000000000, "
+     "Timestamp(0)))"},
     {typeid(event_from_fpga::MADCSamplePack<1>),
      "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<1ul>(MADCSample(Value(0), "
      "Timestamp(0)))"},

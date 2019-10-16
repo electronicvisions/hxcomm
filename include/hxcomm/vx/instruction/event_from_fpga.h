@@ -2,15 +2,14 @@
 #include <climits>
 #include <boost/type_index.hpp>
 
-#include "halco/hicann-dls/vx/coordinates.h"
+#include "halco/common/typed_array.h"
 #include "hate/join.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
+#include "hxcomm/vx/instruction/event_constants.h"
 
 /** Instructions for events from the FPGA. */
 namespace hxcomm::vx::instruction::event_from_fpga {
-
-constexpr size_t max_num_packed = 3;
 
 /** Type of one sample event. */
 class MADCSample
@@ -84,7 +83,8 @@ struct MADCSamplePack
 {
 	constexpr static size_t size = MADCSample::size * num_samples;
 
-	static_assert(num_samples <= max_num_packed, "Pack size too large, is not supported.");
+	static_assert(
+	    num_samples <= event_constants::max_num_packed, "Pack size too large, is not supported.");
 
 	/** Payload of a madc_sample_pack instruction. */
 	class Payload
@@ -140,15 +140,12 @@ struct MADCSamplePack
 class Spike
 {
 public:
-	constexpr static size_t neuron_address_size = 14;
-	constexpr static size_t spl1_address_size = 2;
 	constexpr static size_t timestamp_size = 8;
-	constexpr static size_t size = neuron_address_size + spl1_address_size + timestamp_size;
+	constexpr static size_t size = event_constants::spike_size + timestamp_size;
 
 	typedef hate::bitset<size> value_type;
 
-	typedef halco::hicann_dls::vx::NeuronLabel neuron_label_type;
-	typedef halco::hicann_dls::vx::SPL1Address spl1_address_type;
+	typedef hate::bitset<event_constants::spike_size> spike_type;
 
 	struct Timestamp : public halco::common::detail::RantWrapper<Timestamp, uint16_t, 0xff, 0>
 	{
@@ -156,29 +153,21 @@ public:
 		explicit Timestamp(uintmax_t const value = 0) : rant_t(value) {}
 	};
 
-	Spike() : m_neuron(), m_spl1(), m_timestamp() {}
-	Spike(
-	    neuron_label_type const& neuron,
-	    spl1_address_type const& spl1,
-	    Timestamp const& timestamp) :
-	    m_neuron(neuron),
-	    m_spl1(spl1),
+	Spike() : m_spike(), m_timestamp() {}
+	Spike(spike_type const& spike, Timestamp const& timestamp) :
+	    m_spike(spike),
 	    m_timestamp(timestamp)
 	{}
 
-	neuron_label_type const& get_neuron_label() const { return m_neuron; }
-	void set_neuron_label(neuron_label_type const& neuron) { m_neuron = neuron; }
-
-	spl1_address_type const& get_spl1_address() const { return m_spl1; }
-	void set_spl1_address(spl1_address_type const& spl1) { m_spl1 = spl1; }
+	spike_type const& get_spike() const { return m_spike; }
+	void set_spike(spike_type const& spike) { m_spike = spike; }
 
 	Timestamp const& get_timestamp() const { return m_timestamp; }
 	void set_timestamp(Timestamp const& timestamp) { m_timestamp = timestamp; }
 
 	bool operator==(Spike const& other) const
 	{
-		return (m_neuron == other.m_neuron) && (m_spl1 == other.m_spl1) &&
-		       (m_timestamp == other.m_timestamp);
+		return (m_spike == other.m_spike) && (m_timestamp == other.m_timestamp);
 	}
 
 	bool operator!=(Spike const& other) const { return !(*this == other); }
@@ -186,31 +175,24 @@ public:
 	template <class SubwordType = unsigned long>
 	hate::bitset<size, SubwordType> encode() const
 	{
-		return (value_type(m_timestamp) << (neuron_address_size + spl1_address_size)) |
-		       (value_type(m_spl1) << neuron_address_size) | value_type(m_neuron);
+		return (value_type(m_timestamp) << event_constants::spike_size) | value_type(m_spike);
 	}
 
 	template <class SubwordType = unsigned long>
 	void decode(hate::bitset<size, SubwordType> const& data)
 	{
-		m_timestamp =
-		    Timestamp(static_cast<uintmax_t>(data >> (neuron_address_size + spl1_address_size)));
-		m_spl1 = spl1_address_type(
-		    static_cast<uintmax_t>(hate::bitset<spl1_address_size>(data >> neuron_address_size)));
-		m_neuron = neuron_label_type(
-		    static_cast<uintmax_t>(hate::bitset<neuron_address_size, SubwordType>(data)));
+		m_timestamp = Timestamp(static_cast<uintmax_t>(data >> event_constants::spike_size));
+		m_spike = spike_type(data);
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, Spike const& value)
 	{
-		os << "Spike(" << value.m_neuron << ", " << value.m_spl1 << ", " << value.m_timestamp
-		   << ")";
+		os << "Spike(" << value.m_spike << ", " << value.m_timestamp << ")";
 		return os;
 	}
 
 private:
-	neuron_label_type m_neuron;
-	spl1_address_type m_spl1;
+	spike_type m_spike;
 	Timestamp m_timestamp;
 };
 
@@ -220,7 +202,8 @@ struct SpikePack
 {
 	constexpr static size_t size = Spike::size * num_spikes;
 
-	static_assert(num_spikes <= max_num_packed, "Pack size too large, is not supported.");
+	static_assert(
+	    num_spikes <= event_constants::max_num_packed, "Pack size too large, is not supported.");
 
 	/** Payload of a spike_pack instruction. */
 	class Payload
@@ -283,8 +266,9 @@ struct GenerateDictionary<PackSpike, PackMADC, std::index_sequence<Is...>>
 } // namespace detail
 
 /** Dictionary of all events from FPGA instructions. */
-typedef typename detail::
-    GenerateDictionary<SpikePack, MADCSamplePack, std::make_index_sequence<max_num_packed>>::type
-        Dictionary;
+typedef typename detail::GenerateDictionary<
+    SpikePack,
+    MADCSamplePack,
+    std::make_index_sequence<event_constants::max_num_packed>>::type Dictionary;
 
 } // namespace hxcomm::vx::instruction::event_from_fpga

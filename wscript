@@ -63,7 +63,7 @@ def build(bld):
         target       = 'hxcomm',
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
-                        'flange', 'hate_inc', 'halco_hicann_dls_vx', 'TBB', 'logger_obj'],
+                        'flange', 'hate_inc', 'halco_common', 'TBB', 'logger_obj'],
         install_path = '${PREFIX}/lib',
     )
 
