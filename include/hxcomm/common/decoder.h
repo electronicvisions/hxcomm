@@ -45,6 +45,12 @@ public:
 	 */
 	Decoder(message_queue_type& message_queue, Listener&... listener);
 
+	/** Copy constructor. */
+	Decoder(Decoder const&) = default;
+
+	/** Assignment operator. */
+	Decoder& operator=(Decoder const&) = default;
+
 	/**
 	 * Decode a word.
 	 * During the process multiple messages might be decoded and pushed to the message queue.

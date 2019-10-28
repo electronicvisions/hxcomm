@@ -13,10 +13,10 @@ public:
 	/**
 	 * Construct signal override for SIGINT and SIGTERM by alteration to a exit handler.
 	 */
-	SignalOverrideIntTerm()
+	SignalOverrideIntTerm() :
+	    m_previous_handler_sigint(signal(SIGINT, SIG_IGN)),
+	    m_previous_handler_sigterm(signal(SIGTERM, SIG_IGN))
 	{
-		m_previous_handler_sigint = signal(SIGINT, SIG_IGN);
-		m_previous_handler_sigterm = signal(SIGTERM, SIG_IGN);
 		auto handler = [](int /*sig*/) { std::exit(EXIT_FAILURE); };
 
 		// If the signal is ignored, for the lifetime change it to exiting on

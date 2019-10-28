@@ -10,6 +10,9 @@ extern "C"
 namespace flange {
 
 SimulatorControl::SimulatorControl() :
+    m_service_lock(),
+    m_to_sim(),
+    m_from_sim(),
     m_current_clk(0),
     m_runnable(false),
     m_pause_after_next_event_from_sim(false),

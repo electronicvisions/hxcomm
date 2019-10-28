@@ -16,6 +16,7 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_worker_fill_receive_buffer(
         &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this, ip, port),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
+    m_runnable_mutex(),
     m_terminate_on_destruction(false),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {

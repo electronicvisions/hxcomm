@@ -24,6 +24,18 @@ public:
 	DoubleBuffer(std::atomic<bool>& run);
 
 	/**
+	 * Construct double buffer from other instance.
+	 * @param other Other instance to construct from
+	 */
+	DoubleBuffer(DoubleBuffer const& other);
+
+	/**
+	 * Assign double buffer from other instance.
+	 * @param other Other instance to assign from
+	 */
+	DoubleBuffer& operator=(DoubleBuffer const& other);
+
+	/**
 	 * Destruct double buffer.
 	 */
 	~DoubleBuffer();

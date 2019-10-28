@@ -22,7 +22,7 @@ template <typename T>
 class FastQueue
 {
 public:
-	FastQueue() {}
+	FastQueue() : m_data() {}
 
 	void push(T const& data) { m_data = data; }
 	void push(T&& data) { m_data = std::move(data); }

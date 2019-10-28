@@ -59,6 +59,18 @@ public:
 	ARQConnection(ip_t ip);
 
 	/**
+	 * Copy constructor (deleted because no two instances with the same hardware
+	 * allocation can coexist).
+	 */
+	ARQConnection(ARQConnection const&) = delete;
+
+	/**
+	 * Assignment operator (deleted because no two instances with the same hardware
+	 * allocation can coexist).
+	 */
+	ARQConnection& operator=(ARQConnection const&) = delete;
+
+	/**
 	 * Destruct connection to FPGA joining all receive threads.
 	 */
 	~ARQConnection();

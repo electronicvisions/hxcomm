@@ -12,6 +12,30 @@ DoubleBuffer<T>::DoubleBuffer(std::atomic<bool>& run) :
 {}
 
 template <typename T>
+DoubleBuffer<T>::DoubleBuffer(DoubleBuffer const& other) :
+    m_data{new T(other.m_data[0]), new T(other.m_data[1])},
+    m_read_available_count(other.m_read_available_count),
+    m_write_position(other.m_write_position),
+    m_read_position(other.read_position),
+    m_mutex(other.m_mutex),
+    m_cv(other.m_cv),
+    m_run(other.m_run)
+{}
+
+template <typename T>
+DoubleBuffer<T>& DoubleBuffer<T>::operator=(DoubleBuffer const& other)
+{
+	*(m_data[0]) = *(other.m_data[0]);
+	*(m_data[1]) = *(other.m_data[1]);
+	m_read_available_count = other.m_read_available_count;
+	m_write_position = other.m_write_position;
+	m_read_position = other.read_position;
+	m_mutex = other.m_mutex;
+	m_cv = other.m_cv;
+	m_run = other.m_run;
+}
+
+template <typename T>
 DoubleBuffer<T>::~DoubleBuffer()
 {
 	delete m_data[0];

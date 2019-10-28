@@ -57,6 +57,18 @@ public:
 	SimConnection(ip_t ip, port_t port);
 
 	/**
+	 * Copy constructor (deleted because no two instances with the same simulator allocation can
+	 * coexist).
+	 */
+	SimConnection(SimConnection const&) = delete;
+
+	/**
+	 * Assignment operator (deleted because no two instances with the same simulator allocation can
+	 * coexist).
+	 */
+	SimConnection& operator=(SimConnection const&) = delete;
+
+	/**
 	 * Destruct simulation connection joining all receive threads.
 	 */
 	~SimConnection();
