@@ -53,6 +53,7 @@ def configure(conf):
 
 def build(bld):
     bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
+    bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
 
     bld(target          = 'hxcomm_inc',
         export_includes = 'include'
@@ -147,7 +148,7 @@ def build(bld):
         target       = 'hxcomm_simtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
-        skip_run     = True,
+        skip_run     = not bld.env.DLSvx_SIM_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
     )
