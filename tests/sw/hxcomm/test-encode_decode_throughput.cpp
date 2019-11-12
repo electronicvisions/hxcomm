@@ -6,9 +6,9 @@
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/vx/connection_parameter.h"
 #include "hxcomm/vx/utmessage.h"
+#include "hxcomm/vx/utmessage_random.h"
 
-#include "test-random_ut_message.h"
-
+using namespace hxcomm::random;
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
 using send_dict = hxcomm::vx::instruction::ToFPGADictionary;
@@ -53,12 +53,12 @@ std::pair<double, double> throughput_measurement(size_t num)
 
 	size_t byte_count = 0;
 
-	typedef typename default_message<UTMessageParameter>::message_type message_type;
+	typedef typename default_ut_message<UTMessageParameter>::message_type message_type;
 
 	// generate random messages
 	std::vector<message_type> instructions;
 	for (size_t i = 0; i < num; ++i) {
-		instructions.push_back(random_message<UTMessageParameter>());
+		instructions.push_back(random_ut_message<UTMessageParameter>());
 	}
 
 	// calculate number of bytes of encoded messages

@@ -11,59 +11,68 @@
 namespace hxcomm::vx::instruction::event_to_fpga {
 
 template <size_t num_spikes>
+class SpikePack;
+
+
+/** Payload of a SpikePack instruction. */
+template <size_t num_spikes>
+class SpikePackPayload
+{
+public:
+	constexpr static size_t size = event_constants::spike_size * num_spikes;
+
+	typedef hate::bitset<size> value_type;
+	typedef std::array<hate::bitset<event_constants::spike_size>, num_spikes> spikes_type;
+
+	SpikePackPayload() : m_spikes() {}
+	SpikePackPayload(spikes_type const& spikes) : m_spikes(spikes) {}
+
+	spikes_type const& get_spikes() const { return m_spikes; }
+	void set_spikes(spikes_type const& spikes) { m_spikes = spikes; }
+
+	template <class SubwordType = unsigned long>
+	hate::bitset<size, SubwordType> encode() const
+	{
+		value_type ret;
+		for (size_t i = 1; i <= num_spikes; ++i) {
+			ret |= value_type(m_spikes[i - 1]) << ((num_spikes - i) * event_constants::spike_size);
+		}
+		return ret;
+	}
+
+	bool operator==(SpikePackPayload const& other) const { return m_spikes == other.m_spikes; }
+	bool operator!=(SpikePackPayload const& other) const { return !(*this == other); }
+
+	template <class SubwordType = unsigned long>
+	void decode(hate::bitset<size, SubwordType> const& data)
+	{
+		for (size_t i = 1; i <= num_spikes; ++i) {
+			m_spikes[i - 1] = typename spikes_type::value_type(
+			    data >> ((num_spikes - i) * event_constants::spike_size));
+		}
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, SpikePackPayload const& value)
+	{
+		os << boost::typeindex::type_id<SpikePack<num_spikes>>().pretty_name() << "("
+		   << hate::join_string(value.m_spikes, ", ") << ")";
+		return os;
+	}
+
+private:
+	spikes_type m_spikes;
+};
+
+/** Packed spike to FPGA instruction. */
+template <size_t num_spikes>
 struct SpikePack
 {
-	constexpr static size_t size = event_constants::spike_size * num_spikes;
+	constexpr static size_t size = SpikePackPayload<num_spikes>::size;
 
 	static_assert(
 	    num_spikes <= event_constants::max_num_packed, "Pack size too large, is not supported.");
 
-	/** Payload of a SpikePack instruction. */
-	class Payload
-	{
-	public:
-		typedef hate::bitset<size> value_type;
-		typedef std::array<hate::bitset<event_constants::spike_size>, num_spikes> spikes_type;
-
-		Payload() : m_spikes() {}
-		Payload(spikes_type const& spikes) : m_spikes(spikes) {}
-
-		spikes_type const& get_spikes() const { return m_spikes; }
-		void set_spikes(spikes_type const& spikes) { m_spikes = spikes; }
-
-		bool operator==(Payload const& other) const { return m_spikes == other.m_spikes; }
-		bool operator!=(Payload const& other) const { return !(*this == other); }
-
-		template <class SubwordType = unsigned long>
-		hate::bitset<size, SubwordType> encode() const
-		{
-			value_type ret;
-			for (size_t i = 1; i <= num_spikes; ++i) {
-				ret |= value_type(m_spikes[i - 1])
-				       << ((num_spikes - i) * event_constants::spike_size);
-			}
-			return ret;
-		}
-
-		template <class SubwordType = unsigned long>
-		void decode(hate::bitset<size, SubwordType> const& data)
-		{
-			for (size_t i = 1; i <= num_spikes; ++i) {
-				m_spikes[i - 1] = typename spikes_type::value_type(
-				    data >> ((num_spikes - i) * event_constants::spike_size));
-			}
-		}
-
-		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
-		{
-			os << boost::typeindex::type_id<SpikePack>().pretty_name() << "("
-			   << hate::join_string(value.m_spikes, ", ") << ")";
-			return os;
-		}
-
-	private:
-		spikes_type m_spikes;
-	};
+	typedef SpikePackPayload<num_spikes> Payload;
 };
 
 

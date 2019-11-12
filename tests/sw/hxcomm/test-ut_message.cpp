@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "hxcomm/common/cerealization_utmessage.h"
+#include "hxcomm/vx/payload_random.h"
 #include "hxcomm/vx/utmessage.h"
 
 #include <cereal/archives/json.hpp>
@@ -35,10 +36,10 @@ TYPED_TEST(CommonUTMessageTests, General)
 	ASSERT_EQ(config.get_payload(), typename ut_message_t::payload_type());
 
 	if constexpr (ut_message_t::payload_type::size) {
-		typename ut_message_t::payload_type payload;
-		payload.set(0, true);
-		config.set_payload(payload);
-		ASSERT_EQ(config.get_payload(), payload);
+		auto payload =
+		    hxcomm::random::random_payload<typename ut_message_t::instruction_type::Payload>();
+		config.encode(payload);
+		ASSERT_EQ(config.decode(), payload);
 
 		ut_message_t config_eq = config;
 		ut_message_t config_ne = config;

@@ -79,60 +79,72 @@ private:
 
 
 template <size_t num_samples>
+class MADCSamplePack;
+
+
+/** Payload of a madc_sample_pack instruction. */
+template <size_t num_samples>
+class MADCSamplePackPayload
+{
+public:
+	constexpr static size_t size = MADCSample::size * num_samples;
+
+	typedef hate::bitset<size> value_type;
+
+	typedef std::array<MADCSample, num_samples> samples_type;
+
+	MADCSamplePackPayload() : m_samples() {}
+	MADCSamplePackPayload(samples_type const& samples) : m_samples(samples) {}
+
+	samples_type const& get_samples() const { return m_samples; }
+	void set_samples(samples_type const& samples) { m_samples = samples; }
+
+	bool operator==(MADCSamplePackPayload const& other) const
+	{
+		return m_samples == other.m_samples;
+	}
+	bool operator!=(MADCSamplePackPayload const& other) const { return !(*this == other); }
+
+	template <class SubwordType = unsigned long>
+	hate::bitset<size, SubwordType> encode() const
+	{
+		value_type ret;
+		for (size_t i = 1; i <= num_samples; ++i) {
+			ret |= value_type(m_samples[i - 1].encode()) << ((num_samples - i) * MADCSample::size);
+		}
+		return ret;
+	}
+
+	template <class SubwordType = unsigned long>
+	void decode(hate::bitset<size, SubwordType> const& data)
+	{
+		for (size_t i = 1; i <= num_samples; ++i) {
+			m_samples[i - 1].decode(
+			    typename MADCSample::value_type(data >> ((num_samples - i) * MADCSample::size)));
+		}
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, MADCSamplePackPayload const& value)
+	{
+		os << boost::typeindex::type_id<MADCSamplePack<num_samples>>().pretty_name() << "("
+		   << hate::join_string(value.m_samples, ", ") << ")";
+		return os;
+	}
+
+private:
+	samples_type m_samples;
+};
+
+
+template <size_t num_samples>
 struct MADCSamplePack
 {
-	constexpr static size_t size = MADCSample::size * num_samples;
+	constexpr static size_t size = MADCSamplePackPayload<num_samples>::size;
 
 	static_assert(
 	    num_samples <= event_constants::max_num_packed, "Pack size too large, is not supported.");
 
-	/** Payload of a madc_sample_pack instruction. */
-	class Payload
-	{
-	public:
-		typedef hate::bitset<size> value_type;
-
-		typedef std::array<MADCSample, num_samples> samples_type;
-
-		Payload() : m_samples() {}
-		Payload(samples_type const& samples) : m_samples(samples) {}
-
-		samples_type const& get_samples() const { return m_samples; }
-		void set_samples(samples_type const& samples) { m_samples = samples; }
-
-		bool operator==(Payload const& other) const { return m_samples == other.m_samples; }
-		bool operator!=(Payload const& other) const { return !(*this == other); }
-
-		template <class SubwordType = unsigned long>
-		hate::bitset<size, SubwordType> encode() const
-		{
-			value_type ret;
-			for (size_t i = 1; i <= num_samples; ++i) {
-				ret |= value_type(m_samples[i - 1].encode())
-				       << ((num_samples - i) * MADCSample::size);
-			}
-			return ret;
-		}
-
-		template <class SubwordType = unsigned long>
-		void decode(hate::bitset<size, SubwordType> const& data)
-		{
-			for (size_t i = 1; i <= num_samples; ++i) {
-				m_samples[i - 1].decode(typename MADCSample::value_type(
-				    data >> ((num_samples - i) * MADCSample::size)));
-			}
-		}
-
-		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
-		{
-			os << boost::typeindex::type_id<MADCSamplePack>().pretty_name() << "("
-			   << hate::join_string(value.m_samples, ", ") << ")";
-			return os;
-		}
-
-	private:
-		samples_type m_samples;
-	};
+	typedef MADCSamplePackPayload<num_samples> Payload;
 };
 
 
@@ -198,58 +210,68 @@ private:
 
 
 template <size_t num_spikes>
+class SpikePack;
+
+
+/** Payload of a spike_pack instruction. */
+template <size_t num_spikes>
+class SpikePackPayload
+{
+public:
+	constexpr static size_t size = Spike::size * num_spikes;
+
+	typedef hate::bitset<size> value_type;
+	typedef std::array<Spike, num_spikes> spikes_type;
+
+	SpikePackPayload() : m_spikes() {}
+	SpikePackPayload(spikes_type const& spikes) : m_spikes(spikes) {}
+
+	spikes_type const& get_spikes() const { return m_spikes; }
+	void set_spikes(spikes_type const& spikes) { m_spikes = spikes; }
+
+	bool operator==(SpikePackPayload const& other) const { return m_spikes == other.m_spikes; }
+	bool operator!=(SpikePackPayload const& other) const { return !(*this == other); }
+
+	template <class SubwordType = unsigned long>
+	hate::bitset<size, SubwordType> encode() const
+	{
+		value_type ret;
+		for (size_t i = 1; i <= num_spikes; ++i) {
+			ret |= value_type(m_spikes[i - 1].encode()) << ((num_spikes - i) * Spike::size);
+		}
+		return ret;
+	}
+
+	template <class SubwordType = unsigned long>
+	void decode(hate::bitset<size, SubwordType> const& data)
+	{
+		for (size_t i = 1; i <= num_spikes; ++i) {
+			m_spikes[i - 1].decode(
+			    typename Spike::value_type(data >> ((num_spikes - i) * Spike::size)));
+		}
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, SpikePackPayload const& value)
+	{
+		os << boost::typeindex::type_id<SpikePack<num_spikes>>().pretty_name() << "("
+		   << hate::join_string(value.m_spikes, ", ") << ")";
+		return os;
+	}
+
+private:
+	spikes_type m_spikes;
+};
+
+
+template <size_t num_spikes>
 struct SpikePack
 {
-	constexpr static size_t size = Spike::size * num_spikes;
+	constexpr static size_t size = SpikePackPayload<num_spikes>::size;
 
 	static_assert(
 	    num_spikes <= event_constants::max_num_packed, "Pack size too large, is not supported.");
 
-	/** Payload of a spike_pack instruction. */
-	class Payload
-	{
-	public:
-		typedef hate::bitset<size> value_type;
-		typedef std::array<Spike, num_spikes> spikes_type;
-
-		Payload() : m_spikes() {}
-		Payload(spikes_type const& spikes) : m_spikes(spikes) {}
-
-		spikes_type const& get_spikes() const { return m_spikes; }
-		void set_spikes(spikes_type const& spikes) { m_spikes = spikes; }
-
-		bool operator==(Payload const& other) const { return m_spikes == other.m_spikes; }
-		bool operator!=(Payload const& other) const { return !(*this == other); }
-
-		template <class SubwordType = unsigned long>
-		hate::bitset<size, SubwordType> encode() const
-		{
-			value_type ret;
-			for (size_t i = 1; i <= num_spikes; ++i) {
-				ret |= value_type(m_spikes[i - 1].encode()) << ((num_spikes - i) * Spike::size);
-			}
-			return ret;
-		}
-
-		template <class SubwordType = unsigned long>
-		void decode(hate::bitset<size, SubwordType> const& data)
-		{
-			for (size_t i = 1; i <= num_spikes; ++i) {
-				m_spikes[i - 1].decode(
-				    typename Spike::value_type(data >> ((num_spikes - i) * Spike::size)));
-			}
-		}
-
-		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
-		{
-			os << boost::typeindex::type_id<SpikePack>().pretty_name() << "("
-			   << hate::join_string(value.m_spikes, ", ") << ")";
-			return os;
-		}
-
-	private:
-		spikes_type m_spikes;
-	};
+	typedef SpikePackPayload<num_spikes> Payload;
 };
 
 namespace detail {
