@@ -14,7 +14,30 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_run_receive(true),
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(
-        &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this, ip, port),
+        &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this),
+    m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
+    m_runnable_mutex(),
+    m_terminate_on_destruction(false),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
+{
+	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
+
+    // reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	m_sim.issue_reset();
+}
+
+template <typename ConnectionParameter>
+SimConnection<ConnectionParameter>::SimConnection() :
+    m_sim(),
+    m_send_queue(),
+    m_encoder(m_send_queue),
+    m_receive_queue(),
+    m_listener_halt(),
+    m_decoder(m_receive_queue, m_listener_halt),
+    m_run_receive(true),
+    m_receive_buffer(m_run_receive),
+    m_worker_fill_receive_buffer(
+        &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
     m_terminate_on_destruction(false),
@@ -85,9 +108,9 @@ bool SimConnection<ConnectionParameter>::try_receive(receive_message_type& messa
 }
 
 template <typename ConnectionParameter>
-void SimConnection<ConnectionParameter>::work_fill_receive_buffer(ip_t ip, port_t port)
+void SimConnection<ConnectionParameter>::work_fill_receive_buffer()
 {
-	thread_local decltype(m_sim) local_sim(ip, port);
+	thread_local decltype(m_sim) local_sim(m_sim);
 
 	while (true) {
 		auto const write_pointer = m_receive_buffer.start_write();

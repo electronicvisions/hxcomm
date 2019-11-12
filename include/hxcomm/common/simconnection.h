@@ -57,6 +57,13 @@ public:
 	SimConnection(ip_t ip, port_t port);
 
 	/**
+	 * Create and start connection to simulation server.
+	 * The RCF port is automatically extracted from the enviroment, the simulation server is
+	 * expected to run on the same host.
+	 */
+	SimConnection();
+
+	/**
 	 * Copy constructor (deleted because no two instances with the same simulator allocation can
 	 * coexist).
 	 */
@@ -177,7 +184,7 @@ private:
 	constexpr static size_t receive_buffer_size = 100000;
 	DoubleBuffer<Packet<subpacket_type, receive_buffer_size>> m_receive_buffer;
 
-	void work_fill_receive_buffer(ip_t ip, port_t port);
+	void work_fill_receive_buffer();
 	std::thread m_worker_fill_receive_buffer;
 
 	void work_decode_messages();

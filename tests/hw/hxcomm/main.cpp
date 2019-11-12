@@ -7,18 +7,9 @@
 // logger include directory structure omits prefix
 #include "logging_ctrl.h"
 
-#ifndef HXCOMM_TEST_ARQ_CONNECTION
-std::string simulation_ip;
-unsigned int simulation_port;
-#endif
-
 TestConnection generate_test_connection()
 {
-#ifdef HXCOMM_TEST_ARQ_CONNECTION
 	return TestConnection();
-#else
-	return TestConnection(simulation_ip, simulation_port);
-#endif
 }
 
 int main(int argc, char* argv[])
@@ -29,10 +20,6 @@ int main(int argc, char* argv[])
 	namespace bpo = boost::program_options;
 	bpo::options_description desc("Options");
 	// clang-format off
-#ifndef HXCOMM_TEST_ARQ_CONNECTION
-	desc.add_options()("simulation_ip", bpo::value<std::string>(&simulation_ip)->default_value("127.0.0.1"));
-	desc.add_options()("simulation_port", bpo::value<unsigned int>(&simulation_port)->required());
-#endif
 	desc.add_options()("loglevel", bpo::value<std::string>(&loglevel)->default_value("trace"));
 	// clang-format on
 

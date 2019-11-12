@@ -31,6 +31,18 @@ public:
 	SimulatorClient(ip_t ip, port_t port);
 
 	/**
+	 * Create and start connection to simulation server.
+	 * Automatically extract RCF port from environment, the simulation server is expected to run on
+	 * the same host.
+	 */
+	SimulatorClient();
+
+	/**
+	 * Copy constructor.
+	 */
+	SimulatorClient(SimulatorClient const& other);
+
+	/**
 	 * Close connection to simulator.
 	 */
 	~SimulatorClient();
