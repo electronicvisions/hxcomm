@@ -15,6 +15,7 @@
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
+#include "hxcomm/common/signal.h"
 #include "hxcomm/common/utmessage.h"
 
 namespace log4cxx {
@@ -194,6 +195,43 @@ private:
 
 	bool m_terminate_on_destruction;
 	log4cxx::Logger* m_logger;
+
+	struct ResetHaltListener
+	{
+		listener_halt_type& listener;
+
+		ResetHaltListener(listener_halt_type& listener) : listener(listener) {}
+
+		~ResetHaltListener() { listener.reset(); }
+	};
+
+	struct ScopedSimulationRun
+	{
+		flange::SimulatorClient& client;
+		std::unique_lock<std::mutex> lock;
+		SignalOverrideIntTerm signal_override;
+
+		ScopedSimulationRun(flange::SimulatorClient& client, std::mutex& mutex) :
+		    client(client),
+		    lock(mutex),
+		    signal_override()
+		{
+			if (client.get_runnable()) {
+				throw std::runtime_error("Trying to start already running simulation.");
+			}
+
+			// start simulation
+			client.set_runnable(true);
+			lock.unlock();
+		}
+
+		~ScopedSimulationRun()
+		{
+			lock.lock();
+			client.set_runnable(false);
+			lock.unlock();
+		}
+	};
 };
 
 } // namespace hxcomm

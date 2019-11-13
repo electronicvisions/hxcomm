@@ -1,5 +1,4 @@
 #include "hxcomm/common/logger.h"
-#include "hxcomm/common/signal.h"
 
 namespace hxcomm {
 
@@ -158,18 +157,9 @@ bool SimConnection<ConnectionParameter>::receive_empty() const
 template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_for(flange::SimulatorEvent::clk_t clock)
 {
-	std::unique_lock<std::mutex> lock(m_runnable_mutex);
-	if (m_sim.get_runnable()) {
-		throw std::runtime_error("Trying to start already running simulation.");
-	}
-
-	SignalOverrideIntTerm signal_override;
-
 	flange::SimulatorEvent::clk_t current_time = m_sim.get_current_time();
 
-	// start simulation
-	m_sim.set_runnable(true);
-	lock.unlock();
+	ScopedSimulationRun run(m_sim, m_runnable_mutex);
 
 	constexpr size_t wait_period = 10000;
 	while (m_sim.get_runnable()) {
@@ -181,27 +171,13 @@ void SimConnection<ConnectionParameter>::run_for(flange::SimulatorEvent::clk_t c
 			break;
 		}
 	}
-
-	lock.lock();
-	m_sim.set_runnable(false);
-	lock.unlock();
 }
 
 template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_until_halt()
 {
-	std::unique_lock<std::mutex> lock(m_runnable_mutex);
-	if (m_sim.get_runnable()) {
-		throw std::runtime_error("Trying to start already running simulation.");
-	}
-
-	SignalOverrideIntTerm signal_override;
-
-	m_listener_halt.reset();
-
-	// start simulation
-	m_sim.set_runnable(true);
-	lock.unlock();
+	ResetHaltListener reset(m_listener_halt);
+	ScopedSimulationRun run(m_sim, m_runnable_mutex);
 
 	constexpr size_t wait_period = 10000;
 	while (!m_listener_halt.get()) {
@@ -210,11 +186,6 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 			throw std::runtime_error("Error during usleep call.");
 		}
 	}
-
-	lock.lock();
-	m_sim.set_runnable(false);
-	lock.unlock();
-	m_listener_halt.reset();
 }
 
 template <typename ConnectionParameter>
