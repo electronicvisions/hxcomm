@@ -184,7 +184,7 @@ private:
 	constexpr static size_t receive_buffer_size = 100000;
 	DoubleBuffer<Packet<subpacket_type, receive_buffer_size>> m_receive_buffer;
 
-	void work_fill_receive_buffer();
+	void work_fill_receive_buffer(flange::SimulatorClient& sim);
 	std::thread m_worker_fill_receive_buffer;
 
 	void work_decode_messages();

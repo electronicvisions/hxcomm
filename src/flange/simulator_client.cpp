@@ -30,10 +30,6 @@ SimulatorClient::SimulatorClient() : m_impl()
 	m_impl = std::make_unique<Impl>("127.0.0.1", static_cast<port_t>(std::atoi(env_port)));
 }
 
-SimulatorClient::SimulatorClient(SimulatorClient const& other) :
-    m_impl(std::make_unique<Impl>(*(other.m_impl)))
-{}
-
 SimulatorClient::~SimulatorClient()
 {}
 

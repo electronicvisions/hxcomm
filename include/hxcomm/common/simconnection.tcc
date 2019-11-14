@@ -13,8 +13,10 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(
-        &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this),
+    m_worker_fill_receive_buffer([&]() {
+	    thread_local flange::SimulatorClient local_sim(ip, port);
+	    work_fill_receive_buffer(local_sim);
+    }),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
     m_terminate_on_destruction(false),
@@ -22,7 +24,7 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
 {
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
-    // reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
 	m_sim.issue_reset();
 }
 
@@ -36,8 +38,10 @@ SimConnection<ConnectionParameter>::SimConnection() :
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(
-        &SimConnection<ConnectionParameter>::work_fill_receive_buffer, this),
+    m_worker_fill_receive_buffer([&]() {
+	    thread_local flange::SimulatorClient local_sim;
+	    work_fill_receive_buffer(local_sim);
+    }),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
     m_terminate_on_destruction(false),
@@ -45,7 +49,7 @@ SimConnection<ConnectionParameter>::SimConnection() :
 {
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
-    // reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
 	m_sim.issue_reset();
 }
 
@@ -108,10 +112,9 @@ bool SimConnection<ConnectionParameter>::try_receive(receive_message_type& messa
 }
 
 template <typename ConnectionParameter>
-void SimConnection<ConnectionParameter>::work_fill_receive_buffer()
+void SimConnection<ConnectionParameter>::work_fill_receive_buffer(
+    flange::SimulatorClient& local_sim)
 {
-	thread_local decltype(m_sim) local_sim(m_sim);
-
 	while (true) {
 		auto const write_pointer = m_receive_buffer.start_write();
 		if (!write_pointer) {

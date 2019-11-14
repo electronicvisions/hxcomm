@@ -40,7 +40,7 @@ public:
 	/**
 	 * Copy constructor.
 	 */
-	SimulatorClient(SimulatorClient const& other);
+	SimulatorClient(SimulatorClient const& other) = delete;
 
 	/**
 	 * Close connection to simulator.
