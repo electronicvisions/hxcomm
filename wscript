@@ -6,13 +6,12 @@ from waflib.extras.symwaf2ic import get_toplevel_path
 
 def depends(dep):
     dep('sctrltp')
-    dep('lib-rcf')
     dep('hate')
     dep('halco')
     dep('code-format')
     dep('logger')
     dep('visions-slurm', branch='production')
-    dep.recurse('pyflange')
+    dep('flange')
 
 
 def options(opt):
@@ -22,7 +21,6 @@ def options(opt):
     opt.load("test_base")
     opt.load("gtest")
     opt.load("doxygen")
-    opt.recurse('pyflange')
     opt.add_option("--hxcomm-loglevel",
                    choices=["trace", "debug", "info", "warning", "error", "fatal"],
                    default="info",
@@ -40,7 +38,6 @@ def configure(conf):
     conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
     conf.check_cxx(lib='tbb', uselib_store="TBB")
     conf.load("doxygen")
-    conf.recurse('pyflange')
     conf.define(
         "HXCOMM_LOG_THRESHOLD",
         {'trace':   0,
@@ -65,14 +62,6 @@ def build(bld):
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
                         'flange', 'hate_inc', 'halco_common', 'TBB', 'logger_obj', 'visions-slurm_inc'],
-        install_path = '${PREFIX}/lib',
-    )
-
-    bld.shlib(
-        target       = 'flange',
-        features     = 'cxx',
-        source       = bld.path.ant_glob('src/flange/*.cpp'),
-        use          = ['hxcomm_inc', 'rcf-sf-only'],
         install_path = '${PREFIX}/lib',
     )
 
@@ -155,15 +144,6 @@ def build(bld):
     )
 
     bld(
-        target       = 'flange_swtests',
-        features     = 'gtest cxx cxxprogram',
-        source       = bld.path.ant_glob('tests/sw/flange/test-*.cpp'),
-        use          = ['flange'],
-    )
-
-    bld.recurse('pyflange')
-
-    bld(
         features = 'doxygen',
         name = 'hxcomm_documentation',
         doxyfile = bld.root.make_node(join(get_toplevel_path(), "code-format", "doxyfile")),
@@ -171,7 +151,7 @@ def build(bld):
         pars = {
             "PROJECT_NAME": "\"HX Communication\"",
             "INPUT": join(get_toplevel_path(), "hxcomm", "include"),
-            "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_FLANGE=",
+            "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_HXCOMM=",
             "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
         },
     )

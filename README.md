@@ -23,10 +23,11 @@ singularity exec --app visionary-dls /containers/stable/latest waf install --tes
 Typically you would use the shared object in another project.
 See `tests/hw/hxcomm/test-jtag_loopback.cpp` for an example.
 Doxygen-generated code documentation is deployed [here](https://jenkins.bioai.eu/job/bld_nightly-hxcomm/Documentation_20_28hxcomm_29/) nightly by Jenkins.
+For usage instructions related to the C++/SystemVerilog-DPI interface please look at the flange project.
 
 ## Contributing
 
-In case you encounter bugs, please [file a work package](https://brainscales-r.kip.uni-heidelberg.de/projects/hxcomm/work_packages/) describing all steps required to reproduce the problem.
+In case you encounter bugs, please [file a work package](https://openproject.bioai.eu/projects/hxcomm/work_packages/) describing all steps required to reproduce the problem.
 Don't just post in the chat, as the probability to get lost is very high.
 
 Before committing any changes, make sure to run `git-clang-format` and add the resulting changes to your commit.
@@ -36,6 +37,7 @@ Before committing any changes, make sure to run `git-clang-format` and add the r
 ### Creating the new instruction
 
 A instruction consists of a payload size in bits and a typesafe `Payload` type, see `include/hxcomm/vx/instruction/*.h` for implemented instructions.
+
 ```cpp
 struct MyNewInstruction
 {
