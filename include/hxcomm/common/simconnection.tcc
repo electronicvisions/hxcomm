@@ -86,7 +86,7 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::commit()
 {
 	m_encoder.flush();
-	HXCOMM_LOG_INFO(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
+	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
 	while (!m_send_queue.empty()) {
 		m_sim.send(m_send_queue.front());
 		m_send_queue.pop();

@@ -107,7 +107,7 @@ void ARQConnection<ConnectionParameter>::commit()
 	m_encoder.flush();
 	auto packets = m_send_queue.move_to_packet_vector();
 	[[maybe_unused]] size_t const num_packets = packets.size();
-	HXCOMM_LOG_INFO(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
+	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
 	for (auto const packet : packets) {
 		m_arq_stream.send(packet, sctrltp::ARQStream::NOTHING);
 	}
