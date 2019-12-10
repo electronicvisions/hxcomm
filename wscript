@@ -11,6 +11,7 @@ def depends(dep):
     dep('halco')
     dep('code-format')
     dep('logger')
+    dep('visions-slurm', branch='production')
     dep.recurse('pyflange')
 
 
@@ -63,7 +64,7 @@ def build(bld):
         target       = 'hxcomm',
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
-                        'flange', 'hate_inc', 'halco_common', 'TBB', 'logger_obj'],
+                        'flange', 'hate_inc', 'halco_common', 'TBB', 'logger_obj', 'visions-slurm_inc'],
         install_path = '${PREFIX}/lib',
     )
 

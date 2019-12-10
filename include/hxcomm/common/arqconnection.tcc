@@ -1,6 +1,7 @@
 #include "hate/math.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
+#include "hxcomm/common/fpga_ip_list.h"
 
 namespace hxcomm {
 
@@ -45,7 +46,7 @@ std::vector<sctrltp::packet> ARQConnection<ConnectionParameter>::SendQueue::move
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection() :
-    m_arq_stream(),
+    m_arq_stream(get_fpga_ip()),
     m_send_queue(),
     m_encoder(m_send_queue),
     m_receive_queue(),
