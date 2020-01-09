@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 from os.path import join
+from socket import gethostname
 from waflib.extras.test_base import summary
 from waflib.extras.symwaf2ic import get_toplevel_path
 
@@ -115,6 +116,9 @@ def build(bld):
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*_throughput.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_helper'],
         cxxflags     = ['-O2'],
+        # Throughput targets are only valid for HBPHosts and AMTHosts
+        skip_run     = not (gethostname().startswith("HBPHost") or
+                            gethostname().startswith("AMTHost"))
     )
 
     bld(target          = 'hxcomm_hwtests_inc',
