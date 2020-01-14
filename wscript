@@ -145,6 +145,7 @@ def build(bld):
         skip_run     = not bld.env.DLSvx_SIM_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
+        test_timeout = 60
     )
 
     bld(
