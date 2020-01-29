@@ -12,49 +12,41 @@ using namespace hxcomm::random;
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
 
-constexpr std::array<size_t, 3> header_alignments{1, 3, 8};
+#ifndef SUBWORD_TYPE
+#define SUBWORD_TYPE uint64_t
+#endif
 
-template <class T>
-struct to_testing_types;
+#ifndef PHYWORD_TYPE
+#define PHYWORD_TYPE uint64_t
+#endif
 
-template <size_t... N>
-struct to_testing_types<std::index_sequence<N...> >
-{
-	typedef ::testing::Types<
-	    UTMessageParameter<header_alignments[N], uint8_t, uint8_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint16_t, uint8_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint32_t, uint8_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint64_t, uint8_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint8_t, uint16_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint16_t, uint16_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint32_t, uint16_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint64_t, uint16_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint8_t, uint32_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint16_t, uint32_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint32_t, uint32_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint64_t, uint32_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint8_t, uint64_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint16_t, uint64_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint32_t, uint64_t, ToFPGADictionary>...,
-	    UTMessageParameter<header_alignments[N], uint64_t, uint64_t, ToFPGADictionary>...>
-	    types;
-};
 
-typedef to_testing_types<std::make_index_sequence<header_alignments.size()> >::types Types;
+#ifndef HEADER_ALIGNMENT
+#define HEADER_ALIGNMENT 8
+#endif
 
-template <class T>
-class CommonLoopbackConnectionTests : public ::testing::Test
-{};
-
-TYPED_TEST_CASE(CommonLoopbackConnectionTests, Types);
+typedef UTMessageParameter<HEADER_ALIGNMENT, SUBWORD_TYPE, PHYWORD_TYPE, ToFPGADictionary>
+    TestUTMessageParameter;
 
 constexpr auto empty_sleep = std::chrono::microseconds(10000);
 
-TYPED_TEST(CommonLoopbackConnectionTests, OneMessage)
-{
-	auto message = random_ut_message<TypeParam>();
+/*
+ * multiple nested macros needed to first unroll type and alignment defines to their value instead
+ * of their name and afterwards concatenate the values to the complete name in order to get
+ * something like CommonLoopbackConnectionTests_uint8_t_uint64_t_3.
+ */
+#define NAME__(A, B, C) CommonLoopbackConnectionTests_##A##_##B##_##C
+#define NAME_(A, B, C) NAME__(A, B, C)
+#define Name NAME_(SUBWORD_TYPE, PHYWORD_TYPE, HEADER_ALIGNMENT)
 
-	LoopbackConnection<TypeParam> connection;
+/** Nested macro needed to unroll value of ClassName define from above instead of define name.  */
+#define MYTEST(ClassName, CaseName) TEST(ClassName, CaseName)
+
+MYTEST(Name, OneMessage)
+{
+	auto message = random_ut_message<TestUTMessageParameter>();
+
+	LoopbackConnection<TestUTMessageParameter> connection;
 	boost::apply_visitor([&connection](auto m) { connection.add(m); }, message);
 	connection.commit();
 	while (connection.receive_empty()) {
@@ -64,11 +56,11 @@ TYPED_TEST(CommonLoopbackConnectionTests, OneMessage)
 	EXPECT_EQ(message, message_return);
 }
 
-TYPED_TEST(CommonLoopbackConnectionTests, OneMessageAfterCommit)
+MYTEST(Name, OneMessageAfterCommit)
 {
-	auto message = random_ut_message<TypeParam>();
+	auto message = random_ut_message<TestUTMessageParameter>();
 
-	LoopbackConnection<TypeParam> connection;
+	LoopbackConnection<TestUTMessageParameter> connection;
 	connection.commit();
 	boost::apply_visitor([&connection](auto m) { connection.add(m); }, message);
 	connection.commit();
@@ -79,11 +71,11 @@ TYPED_TEST(CommonLoopbackConnectionTests, OneMessageAfterCommit)
 	EXPECT_EQ(message, message_return);
 }
 
-TYPED_TEST(CommonLoopbackConnectionTests, OneMessageMultiCommit)
+MYTEST(Name, OneMessageMultiCommit)
 {
-	auto message = random_ut_message<TypeParam>();
+	auto message = random_ut_message<TestUTMessageParameter>();
 
-	LoopbackConnection<TypeParam> connection;
+	LoopbackConnection<TestUTMessageParameter> connection;
 	boost::apply_visitor([&connection](auto m) { connection.add(m); }, message);
 	connection.commit();
 	connection.commit();
@@ -94,18 +86,18 @@ TYPED_TEST(CommonLoopbackConnectionTests, OneMessageMultiCommit)
 	EXPECT_EQ(message, message_return);
 }
 
-TYPED_TEST(CommonLoopbackConnectionTests, MultipleMessages)
+MYTEST(Name, MultipleMessages)
 {
 	constexpr size_t max_message_count = 100;
 	size_t const message_count = random_integer(0, max_message_count);
 
-	std::vector<typename LoopbackConnection<TypeParam>::send_message_type> messages;
+	std::vector<typename LoopbackConnection<TestUTMessageParameter>::send_message_type> messages;
 	for (size_t i = 0; i < message_count; ++i) {
-		auto message = random_ut_message<TypeParam>();
+		auto message = random_ut_message<TestUTMessageParameter>();
 		messages.push_back(message);
 	}
 
-	LoopbackConnection<TypeParam> connection;
+	LoopbackConnection<TestUTMessageParameter> connection;
 	connection.add(messages);
 	connection.commit();
 	for (size_t i = 0; i < message_count; ++i) {

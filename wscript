@@ -50,6 +50,33 @@ def configure(conf):
     )
 
 
+def build_loopbackconnection_test(bld):
+    """
+    Build Loopbackconnection tests for a variety of parameter combinations.
+    This is done via defines so that each target's build time is reduced
+    and parallel build can be executed.
+    """
+    loopbackconnection_obj_targets = []
+    types = ['uint8_t', 'uint16_t', 'uint32_t', 'uint64_t']
+    header_alignments = [1, 3, 8]
+    for subword_type in types:
+        for phyword_type in types:
+            for header_alignment in header_alignments:
+                target = 'hxcomm_loopbackconnection_obj_' + subword_type + \
+                    '_' + phyword_type + '_' + str(header_alignment)
+                bld(
+                    target       = target,
+                    features     = 'cxx',
+                    source       = 'tests/sw/hxcomm/test-loopbackconnection.cpp',
+                    defines      = ['SUBWORD_TYPE=' + subword_type,
+                                    'PHYWORD_TYPE=' + phyword_type,
+                                    'HEADER_ALIGNMENT=' + str(header_alignment)],
+                    use          = ['hxcomm', 'hxcomm_tests_helper'],
+                )
+                loopbackconnection_obj_targets.append(target)
+    return loopbackconnection_obj_targets
+
+
 def build(bld):
     bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
     bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
@@ -102,12 +129,14 @@ def build(bld):
         use          = ['hxcomm', 'hxcomm_tests_inc'],
     )
 
+    loopbackconnection_obj_targets = build_loopbackconnection_test(bld)
+
     bld(
         target       = 'hxcomm_swtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
-                           excl='tests/sw/hxcomm/test-*_throughput.cpp'),
-        use          = ['hxcomm', 'hxcomm_tests_helper'],
+                           excl='tests/sw/hxcomm/test-*_throughput.cpp tests/sw/hxcomm/test-loopbackconnection.cpp'),
+        use          = ['hxcomm', 'hxcomm_tests_helper'] + loopbackconnection_obj_targets,
     )
 
     bld(
