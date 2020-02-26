@@ -61,6 +61,7 @@ public:
 	 * Create and start connection to simulation server.
 	 * The RCF port is automatically extracted from the enviroment, the simulation server is
 	 * expected to run on the same host.
+	 * @throws std::runtime_error On no port to simulator found in environment
 	 */
 	SimConnection();
 
