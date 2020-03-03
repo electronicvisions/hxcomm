@@ -3,12 +3,14 @@
 #include <atomic>
 #include <queue>
 #include <thread>
+#include <tuple>
 
 #include <tbb/concurrent_queue.h>
 
 #include "sctrltp/ARQFrame.h"
 #include "sctrltp/ARQStream.h"
 
+#include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
@@ -31,8 +33,9 @@ template <typename ConnectionParameter>
 class ARQConnection
 {
 public:
-	typedef std::string ip_t;
 	typedef ARQConnection connection_t;
+
+	typedef typename std::tuple<ip_t> init_parameters_t;
 
 	typedef typename ToUTMessageVariant<
 	    ConnectionParameter::Send::HeaderAlignment,
@@ -162,10 +165,7 @@ private:
 	    listener_halt_type;
 	listener_halt_type m_listener_halt;
 
-	Decoder<
-	    typename ConnectionParameter::Receive,
-	    receive_queue_type,
-	    listener_halt_type>
+	Decoder<typename ConnectionParameter::Receive, receive_queue_type, listener_halt_type>
 	    m_decoder;
 
 	std::atomic<bool> m_run_receive;

@@ -2,6 +2,7 @@
 #include <atomic>
 #include <queue>
 #include <thread>
+#include <type_traits>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -11,6 +12,7 @@
 
 #include "flange/simulator_client.h"
 
+#include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
@@ -34,8 +36,9 @@ template <typename ConnectionParameter>
 class SimConnection
 {
 public:
-	typedef flange::SimulatorClient::port_t port_t;
-	typedef flange::SimulatorClient::ip_t ip_t;
+	static_assert(
+	    std::is_same_v<flange::SimulatorClient::port_t, port_t>, "Flange port type changed!");
+	static_assert(std::is_same_v<flange::SimulatorClient::ip_t, ip_t>, "Flange ip type changed!");
 	typedef SimConnection connection_t;
 
 	typedef typename ToUTMessageVariant<
@@ -49,6 +52,8 @@ public:
 	    typename ConnectionParameter::Receive::SubwordType,
 	    typename ConnectionParameter::Receive::PhywordType,
 	    typename ConnectionParameter::Receive::Dictionary>::type receive_message_type;
+
+	typedef typename std::tuple<ip_t, port_t> init_parameters_t;
 
 	/**
 	 * Create and start connection to simulation server.
@@ -175,10 +180,7 @@ private:
 	    listener_halt_type;
 	listener_halt_type m_listener_halt;
 
-	Decoder<
-	    typename ConnectionParameter::Receive,
-	    receive_queue_type,
-	    listener_halt_type>
+	Decoder<typename ConnectionParameter::Receive, receive_queue_type, listener_halt_type>
 	    m_decoder;
 
 	std::atomic<bool> m_run_receive;
@@ -213,9 +215,7 @@ private:
 		SignalOverrideIntTerm signal_override;
 
 		ScopedSimulationRun(flange::SimulatorClient& client, std::mutex& mutex) :
-		    client(client),
-		    lock(mutex),
-		    signal_override()
+		    client(client), lock(mutex), signal_override()
 		{
 			if (client.get_runnable()) {
 				throw std::runtime_error("Trying to start already running simulation.");
