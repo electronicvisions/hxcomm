@@ -16,7 +16,7 @@ void ARQConnection<ConnectionParameter>::SendQueue::push(subpacket_type const& s
 }
 
 template <typename ConnectionParameter>
-std::vector<sctrltp::packet<>>
+std::vector<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>>
 ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
 {
 	size_t const num_packets = hate::math::round_up_integer_division(
@@ -25,7 +25,7 @@ ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
 	size_t const last_packet_len =
 	    last_packet_modulo ? last_packet_modulo : sctrltp::Parameters<>::MAX_PDUWORDS;
 
-	std::vector<sctrltp::packet<>> packets(num_packets);
+	std::vector<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>> packets(num_packets);
 
 	auto fill_packet = [&packets, this](size_t const packet_index, size_t const len) {
 		size_t const base_subpacket_index = packet_index * sctrltp::Parameters<>::MAX_PDUWORDS;
@@ -112,7 +112,7 @@ void ARQConnection<ConnectionParameter>::commit()
 	[[maybe_unused]] size_t const num_packets = packets.size();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
 	for (auto const packet : packets) {
-		m_arq_stream.send(packet, sctrltp::ARQStream<>::NOTHING);
+		m_arq_stream.send(packet, sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube>::NOTHING);
 	}
 	m_arq_stream.flush();
 }

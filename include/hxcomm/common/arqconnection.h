@@ -124,9 +124,9 @@ public:
 
 private:
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
-	sctrltp::ARQStream<> m_arq_stream;
+	sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> m_arq_stream;
 
-	typedef sctrltp::packet<>::entry_t subpacket_type;
+	typedef sctrltp::packet<sctrltp::ParametersFcpBss2Cube>::entry_t subpacket_type;
 
 	static_assert(
 	    std::is_same<subpacket_type, typename ConnectionParameter::Send::PhywordType>::value,
@@ -142,7 +142,7 @@ private:
 
 		void push(subpacket_type const& subpacket);
 
-		std::vector<sctrltp::packet<>> move_to_packet_vector();
+		std::vector<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>> move_to_packet_vector();
 
 	private:
 		std::vector<subpacket_type> m_subpackets;
@@ -171,7 +171,8 @@ private:
 	std::atomic<bool> m_run_receive;
 
 	constexpr static size_t receive_buffer_size = 100;
-	DoubleBuffer<Packet<sctrltp::packet<>, receive_buffer_size>> m_receive_buffer;
+	DoubleBuffer<Packet<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>, receive_buffer_size>>
+	    m_receive_buffer;
 
 	void work_fill_receive_buffer();
 	std::thread m_worker_fill_receive_buffer;
