@@ -1,7 +1,7 @@
 #include "hate/math.h"
+#include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
-#include "hxcomm/common/fpga_ip_list.h"
 
 namespace hxcomm {
 
@@ -16,17 +16,19 @@ void ARQConnection<ConnectionParameter>::SendQueue::push(subpacket_type const& s
 }
 
 template <typename ConnectionParameter>
-std::vector<sctrltp::packet> ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
+std::vector<sctrltp::packet<>>
+ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
 {
-	size_t const num_packets =
-	    hate::math::round_up_integer_division(m_subpackets.size(), MAX_PDUWORDS);
-	size_t const last_packet_modulo = m_subpackets.size() % MAX_PDUWORDS;
-	size_t const last_packet_len = last_packet_modulo ? last_packet_modulo : MAX_PDUWORDS;
+	size_t const num_packets = hate::math::round_up_integer_division(
+	    m_subpackets.size(), sctrltp::Parameters<>::MAX_PDUWORDS);
+	size_t const last_packet_modulo = m_subpackets.size() % sctrltp::Parameters<>::MAX_PDUWORDS;
+	size_t const last_packet_len =
+	    last_packet_modulo ? last_packet_modulo : sctrltp::Parameters<>::MAX_PDUWORDS;
 
-	std::vector<sctrltp::packet> packets(num_packets);
+	std::vector<sctrltp::packet<>> packets(num_packets);
 
 	auto fill_packet = [&packets, this](size_t const packet_index, size_t const len) {
-		size_t const base_subpacket_index = packet_index * MAX_PDUWORDS;
+		size_t const base_subpacket_index = packet_index * sctrltp::Parameters<>::MAX_PDUWORDS;
 		for (size_t i = 0; i < len; ++i) {
 			packets[packet_index].pdu[i] = m_subpackets[base_subpacket_index + i];
 		}
@@ -35,7 +37,7 @@ std::vector<sctrltp::packet> ARQConnection<ConnectionParameter>::SendQueue::move
 	};
 
 	for (size_t i = 0; i < num_packets - 1; ++i) {
-		fill_packet(i, MAX_PDUWORDS);
+		fill_packet(i, sctrltp::Parameters<>::MAX_PDUWORDS);
 	}
 	fill_packet(num_packets - 1, last_packet_len);
 
@@ -110,7 +112,7 @@ void ARQConnection<ConnectionParameter>::commit()
 	[[maybe_unused]] size_t const num_packets = packets.size();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
 	for (auto const packet : packets) {
-		m_arq_stream.send(packet, sctrltp::ARQStream::NOTHING);
+		m_arq_stream.send(packet, sctrltp::ARQStream<>::NOTHING);
 	}
 	m_arq_stream.flush();
 }
