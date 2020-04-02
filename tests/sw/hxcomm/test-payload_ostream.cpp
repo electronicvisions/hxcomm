@@ -40,23 +40,23 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(timing_from_fpga::Systime), "hxcomm::vx::instruction::timing_from_fpga::Systime("
                                         "0000000000000000000000000000000000000000000)"},
     {typeid(event_from_fpga::SpikePack<1>), "hxcomm::vx::instruction::event_from_fpga::SpikePack<"
-                                            "1ul>(Spike(0000000000000000, Timestamp(0)))"},
+                                            "1ul>(Spike(0000000000000000, 00000000))"},
     {typeid(event_from_fpga::SpikePack<2>),
      "hxcomm::vx::instruction::event_from_fpga::SpikePack<2ul>(Spike(0000000000000000, "
-     "Timestamp(0)), Spike(0000000000000000, Timestamp(0)))"},
+     "00000000), Spike(0000000000000000, 00000000))"},
     {typeid(event_from_fpga::SpikePack<3>),
      "hxcomm::vx::instruction::event_from_fpga::SpikePack<3ul>(Spike(0000000000000000, "
-     "Timestamp(0)), Spike(0000000000000000, Timestamp(0)), Spike(0000000000000000, "
-     "Timestamp(0)))"},
+     "00000000), Spike(0000000000000000, 00000000), Spike(0000000000000000, "
+     "00000000))"},
     {typeid(event_from_fpga::MADCSamplePack<1>),
-     "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<1ul>(MADCSample(Value(0), "
-     "Timestamp(0)))"},
+     "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<1ul>(MADCSample(00000000000000, "
+     "00000000))"},
     {typeid(event_from_fpga::MADCSamplePack<2>),
-     "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<2ul>(MADCSample(Value(0), "
-     "Timestamp(0)), MADCSample(Value(0), Timestamp(0)))"},
+     "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<2ul>(MADCSample(00000000000000, "
+     "00000000), MADCSample(00000000000000, 00000000))"},
     {typeid(event_from_fpga::MADCSamplePack<3>),
-     "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<3ul>(MADCSample(Value(0), "
-     "Timestamp(0)), MADCSample(Value(0), Timestamp(0)), MADCSample(Value(0), Timestamp(0)))"},
+     "hxcomm::vx::instruction::event_from_fpga::MADCSamplePack<3ul>(MADCSample(00000000000000, "
+     "00000000), MADCSample(00000000000000, 00000000), MADCSample(00000000000000, 00000000))"},
 };
 
 TEST(InstructionPayload, OstreamCoverage)

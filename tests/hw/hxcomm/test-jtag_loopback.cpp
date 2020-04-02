@@ -10,14 +10,16 @@ hxcomm::vx::instruction::to_fpga_jtag::Data::Payload random_data()
 {
 	using Data = hxcomm::vx::instruction::to_fpga_jtag::Data;
 	// random number of data bits
-	Data::Payload::NumBits num_bits(
-	    random_integer(Data::Payload::NumBits::min, Data::Payload::NumBits::max));
+	Data::Payload::NumBits num_bits(random_integer(
+	    std::numeric_limits<Data::Payload::NumBits>::lowest(),
+	    std::numeric_limits<Data::Payload::NumBits>::max()));
 	// random data
 	hate::bitset<Data::max_num_bits_payload> data_value =
 	    random_bitset<Data::max_num_bits_payload>();
 	// cap to num_bits bits
 	data_value &=
-	    ((~hate::bitset<Data::max_num_bits_payload>()) >> (Data::max_num_bits_payload - num_bits));
+	    ((~hate::bitset<Data::max_num_bits_payload>()) >>
+	     (Data::max_num_bits_payload - static_cast<size_t>(num_bits)));
 	// keep_response==true in order to get responses to check for equality
 	return Data::Payload(true, num_bits, data_value);
 }
@@ -81,7 +83,8 @@ TEST(TestConnection, JTAGLoopback)
 		// shift by one because in between TDI and TDO there's one register in BYPASS mode
 		auto response =
 		    boost::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses[i]).decode() >> 1;
-		auto expected = payloads[i].get_payload().reset(payloads[i].get_num_bits() - 1);
+		auto expected =
+		    payloads[i].get_payload().reset(static_cast<size_t>(payloads[i].get_num_bits()) - 1);
 		EXPECT_EQ(decltype(payloads[i].get_payload())(response), expected);
 	}
 }

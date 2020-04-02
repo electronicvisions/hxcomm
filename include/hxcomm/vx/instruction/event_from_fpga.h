@@ -2,7 +2,6 @@
 #include <climits>
 #include <boost/type_index.hpp>
 
-#include "halco/common/typed_array.h"
 #include "hate/join.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
@@ -21,17 +20,8 @@ public:
 
 	typedef hate::bitset<size> value_type;
 
-	struct Value : public halco::common::detail::RantWrapper<Value, uint16_t, 0x3fff, 0>
-	{
-		typedef halco::common::detail::RantWrapper<Value, uint16_t, 0x3fff, 0> rant_t;
-		explicit Value(uintmax_t const value = 0) : rant_t(value) {}
-	};
-
-	struct Timestamp : public halco::common::detail::RantWrapper<Timestamp, uint16_t, 0xff, 0>
-	{
-		typedef halco::common::detail::RantWrapper<Timestamp, uint16_t, 0xff, 0> rant_t;
-		explicit Timestamp(uintmax_t const value = 0) : rant_t(value) {}
-	};
+	typedef hate::bitset<14> Value;
+	typedef hate::bitset<timestamp_size> Timestamp;
 
 	MADCSample() : m_value(), m_timestamp() {}
 
@@ -159,11 +149,7 @@ public:
 
 	typedef hate::bitset<event_constants::spike_size> spike_type;
 
-	struct Timestamp : public halco::common::detail::RantWrapper<Timestamp, uint16_t, 0xff, 0>
-	{
-		typedef halco::common::detail::RantWrapper<Timestamp, uint16_t, 0xff, 0> rant_t;
-		explicit Timestamp(uintmax_t const value = 0) : rant_t(value) {}
-	};
+	typedef hate::bitset<timestamp_size> Timestamp;
 
 	Spike() : m_spike(), m_timestamp() {}
 	Spike(spike_type const& spike, Timestamp const& timestamp) :

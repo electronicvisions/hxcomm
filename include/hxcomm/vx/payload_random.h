@@ -12,8 +12,9 @@ inline typename hxcomm::vx::instruction::to_fpga_jtag::Data::Payload random_payl
 {
 	using namespace hxcomm::vx::instruction::to_fpga_jtag;
 
-	std::uniform_int_distribution<Data::Payload::NumBits::value_type> random_num_bits(
-	    Data::Payload::NumBits::min, Data::Payload::NumBits::max);
+	std::uniform_int_distribution<uintmax_t> random_num_bits(
+	    std::numeric_limits<Data::Payload::NumBits>::lowest(),
+	    std::numeric_limits<Data::Payload::NumBits>::max());
 	auto const num_bits = random_num_bits(gen);
 
 	std::bernoulli_distribution random_binary;
@@ -72,17 +73,18 @@ typename hxcomm::vx::instruction::event_from_fpga::SpikePackPayload<NumPack> ran
 {
 	using namespace hxcomm::vx::instruction::event_from_fpga;
 
-	std::uniform_int_distribution<Spike::Timestamp::value_type> random_timestamp(
-	    Spike::Timestamp::min, Spike::Timestamp::max);
-
 	std::array<Spike, NumPack> spikes;
 	for (auto& spike : spikes) {
 		std::bernoulli_distribution distribution;
 		Spike::spike_type s;
+		Spike::Timestamp t;
 		for (size_t i = 0; i < s.size; ++i) {
 			s.set(i, distribution(gen));
 		}
-		spike = Spike(s, Spike::Timestamp(random_timestamp(gen)));
+		for (size_t i = 0; i < t.size; ++i) {
+			t.set(i, distribution(gen));
+		}
+		spike = Spike(s, t);
 	}
 	return spikes;
 }
@@ -94,15 +96,18 @@ typename hxcomm::vx::instruction::event_from_fpga::MADCSamplePackPayload<NumPack
 {
 	using namespace hxcomm::vx::instruction::event_from_fpga;
 
-	std::uniform_int_distribution<MADCSample::Value::value_type> random_value(
-	    MADCSample::Value::min, MADCSample::Value::max);
-	std::uniform_int_distribution<MADCSample::Timestamp::value_type> random_timestamp(
-	    MADCSample::Timestamp::min, MADCSample::Timestamp::max);
-
 	std::array<MADCSample, NumPack> madc_samples;
 	for (auto& madc_sample : madc_samples) {
-		madc_sample = MADCSample(
-		    MADCSample::Value(random_value(gen)), MADCSample::Timestamp(random_timestamp(gen)));
+		std::bernoulli_distribution distribution;
+		MADCSample::Value v;
+		MADCSample::Timestamp t;
+		for (size_t i = 0; i < v.size; ++i) {
+			v.set(i, distribution(gen));
+		}
+		for (size_t i = 0; i < t.size; ++i) {
+			t.set(i, distribution(gen));
+		}
+		madc_sample = MADCSample(v, t);
 	}
 	return madc_samples;
 }

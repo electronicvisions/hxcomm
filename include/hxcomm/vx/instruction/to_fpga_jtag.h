@@ -2,10 +2,10 @@
 #include <climits>
 #include <boost/type_index.hpp>
 
-#include "halco/common/geometry.h"
 #include "hate/math.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
+#include "rant/int.h"
 
 /** JTAG instructions to the fpga. */
 namespace hxcomm::vx::instruction::to_fpga_jtag {
@@ -68,20 +68,14 @@ struct Data
 		 * Select the amount of bits of payload field to be shifted in instruction
 		 * register previously selected by an ins instruction.
 		 */
-		struct NumBits
-		    : public halco::common::detail::
-		          RantWrapper<NumBits, uint8_t, max_num_bits_payload, min_num_bits_payload>
-		{
-			explicit NumBits(uintmax_t const value = max_num_bits_payload) : rant_t(value) {}
-		};
+		typedef rant::integral_range<uint_fast8_t, max_num_bits_payload, min_num_bits_payload>
+		    NumBits;
 
 		Payload(
 		    bool const keep_response = false,
-		    NumBits const num_bits = NumBits(),
+		    NumBits const num_bits = NumBits(max_num_bits_payload),
 		    hate::bitset<max_num_bits_payload> const payload = 0u) :
-		    m_keep_response(keep_response),
-		    m_num_bits(num_bits),
-		    m_payload(payload)
+		    m_keep_response(keep_response), m_num_bits(num_bits), m_payload(payload)
 		{}
 
 
@@ -107,7 +101,7 @@ struct Data
 		hate::bitset<size, SubwordType> encode() const
 		{
 			return (value_type(m_keep_response) << (size - padded_num_bits_keep_response)) |
-			       (value_type(m_num_bits.value()) << padded_num_bits_payload) | m_payload;
+			       (value_type(m_num_bits) << padded_num_bits_payload) | m_payload;
 		}
 
 		template <class SubwordType = unsigned long>

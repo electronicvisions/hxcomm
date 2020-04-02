@@ -7,8 +7,8 @@ from waflib.extras.symwaf2ic import get_toplevel_path
 
 def depends(dep):
     dep('sctrltp')
+    dep('rant')
     dep('hate')
-    dep('halco')
     dep('code-format')
     dep('logger')
     dep('visions-slurm', branch='production')
@@ -89,7 +89,7 @@ def build(bld):
         target       = 'hxcomm',
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
-                        'flange', 'hate_inc', 'halco_common', 'TBB', 'logger_obj', 'visions-slurm_inc'],
+                        'flange', 'rant', 'hate_inc', 'TBB', 'logger_obj', 'visions-slurm_inc'],
         install_path = '${PREFIX}/lib',
     )
 
