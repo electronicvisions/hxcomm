@@ -88,7 +88,7 @@ def build(bld):
     bld(
         target       = 'hxcomm',
         features     = 'use',
-        use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
+        use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
                         'flange', 'rant', 'hate_inc', 'TBB', 'logger_obj', 'visions-slurm_inc'],
         install_path = '${PREFIX}/lib',
     )
