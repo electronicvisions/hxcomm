@@ -34,6 +34,23 @@ Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
 {}
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
+Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
+    Decoder& other, message_queue_type& message_queue, Listener&... listener) :
+    m_buffer(other.m_buffer),
+    m_buffer_filling_level(other.m_buffer_filling_level),
+    m_message_queue(message_queue),
+    m_listener(listener...),
+    m_coroutine(std::bind(
+        &Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine,
+        this,
+        std::placeholders::_1)),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.Decoder"))
+{
+	other.m_buffer.reset();
+	other.m_buffer_filling_level = 0;
+}
+
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(word_type const word)
 {
 	HXCOMM_LOG_DEBUG(

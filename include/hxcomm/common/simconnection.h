@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+#include <memory>
 #include <queue>
 #include <thread>
 #include <type_traits>
@@ -83,6 +84,16 @@ public:
 	SimConnection& operator=(SimConnection const&) = delete;
 
 	/**
+	 * Move constructor.
+	 */
+	SimConnection(SimConnection&&);
+
+	/**
+	 * Assignment operator.
+	 */
+	SimConnection& operator=(SimConnection&&) = default;
+
+	/**
 	 * Destruct simulation connection joining all receive threads.
 	 */
 	~SimConnection();
@@ -145,7 +156,7 @@ public:
 	bool get_enable_terminate_on_destruction() const;
 
 private:
-	flange::SimulatorClient m_sim;
+	std::unique_ptr<flange::SimulatorClient> m_sim;
 
 	typedef flange::SimulatorEvent::al_data_t subpacket_type;
 
@@ -173,8 +184,9 @@ private:
 	    listener_halt_type;
 	listener_halt_type m_listener_halt;
 
-	Decoder<typename ConnectionParameter::Receive, receive_queue_type, listener_halt_type>
-	    m_decoder;
+	typedef Decoder<typename ConnectionParameter::Receive, receive_queue_type, listener_halt_type>
+	    decoder_type;
+	decoder_type m_decoder;
 
 	std::atomic<bool> m_run_receive;
 

@@ -45,11 +45,21 @@ public:
 	 */
 	Decoder(message_queue_type& message_queue, Listener&... listener);
 
+	/**
+	 * Initialize decoder with a reference to a message queue to push decoded messages to,
+	 * references to message listeners to invoke on decoded messages and a reference decoder from
+	 * which to take existing state.
+	 * @param other Reference decoder
+	 * @param message_queue Reference to message queue
+	 * @param listener List of references to message listeners
+	 */
+	Decoder(Decoder& other, message_queue_type& message_queue, Listener&... listener);
+
 	/** Copy constructor. */
-	Decoder(Decoder const&) = default;
+	Decoder(Decoder const&) = delete;
 
 	/** Assignment operator. */
-	Decoder& operator=(Decoder const&) = default;
+	Decoder& operator=(Decoder const&) = delete;
 
 	/**
 	 * Decode a word.

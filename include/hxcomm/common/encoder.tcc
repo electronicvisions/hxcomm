@@ -2,10 +2,18 @@ namespace hxcomm {
 
 template <typename UTMessageParameter, typename WordQueueType>
 Encoder<UTMessageParameter, WordQueueType>::Encoder(word_queue_type& word_queue) :
-    m_buffer(),
-    m_buffer_filling_level(0),
-    m_word_queue(word_queue)
+    m_buffer(), m_buffer_filling_level(0), m_word_queue(word_queue)
 {}
+
+template <typename UTMessageParameter, typename WordQueueType>
+Encoder<UTMessageParameter, WordQueueType>::Encoder(Encoder& other, word_queue_type& word_queue) :
+    m_buffer(other.m_buffer),
+    m_buffer_filling_level(other.m_buffer_filling_level),
+    m_word_queue(word_queue)
+{
+	other.m_buffer.reset();
+	other.m_buffer_filling_level = 0;
+}
 
 template <typename UTMessageParameter, typename WordQueueType>
 template <class MessageType>

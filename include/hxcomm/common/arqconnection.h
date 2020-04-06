@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <atomic>
+#include <memory>
 #include <queue>
 #include <thread>
 #include <tuple>
@@ -74,6 +75,16 @@ public:
 	ARQConnection& operator=(ARQConnection const&) = delete;
 
 	/**
+	 * Move constructor.
+	 */
+	ARQConnection(ARQConnection&& other);
+
+	/**
+	 * Assignment operator.
+	 */
+	ARQConnection& operator=(ARQConnection&& other) = default;
+
+	/**
 	 * Destruct connection to FPGA joining all receive threads.
 	 */
 	~ARQConnection();
@@ -125,7 +136,7 @@ public:
 private:
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;
-	arq_stream_type m_arq_stream;
+	std::unique_ptr<arq_stream_type> m_arq_stream;
 
 	typedef sctrltp::packet<sctrltp::ParametersFcpBss2Cube>::entry_t subpacket_type;
 
@@ -166,8 +177,9 @@ private:
 	    listener_halt_type;
 	listener_halt_type m_listener_halt;
 
-	Decoder<typename ConnectionParameter::Receive, receive_queue_type, listener_halt_type>
-	    m_decoder;
+	typedef Decoder<typename ConnectionParameter::Receive, receive_queue_type, listener_halt_type>
+	    decoder_type;
+	decoder_type m_decoder;
 
 	std::atomic<bool> m_run_receive;
 

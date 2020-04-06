@@ -5,6 +5,13 @@
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
 
+TEST(TestConnection, Moveable)
+{
+	auto connection = generate_test_connection();
+
+	auto moved_to_connection = std::move(connection);
+}
+
 TEST(TestConnection, ReceiveEmpty)
 {
 	auto connection = generate_test_connection();

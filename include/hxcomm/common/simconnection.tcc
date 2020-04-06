@@ -4,7 +4,7 @@ namespace hxcomm {
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
-    m_sim(ip, port),
+    m_sim(std::make_unique<flange::SimulatorClient>(ip, port)),
     m_send_queue(),
     m_encoder(m_send_queue),
     m_receive_queue(),
@@ -24,12 +24,12 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
 	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
-	m_sim.issue_reset();
+	m_sim->issue_reset();
 }
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::SimConnection() :
-    m_sim(),
+    m_sim(std::make_unique<flange::SimulatorClient>()),
     m_send_queue(),
     m_encoder(m_send_queue),
     m_receive_queue(),
@@ -49,22 +49,68 @@ SimConnection<ConnectionParameter>::SimConnection() :
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
 	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
-	m_sim.issue_reset();
+	m_sim->issue_reset();
+}
+
+template <typename ConnectionParameter>
+SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
+    m_sim(),
+    m_send_queue(),
+    m_encoder(other.m_encoder, m_send_queue),
+    m_receive_queue(),
+    m_listener_halt(),
+    m_decoder(m_receive_queue, m_listener_halt), // temporary
+    m_run_receive(true),
+    m_receive_buffer(m_run_receive),
+    m_worker_fill_receive_buffer(),
+    m_worker_decode_messages(),
+    m_runnable_mutex(),
+    m_terminate_on_destruction(false),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
+{
+	// shutdown other threads
+	other.m_run_receive = false;
+	other.m_receive_buffer.notify();
+	other.m_worker_fill_receive_buffer.join();
+	other.m_worker_decode_messages.join();
+	// move simulator client
+	m_sim = std::move(other.m_sim);
+	// move queues
+	m_send_queue = std::move(other.m_send_queue);
+	m_receive_queue.~receive_queue_type();
+	new (&m_receive_queue) decltype(m_receive_queue)(std::move(other.m_receive_queue));
+	// create decoder
+	m_decoder.~decoder_type();
+	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
+	//
+	m_worker_fill_receive_buffer = std::thread([&]() {
+		thread_local flange::SimulatorClient local_sim;
+		work_fill_receive_buffer(local_sim);
+	});
+	m_worker_decode_messages =
+	    std::thread(&SimConnection<ConnectionParameter>::work_decode_messages, this);
+
+	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
+
+	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	m_sim->issue_reset();
 }
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::~SimConnection()
 {
 	HXCOMM_LOG_TRACE(m_logger, "~SimConnection(): Stopping Sim connection.");
-	m_run_receive = false;
-	m_receive_buffer.notify();
-	m_worker_fill_receive_buffer.join();
-	m_worker_decode_messages.join();
+	if (m_run_receive) {
+		m_run_receive = false;
+		m_receive_buffer.notify();
+		m_worker_fill_receive_buffer.join();
+		m_worker_decode_messages.join();
+	}
 
 	if (m_terminate_on_destruction) {
 		std::unique_lock<std::mutex> lock(m_runnable_mutex);
-		m_sim.set_runnable(true);
-		m_sim.issue_terminate();
+		m_sim->set_runnable(true);
+		m_sim->issue_terminate();
 	}
 }
 
@@ -88,7 +134,7 @@ void SimConnection<ConnectionParameter>::commit()
 	m_encoder.flush();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
 	while (!m_send_queue.empty()) {
-		m_sim.send(m_send_queue.front());
+		m_sim->send(m_send_queue.front());
 		m_send_queue.pop();
 	}
 }
@@ -158,7 +204,7 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_until_halt()
 {
 	ResetHaltListener reset(m_listener_halt);
-	ScopedSimulationRun run(m_sim, m_runnable_mutex);
+	ScopedSimulationRun run(*m_sim, m_runnable_mutex);
 
 	constexpr size_t wait_period = 10000;
 	while (!m_listener_halt.get()) {

@@ -50,6 +50,14 @@ public:
 	Encoder(word_queue_type& word_queue);
 
 	/**
+	 * Initialize encoder with a reference to a word queue to push encoded words to and a reference
+	 * encoder from which to take existing buffer state.
+	 * @param word_queue Reference to word queue
+	 * @param other Reference encoder
+	 */
+	Encoder(Encoder& other, word_queue_type& word_queue);
+
+	/**
 	 * Encode a message.
 	 * During the process multiple words might be produced and pushed to the word queue.
 	 * @tparam MessageType Type of message to encode

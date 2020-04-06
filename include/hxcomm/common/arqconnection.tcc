@@ -48,7 +48,7 @@ ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection() :
-    m_arq_stream(get_fpga_ip()),
+    m_arq_stream(std::make_unique<arq_stream_type>(get_fpga_ip())),
     m_send_queue(),
     m_encoder(m_send_queue),
     m_receive_queue(),
@@ -64,7 +64,7 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
-    m_arq_stream(ip),
+    m_arq_stream(std::make_unique<arq_stream_type>(ip)),
     m_send_queue(),
     m_encoder(m_send_queue),
     m_receive_queue(),
@@ -81,13 +81,51 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
 }
 
 template <typename ConnectionParameter>
+ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
+    m_arq_stream(),
+    m_send_queue(),
+    m_encoder(other.m_encoder, m_send_queue),
+    m_receive_queue(),
+    m_listener_halt(),
+    m_decoder(m_receive_queue, m_listener_halt), // temporary
+    m_run_receive(true),
+    m_receive_buffer(m_run_receive),
+    m_worker_fill_receive_buffer(),
+    m_worker_decode_messages(),
+    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
+{
+	// shutdown other threads
+	other.m_run_receive = false;
+	other.m_receive_buffer.notify();
+	other.m_worker_fill_receive_buffer.join();
+	other.m_worker_decode_messages.join();
+	// move arq stream
+	m_arq_stream = std::move(other.m_arq_stream);
+	// move queues
+	m_send_queue = std::move(other.m_send_queue);
+	m_receive_queue.~receive_queue_type();
+	new (&m_receive_queue) decltype(m_receive_queue)(std::move(other.m_receive_queue));
+	// create decoder
+	m_decoder.~decoder_type();
+	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
+	// create and start threads
+	m_worker_fill_receive_buffer =
+	    std::thread(&ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this);
+	m_worker_decode_messages =
+	    std::thread(&ARQConnection<ConnectionParameter>::work_decode_messages, this);
+	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
+}
+
+template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::~ARQConnection()
 {
 	HXCOMM_LOG_TRACE(m_logger, "~ARQConnection(): Stopping ARQ connection.");
-	m_run_receive = false;
-	m_receive_buffer.notify();
-	m_worker_fill_receive_buffer.join();
-	m_worker_decode_messages.join();
+	if (m_run_receive) {
+		m_run_receive = false;
+		m_receive_buffer.notify();
+		m_worker_fill_receive_buffer.join();
+		m_worker_decode_messages.join();
+	}
 }
 
 template <typename ConnectionParameter>
@@ -112,9 +150,9 @@ void ARQConnection<ConnectionParameter>::commit()
 	[[maybe_unused]] size_t const num_packets = packets.size();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
 	for (auto const packet : packets) {
-		m_arq_stream.send(packet, arq_stream_type::NOTHING);
+		m_arq_stream->send(packet, arq_stream_type::NOTHING);
 	}
-	m_arq_stream.flush();
+	m_arq_stream->flush();
 }
 
 template <typename ConnectionParameter>
@@ -145,9 +183,9 @@ void ARQConnection<ConnectionParameter>::work_fill_receive_buffer()
 		}
 		{
 			size_t packets_written = 0;
-			while (m_arq_stream.received_packet_available() &&
+			while (m_arq_stream->received_packet_available() &&
 			       (packets_written < receive_buffer_size)) {
-				m_arq_stream.receive(write_pointer->data[packets_written]);
+				m_arq_stream->receive(write_pointer->data[packets_written]);
 				if (write_pointer->data[packets_written].pid == pid) {
 					packets_written++;
 				} else {
