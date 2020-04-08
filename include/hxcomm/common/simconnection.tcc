@@ -155,25 +155,6 @@ bool SimConnection<ConnectionParameter>::receive_empty() const
 }
 
 template <typename ConnectionParameter>
-void SimConnection<ConnectionParameter>::run_for(flange::SimulatorEvent::clk_t clock)
-{
-	flange::SimulatorEvent::clk_t current_time = m_sim.get_current_time();
-
-	ScopedSimulationRun run(m_sim, m_runnable_mutex);
-
-	constexpr size_t wait_period = 10000;
-	while (m_sim.get_runnable()) {
-		int ret = usleep(wait_period);
-		if ((ret != 0) && errno != EINTR) {
-			throw std::runtime_error("Error during usleep call.");
-		}
-		if (m_sim.get_current_time() >= current_time + clock) {
-			break;
-		}
-	}
-}
-
-template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_until_halt()
 {
 	ResetHaltListener reset(m_listener_halt);

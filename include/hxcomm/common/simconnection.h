@@ -127,13 +127,6 @@ public:
 	bool receive_empty() const;
 
 	/**
-	 * Start simulation and wait until simulation progressed a specified number of clock count.
-	 * @param clock Clock cycle duration after when to pause simulation
-	 * @throws std::runtime_error Simulation already running
-	 */
-	void run_for(flange::SimulatorEvent::clk_t clock);
-
-	/**
 	 * Start simulation and wait until halt instruction is received from simulation.
 	 * @throws std::runtime_error Simulation already running
 	 */
