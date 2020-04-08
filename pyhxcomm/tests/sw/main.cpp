@@ -6,8 +6,6 @@
 // logger include directory structure omits prefix
 #include "logging_ctrl.h"
 
-bool hxcomm_verbose;
-
 int main(int argc, char* argv[])
 {
 	testing::InitGoogleTest(&argc, argv);
@@ -16,8 +14,7 @@ int main(int argc, char* argv[])
 	namespace bpo = boost::program_options;
 	bpo::options_description desc("Options");
 	// clang-format off
-	desc.add_options()("loglevel", bpo::value<std::string>(&loglevel)->default_value("trace"))
-	("hxcomm-verbose", bpo::bool_switch(&hxcomm_verbose)->default_value(false));
+	desc.add_options()("loglevel", bpo::value<std::string>(&loglevel)->default_value("trace"));
 	// clang-format on
 
 	bpo::variables_map vm;

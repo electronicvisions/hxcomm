@@ -14,12 +14,15 @@
 #include "flange/simulator_client.h"
 
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
+#include "hxcomm/common/connection.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/signal.h"
+#include "hxcomm/common/stream.h"
 #include "hxcomm/common/utmessage.h"
+
 
 namespace log4cxx {
 class Logger;
@@ -37,39 +40,34 @@ template <typename ConnectionParameter>
 class SimConnection
 {
 public:
-	static_assert(
-	    std::is_same_v<flange::SimulatorClient::port_t, port_t>, "Flange port type changed!");
-	static_assert(std::is_same_v<flange::SimulatorClient::ip_t, ip_t>, "Flange ip type changed!");
-	typedef SimConnection connection_t;
+	using message_types = MessageTypes<ConnectionParameter>;
 
-	typedef typename ToUTMessageVariant<
-	    ConnectionParameter::Send::HeaderAlignment,
-	    typename ConnectionParameter::Send::SubwordType,
-	    typename ConnectionParameter::Send::PhywordType,
-	    typename ConnectionParameter::Send::Dictionary>::type send_message_type;
+	using receive_message_type = typename message_types::receive_type;
+	using send_message_type = typename message_types::send_type;
+	using send_halt_message_type = typename message_types::send_halt_type;
 
-	typedef typename ToUTMessageVariant<
-	    ConnectionParameter::Receive::HeaderAlignment,
-	    typename ConnectionParameter::Receive::SubwordType,
-	    typename ConnectionParameter::Receive::PhywordType,
-	    typename ConnectionParameter::Receive::Dictionary>::type receive_message_type;
+	using init_parameters_type = typename std::tuple<ip_t, port_t>;
 
-	typedef typename std::tuple<ip_t, port_t> init_parameters_t;
+	static constexpr char name[] = "SimConnection";
 
 	/**
 	 * Create and start connection to simulation server.
 	 * @param ip IP-address of simulation server
 	 * @param port Port of simulation server
+	 * @param enable_terminate_on_destruction Whether or not to terminate the
+	 * remote simulation upon destruction of the SimConnection.
 	 */
-	SimConnection(ip_t ip, port_t port);
+	SimConnection(ip_t ip, port_t port, bool enable_terminate_on_destruction = false);
 
 	/**
 	 * Create and start connection to simulation server.
 	 * The RCF port is automatically extracted from the enviroment, the simulation server is
 	 * expected to run on the same host.
+	 * @param enable_terminate_on_destruction Whether or not to terminate the
+	 * remote simulation upon destruction of the SimConnection.
 	 * @throws std::runtime_error On no port to simulator found in environment
 	 */
-	SimConnection();
+	SimConnection(bool enable_terminate_on_destruction = false);
 
 	/**
 	 * Copy constructor (deleted because no two instances with the same simulator allocation can
@@ -97,6 +95,21 @@ public:
 	 * Destruct simulation connection joining all receive threads.
 	 */
 	~SimConnection();
+
+	/**
+	 * Set enable value to terminate simulator on destruction of connection.
+	 * @param value Boolean value
+	 */
+	void set_enable_terminate_on_destruction(bool const value);
+
+	/**
+	 * Get enable value to terminate simulator on destruction of connection.
+	 * @return Boolean value
+	 */
+	bool get_enable_terminate_on_destruction() const;
+
+private:
+	friend class Stream<SimConnection>;
 
 	/**
 	 * Add a single UT message to the send queue.
@@ -143,19 +156,6 @@ public:
 	 */
 	void run_until_halt();
 
-	/**
-	 * Set enable value to terminate simulator on destruction of connection.
-	 * @param value Boolean value
-	 */
-	void set_enable_terminate_on_destruction(bool value);
-
-	/**
-	 * Get enable value to terminate simulator on destruction of connection.
-	 * @return Boolean value
-	 */
-	bool get_enable_terminate_on_destruction() const;
-
-private:
 	std::unique_ptr<flange::SimulatorClient> m_sim;
 
 	typedef flange::SimulatorEvent::al_data_t subpacket_type;
@@ -210,7 +210,10 @@ private:
 
 		ResetHaltListener(listener_halt_type& listener) : listener(listener) {}
 
-		~ResetHaltListener() { listener.reset(); }
+		~ResetHaltListener()
+		{
+			listener.reset();
+		}
 	};
 
 	struct ScopedSimulationRun
@@ -238,6 +241,10 @@ private:
 			lock.unlock();
 		}
 	};
+
+	static_assert(
+	    std::is_same_v<flange::SimulatorClient::port_t, port_t>, "Flange port type changed!");
+	static_assert(std::is_same_v<flange::SimulatorClient::ip_t, ip_t>, "Flange ip type changed!");
 };
 
 } // namespace hxcomm

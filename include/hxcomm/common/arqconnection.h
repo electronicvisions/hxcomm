@@ -12,10 +12,12 @@
 #include "sctrltp/ARQStream.h"
 
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
+#include "hxcomm/common/connection.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
+#include "hxcomm/common/stream.h"
 #include "hxcomm/common/utmessage.h"
 
 namespace log4cxx {
@@ -34,21 +36,15 @@ template <typename ConnectionParameter>
 class ARQConnection
 {
 public:
-	typedef ARQConnection connection_t;
+	using message_types = MessageTypes<ConnectionParameter>;
 
-	typedef typename std::tuple<ip_t> init_parameters_t;
+	using receive_message_type = typename message_types::receive_type;
+	using send_message_type = typename message_types::send_type;
+	using send_halt_message_type = typename message_types::send_halt_type;
 
-	typedef typename ToUTMessageVariant<
-	    ConnectionParameter::Send::HeaderAlignment,
-	    typename ConnectionParameter::Send::SubwordType,
-	    typename ConnectionParameter::Send::PhywordType,
-	    typename ConnectionParameter::Send::Dictionary>::type send_message_type;
+	using init_parameters_type = typename std::tuple<ip_t>;
 
-	typedef typename ToUTMessageVariant<
-	    ConnectionParameter::Receive::HeaderAlignment,
-	    typename ConnectionParameter::Receive::SubwordType,
-	    typename ConnectionParameter::Receive::PhywordType,
-	    typename ConnectionParameter::Receive::Dictionary>::type receive_message_type;
+	static constexpr char name[] = "ARQConnection";
 
 	/**
 	 * Create connection to FPGA with IP address found in environment.
@@ -89,6 +85,8 @@ public:
 	 */
 	~ARQConnection();
 
+private:
+	friend Stream<ARQConnection>;
 	/**
 	 * Add a single UT message to the send queue.
 	 * @tparam MessageType Type of message to add
@@ -133,7 +131,6 @@ public:
 	 */
 	void run_until_halt();
 
-private:
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;
 	std::unique_ptr<arq_stream_type> m_arq_stream;

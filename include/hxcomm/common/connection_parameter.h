@@ -31,6 +31,7 @@ struct UTMessageParameter
  * @tparam SendSubwordType Type of subword of send UTMessage set
  * @tparam SendPhywordType Type of PHY-word of send UTMessage set
  * @tparam SendDictionary Dictionary of instructions of sent UTMessages
+ * @tparam SendHaltInstructionType Instruction type of Halt message in sent diciontary
  * @tparam ReceiveHeaderAlignment Alignment of header of receive UTMessage set
  * @tparam ReceiveSubwordType Type of subword of receive UTMessage set
  * @tparam ReceivePhywordType Type of PHY-word of receive UTMessage set
@@ -42,6 +43,7 @@ template <
     typename SendSubwordType,
     typename SendPhywordType,
     typename SendDictionary,
+    typename SendHaltInstructionType,
     size_t ReceiveHeaderAlignment,
     typename ReceiveSubwordType,
     typename ReceivePhywordType,
@@ -55,6 +57,7 @@ struct ConnectionParameter
 	    SendPhywordType,
 	    SendDictionary>
 	    Send;
+	typedef SendHaltInstructionType SendHalt;
 	typedef UTMessageParameter<
 	    ReceiveHeaderAlignment,
 	    ReceiveSubwordType,

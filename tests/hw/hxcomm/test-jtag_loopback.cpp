@@ -29,21 +29,23 @@ hxcomm::vx::instruction::to_fpga_jtag::Data::Payload random_data()
  */
 TEST(TestConnection, JTAGLoopback)
 {
+	using namespace hxcomm;
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 
 	auto connection = generate_test_connection();
+	auto stream = Stream(connection);
 
 	// Reset sequence
-	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
-	connection.add(UTMessageToFPGA<timing::Setup>());
-	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
-	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
-	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
+	stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
+	stream.add(UTMessageToFPGA<timing::Setup>());
+	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
+	stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
+	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
 
 	// JTAG init
-	connection.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
-	connection.add(UTMessageToFPGA<to_fpga_jtag::Init>());
+	stream.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
+	stream.add(UTMessageToFPGA<to_fpga_jtag::Init>());
 
 	// Number of data words to write.
 	constexpr size_t num = 10;
@@ -54,25 +56,25 @@ TEST(TestConnection, JTAGLoopback)
 	}
 
 	// Select JTAG register that is guaranteed to have no effect
-	connection.add(UTMessageToFPGA<to_fpga_jtag::Ins>(to_fpga_jtag::Ins::BYPASS));
+	stream.add(UTMessageToFPGA<to_fpga_jtag::Ins>(to_fpga_jtag::Ins::BYPASS));
 
 	// add write messages
 	for (auto payload : payloads) {
-		connection.add(UTMessageToFPGA<to_fpga_jtag::Data>(payload));
+		stream.add(UTMessageToFPGA<to_fpga_jtag::Data>(payload));
 	}
 
 	// Halt execution
-	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
-	connection.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
+	stream.add(UTMessageToFPGA<system::Halt>());
 
-	connection.commit();
+	stream.commit();
 
-	connection.run_until_halt();
+	stream.run_until_halt();
 
 	std::vector<UTMessageFromFPGAVariant> responses;
 
 	TestConnection::receive_message_type message;
-	while (connection.try_receive(message)) {
+	while (stream.try_receive(message)) {
 		responses.push_back(message);
 	}
 

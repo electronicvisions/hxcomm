@@ -4,9 +4,6 @@
 
 namespace hxcomm::vx {
 
-struct SimConnection : public hxcomm::SimConnection<ConnectionParameter>
-{
-	using connection_t::connection_t;
-};
+using SimConnection = hxcomm::SimConnection<ConnectionParameter>;
 
 } // namespace hxcomm::vx

@@ -3,7 +3,8 @@
 namespace hxcomm {
 
 template <typename ConnectionParameter>
-SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
+SimConnection<ConnectionParameter>::SimConnection(
+    ip_t ip, port_t port, bool enable_terminate_on_destruction) :
     m_sim(std::make_unique<flange::SimulatorClient>(ip, port)),
     m_send_queue(),
     m_encoder(m_send_queue),
@@ -18,7 +19,7 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
     }),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
-    m_terminate_on_destruction(false),
+    m_terminate_on_destruction(enable_terminate_on_destruction),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
@@ -28,7 +29,7 @@ SimConnection<ConnectionParameter>::SimConnection(ip_t ip, port_t port) :
 }
 
 template <typename ConnectionParameter>
-SimConnection<ConnectionParameter>::SimConnection() :
+SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destruction) :
     m_sim(std::make_unique<flange::SimulatorClient>()),
     m_send_queue(),
     m_encoder(m_send_queue),
@@ -43,7 +44,7 @@ SimConnection<ConnectionParameter>::SimConnection() :
     }),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
-    m_terminate_on_destruction(false),
+    m_terminate_on_destruction(enable_terminate_on_destruction),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");

@@ -1,5 +1,6 @@
 #include <boost/program_options.hpp>
 #include "flange/simulator_control_if.h"
+#include "hxcomm/common/stream.h"
 #include "hxcomm/vx/simconnection.h"
 #include "reset_and_id_readout.h"
 
@@ -34,5 +35,6 @@ int main(int argc, char* argv[])
 	}
 
 	SimConnection connection(str_ip, port);
-	reset_and_id_readout(connection);
+	auto stream = hxcomm::Stream(connection);
+	reset_and_id_readout(stream);
 }

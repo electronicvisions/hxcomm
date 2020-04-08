@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+from os.path import join
+from waflib.extras.test_base import summary
+from waflib.extras.symwaf2ic import get_toplevel_path
+
+
+def depends(ctx):
+    ctx('hxcomm')
+
+
+def options(opt):
+    opt.load('compiler_c')
+    opt.load('compiler_cxx')
+    opt.load('boost')
+    opt.load("test_base")
+    opt.load("gtest")
+    opt.load("doxygen")
+
+
+def configure(cfg):
+    cfg.load('compiler_cxx')
+    cfg.load('python')
+    cfg.check_python_version()
+    cfg.check_python_headers()
+    cfg.load('pytest')
+    cfg.load('genpybind')
+    cfg.load('pylint')
+    cfg.load('pycodestyle')
+
+    cfg.check(
+        compiler='cxx',
+        features='cxx pyembed',
+        uselib_store='PYBIND11HXCOMM',
+        mandatory=True,
+        header_name='pybind11/pybind11.h',
+    )
+
+
+def build(bld):
+    pyhxcomm_defines = [
+        # Needed to be able to use operator""_s instad of BOOST_HANA_STRING.
+        'BOOST_HANA_CONFIG_ENABLE_STRING_UDL',
+    ]
+
+    bld(target          = 'pyhxcomm_inc',
+        export_includes = 'include',
+        export_defines  = pyhxcomm_defines,
+    )
+
+    bld(
+        target='pyhxcomm_vx',
+        source='include/pyhxcomm/vx/python_bindings.h',
+        genpybind_tags='hxcomm_vx',
+        genpybind_num_files=10,
+        features='genpybind cxx cxxshlib pyext pyembed',
+        use=['hxcomm', 'pyhxcomm_inc', 'PYBIND11HXCOMM'],
+        install_path='${PREFIX}/lib',
+        linkflags='-Wl,-z,defs',
+    )
+
+    bld(
+        target       = 'pyhxcomm_swtests_vx_cxx',
+        features     = 'gtest cxx cxxprogram pyext',
+        source       = bld.path.ant_glob('tests/sw/test-*.cpp'),
+        use          = ['hxcomm', 'pyhxcomm_inc', 'BOOST4HXCOMMTOOLS', 'PYBIND11HXCOMM'],
+        defines      = pyhxcomm_defines,
+        test_timeout = 120,
+        uselib       = 'HXCOMM',
+        test_main    = 'tests/sw/main.cpp',
+    )
+
+    bld(
+        target='pyhxcomm_swtests_vx_py',
+        tests=bld.path.ant_glob('tests/sw/*.py'),
+        features='use pytest',
+        use='pyhxcomm_vx',
+        install_path='${PREFIX}/bin',
+        pythonpath=['tests'],
+        pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
+        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
+        test_timeout=120,
+    )
+
+    bld.add_post_fun(summary)

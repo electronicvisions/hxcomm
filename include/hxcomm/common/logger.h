@@ -1,4 +1,5 @@
 #pragma once
+
 #include <log4cxx/logger.h>
 
 #if !defined(HXCOMM_LOG_THRESHOLD) || HXCOMM_LOG_THRESHOLD <= 0
