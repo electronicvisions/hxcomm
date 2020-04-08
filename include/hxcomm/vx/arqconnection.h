@@ -1,12 +1,19 @@
 #pragma once
+
 #include "hxcomm/common/arqconnection.h"
+#include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/vx/connection_parameter.h"
+#include "hxcomm/vx/genpybind.h"
 
-namespace hxcomm::vx {
+namespace hxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
 
-struct ARQConnection : public hxcomm::ARQConnection<ConnectionParameter>
-{
-	using connection_t::connection_t;
-};
+using ARQConnection = hxcomm::ARQConnection<ConnectionParameter>;
 
-} // namespace hxcomm::vx
+GENPYBIND_MANUAL({
+	using ARQConnection = ::hxcomm::vx::ARQConnection;
+	parent->py::template class_<ARQConnection>(parent, "ARQConnection")
+	    .def(parent->py::template init<>())
+	    .def(parent->py::template init<hxcomm::ip_t>());
+})
+
+} // namespace hxcomm::vxGENPYBIND_TAG_HXCOMM_VX

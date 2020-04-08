@@ -4,38 +4,40 @@
 
 TEST(TestConnection, ReadoutJtagID)
 {
+	using namespace hxcomm;
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 	using Data = to_fpga_jtag::Data;
 
 	auto connection = generate_test_connection();
+	auto stream = Stream(connection);
 
 	// Reset sequence
-	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
-	connection.add(UTMessageToFPGA<timing::Setup>());
-	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
-	connection.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
-	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
+	stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
+	stream.add(UTMessageToFPGA<timing::Setup>());
+	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
+	stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
+	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
 
 	// JTAG init
-	connection.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
-	connection.add(UTMessageToFPGA<to_fpga_jtag::Init>());
+	stream.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
+	stream.add(UTMessageToFPGA<to_fpga_jtag::Init>());
 
 	// Read ID (JTAG instruction register is by specification IDCODE after init)
-	connection.add(UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(32), 0)));
+	stream.add(UTMessageToFPGA<Data>(Data::Payload(true, Data::Payload::NumBits(32), 0)));
 
 	// Halt execution
-	connection.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
-	connection.add(UTMessageToFPGA<system::Halt>());
+	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
+	stream.add(UTMessageToFPGA<system::Halt>());
 
-	connection.commit();
+	stream.commit();
 
-	connection.run_until_halt();
+	stream.run_until_halt();
 
 	std::vector<UTMessageFromFPGAVariant> responses;
 	while (true) {
 		try {
-			responses.push_back(connection.receive());
+			responses.push_back(stream.receive());
 		} catch (std::runtime_error& ignored) {
 			break;
 		}

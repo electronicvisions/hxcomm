@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include "hxcomm/common/stream.h"
 #include "hxcomm/vx/arqconnection.h"
 #include "reset_and_id_readout.h"
 
@@ -29,5 +30,6 @@ int main(int argc, char* argv[])
 	}
 
 	ARQConnection connection(str_ip);
-	reset_and_id_readout(connection);
+	auto stream = hxcomm::Stream(connection);
+	reset_and_id_readout(stream);
 }

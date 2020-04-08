@@ -22,10 +22,14 @@ def options(opt):
     opt.load("test_base")
     opt.load("gtest")
     opt.load("doxygen")
-    opt.add_option("--hxcomm-loglevel",
-                   choices=["trace", "debug", "info", "warning", "error", "fatal"],
-                   default="info",
-                   help="Maximal loglevel to compile in.")
+
+    opt.recurse('pyhxcomm')
+
+    hopts = opt.add_option_group('hxcomm options')
+    hopts.add_option("--hxcomm-loglevel",
+                     choices=["trace", "debug", "info", "warning", "error", "fatal"],
+                     default="info",
+                     help="Maximal loglevel to compile in.")
 
 
 def configure(conf):
@@ -48,6 +52,7 @@ def configure(conf):
          'error':   4,
          'fatal':   5}[conf.options.hxcomm_loglevel]
     )
+    conf.recurse("pyhxcomm")
 
 
 def build_loopbackconnection_test(bld):
@@ -136,7 +141,8 @@ def build(bld):
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
                            excl='tests/sw/hxcomm/test-*_throughput.cpp tests/sw/hxcomm/test-loopbackconnection.cpp'),
-        use          = ['hxcomm', 'hxcomm_tests_helper'] + loopbackconnection_obj_targets,
+        use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'] + loopbackconnection_obj_targets,
+        test_main    = 'tests/sw/hxcomm/main.cpp',
     )
 
     bld(
@@ -185,10 +191,13 @@ def build(bld):
         pars = {
             "PROJECT_NAME": "\"HX Communication\"",
             "INPUT": join(get_toplevel_path(), "hxcomm", "include"),
+            "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_HXCOMM_VX=",
             "INCLUDE_PATH": join(get_toplevel_path(), "hxcomm", "include"),
             "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
         },
     )
+
+    bld.recurse('pyhxcomm')
 
     # Create test summary (to stdout and XML file)
     bld.add_post_fun(summary)

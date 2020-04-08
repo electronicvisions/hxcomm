@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+from os.path import join
+from waflib.extras.test_base import summary
+from waflib.extras.symwaf2ic import get_toplevel_path
+
+
+def depends(ctx):
+    ctx('hxcomm')
+
+
+def options(opt):
+    pass
+
+
+def configure(cfg):
+    cfg.load('compiler_cxx')
+    cfg.load('python')
+    cfg.check_python_version()
+    cfg.check_python_headers()
+    cfg.load('pytest')
+    cfg.load('genpybind')
+    cfg.load('pylint')
+    cfg.load('pycodestyle')
+
+    cfg.check(
+        compiler='cxx',
+        features='cxx pyembed',
+        uselib_store='PYBIND11HXCOMM',
+        mandatory=True,
+        header_name='pybind11/pybind11.h',
+    )
+
+
+def build(bld):
+    bld(
+        target='pyhxcomm_vx_pybind11',
+        source='../include/hxcomm/vx/python_bindings.h',
+        genpybind_tags='hxcomm_vx',
+        genpybind_num_files=10,
+        features='genpybind cxx cxxshlib pyext pyembed',
+        use=['hxcomm', 'PYBIND11HXCOMM'],
+        install_path='${PREFIX}/lib',
+        linkflags='-Wl,-z,defs',
+    )
+
+    bld(name='pyhxcomm_vx',
+        features='py pylint pycodestyle',
+        source=bld.path.ant_glob("pyhxcomm_vx/**/*.py"),
+        use=["pyhxcomm_vx_pybind11"],
+        install_path = '${PREFIX}/lib',
+        pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
+        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
+        test_timeout=120
+        )
+
+    bld(
+        target='pyhxcomm_swtests_vx',
+        tests=bld.path.ant_glob('tests/sw/*.py'),
+        features='use pytest',
+        use='pyhxcomm_vx',
+        install_path='${PREFIX}/bin',
+        pythonpath=['tests'],
+        pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
+        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
+        test_timeout=120,
+    )
+
+    bld.add_post_fun(summary)

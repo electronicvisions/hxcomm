@@ -1,12 +1,20 @@
 #pragma once
+#include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/simconnection.h"
 #include "hxcomm/vx/connection_parameter.h"
+#include "hxcomm/vx/genpybind.h"
 
-namespace hxcomm::vx {
+namespace hxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
 
-struct SimConnection : public hxcomm::SimConnection<ConnectionParameter>
-{
-	using connection_t::connection_t;
-};
+using SimConnection = hxcomm::SimConnection<ConnectionParameter>;
+
+GENPYBIND_MANUAL({
+	using SimConnection = ::hxcomm::vx::SimConnection;
+	parent->py::template class_<SimConnection>(parent, "SimConnection")
+	    .def(parent->py::template init<>())
+	    .def(parent->py::template init<bool>())
+	    .def(parent->py::template init<hxcomm::ip_t, hxcomm::port_t>())
+	    .def(parent->py::template init<hxcomm::ip_t, hxcomm::port_t, bool>());
+})
 
 } // namespace hxcomm::vx
