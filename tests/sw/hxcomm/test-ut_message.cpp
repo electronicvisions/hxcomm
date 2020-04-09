@@ -35,11 +35,15 @@ TYPED_TEST(CommonUTMessageTests, General)
 	                                       typename ut_message_t::dictionary_type>::value));
 	ASSERT_EQ(config.get_payload(), typename ut_message_t::payload_type());
 
+	[[maybe_unused]] ut_message_t constructed_from_payload(config.get_payload());
+
 	if constexpr (ut_message_t::payload_type::size) {
 		auto payload =
 		    hxcomm::random::random_payload<typename ut_message_t::instruction_type::Payload>();
 		config.encode(payload);
 		ASSERT_EQ(config.decode(), payload);
+
+		[[maybe_unused]] ut_message_t constructed_from_instruction_payload(payload);
 
 		ut_message_t config_eq = config;
 		ut_message_t config_ne = config;
