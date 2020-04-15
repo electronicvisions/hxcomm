@@ -138,9 +138,6 @@ void Managed<std::variant<Connections...>>::setup_logger()
 	m_logger = log4cxx::Logger::getLogger("pyhxcomm.ManagedConnection");
 }
 
-
-#if defined(__GENPYBIND__) or defined(__GENPYBIND_GENERATED__)
-
 namespace detail {
 
 template <typename T>
@@ -203,7 +200,5 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
 	    },
 	    pybind11::arg("hwdb_path") = std::nullopt);
 }
-
-#endif
 
 } // namespace pyhxcomm

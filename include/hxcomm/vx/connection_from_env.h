@@ -11,7 +11,8 @@ namespace hxcomm::vx {
  * Automatically determine from environment what connection type to use and
  * return the corresponding variant.
  *
- * Order of precedence is HardwareBackend > CoSim right now if both are available.
+ * Order of precedence is QuiggeldyConnection > Real Hardware > CoSim right now if several are
+ * available.
  *
  * On the Python-side it is wrapped via ManagedConnection.
  *

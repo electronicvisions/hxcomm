@@ -2,7 +2,7 @@
 
 Map<String, Object> pipelineOptions = [
 		projects: ["hxcomm"],
-		container: [app: "dls-core"],
+		container: [app: "dls-core", singularityArgs: "-B /run/munge"],
 		notificationChannel: "#dls-software",
 		configureInstallOptions: "--build-profile=ci"
 ]

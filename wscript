@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import os
 from os.path import join
 from socket import gethostname
@@ -15,6 +16,7 @@ def depends(dep):
     dep('visions-slurm', branch='production')
     dep('flange')
     dep('bss-hw-params')
+    dep('lib-rcf')
 
 
 def options(opt):
@@ -32,6 +34,14 @@ def options(opt):
                      choices=["trace", "debug", "info", "warning", "error", "fatal"],
                      default="info",
                      help="Maximal loglevel to compile in.")
+
+    hopts.add_withoption('munge', default=True,
+                       help='Toggle build of quiggeldy with munge-based '
+                            'authentification support')
+
+    hopts.add_withoption('quiggeldy', default=True,
+                       help='Toggle build of quiggeldy-tool '
+                            '(has extra dependencies).')
 
     hopts.add_withoption('hxcomm-python-bindings', default=True,
                         help='Toggle the generation and build of hxcomm python bindings')
@@ -64,6 +74,20 @@ def configure(conf):
         '-fvisibility=hidden',
         '-fvisibility-inlines-hidden',
     ]
+
+    conf.env.build_with_munge = conf.options.with_munge
+    if conf.env.build_with_munge:
+        conf.check_cxx(lib="munge",
+                       header_name="munge.h",
+                       msg="Checking for munge",
+                       uselib_store="MUNGE")
+        conf.env.DEFINES_MUNGE = ["USE_MUNGE_AUTH"]
+
+    conf.env.build_with_quiggeldy = conf.options.with_quiggeldy
+    if conf.env.build_with_quiggeldy:
+        conf.check_boost(lib='program_options system',
+                         uselib_store='BOOST4QUIGGELDY')
+        conf.check_cxx(lib="pthread", uselib_store="PTHREAD")
 
     if getattr(conf.options, 'with_hxcomm_python_bindings', True):
         conf.recurse("pyhxcomm")
@@ -104,6 +128,8 @@ def build(bld):
     bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
     bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
 
+    use_munge = ["MUNGE"] if bld.env.build_with_munge else []
+
     bld(target          = 'hxcomm_inc',
         export_includes = 'include'
     )
@@ -114,7 +140,8 @@ def build(bld):
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
-                        'bss-hw-params_inc'],
+                        'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
+                       ] + use_munge,
         install_path = '${PREFIX}/lib',
     )
 
@@ -154,7 +181,7 @@ def build(bld):
         target       = 'hxcomm_tests_helper',
         features     = 'cxx',
         source       = bld.path.ant_glob('tests/common/src/test-*.cpp'),
-        use          = ['hxcomm', 'hxcomm_tests_inc'],
+        use          = ['hxcomm', 'hxcomm_tests_inc', 'logger_obj'],
     )
 
     loopbackconnection_obj_targets = build_loopbackconnection_test(bld)
@@ -207,7 +234,31 @@ def build(bld):
         uselib       = 'HXCOMM',
         test_timeout = 180,
         test_environ = dict(HXCOMM_ENABLE_ZERO_MOCK='1'),
-)
+    )
+
+    if bld.env.build_with_quiggeldy:
+        use_quiggeldy = ["hxcomm", "BOOST4QUIGGELDY", "PTHREAD"] + use_munge
+
+        bld(
+            target = 'quiggeldy',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/quiggeldy_binary.cpp'),
+                ],
+            use = use_quiggeldy,
+            install_path = 'bin',
+        )
+        bld(
+            target = 'quiggeldy_mock_client',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/quiggeldy_mock_client.cpp'),
+                ],
+            use = use_quiggeldy,
+            uselib       = 'HXCOMM',
+            install_path = 'bin',
+        )
+
 
     if bld.env.DOXYGEN:
         bld(
