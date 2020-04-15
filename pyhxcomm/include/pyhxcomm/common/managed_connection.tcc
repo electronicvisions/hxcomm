@@ -138,9 +138,6 @@ void Managed<std::variant<Connections...>>::setup_logger()
 	m_logger = log4cxx::Logger::getLogger("pyhxcomm.ManagedConnection");
 }
 
-
-#if defined(__GENPYBIND__) or defined(__GENPYBIND_GENERATED__)
-
 namespace detail {
 
 template <typename T>
@@ -194,8 +191,8 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
     pybind11::module& parent, HanaString const& name) :
     parent_type(parent, name), handle(parent, (name + "Handle"_s).c_str())
 {
-	handle.def_property_readonly(
-	    "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
+    handle.def_property_readonly(
+        "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
 	handle.def(
 	    "get_unique_identifier",
 	    [](handle_type const& h, std::optional<std::string> hwdb_path) {
@@ -203,7 +200,5 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
 	    },
 	    pybind11::arg("hwdb_path") = std::nullopt);
 }
-
-#endif
 
 } // namespace pyhxcomm
