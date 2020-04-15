@@ -4,6 +4,7 @@
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/vx/arqconnection.h"
 #include "hxcomm/vx/connection_variant.h"
+#include "hxcomm/vx/quiggeldy_client.h"
 #include "hxcomm/vx/simconnection.h"
 
 #include <cstdlib>
@@ -17,10 +18,15 @@ ConnectionVariantType get_connection_from_env()
 	auto fpga_ip_list = hxcomm::get_fpga_ip_list();
 	char const* env_sim_port = std::getenv("FLANGE_SIMULATION_RCF_PORT");
 	char const* env_sim_host = std::getenv("FLANGE_SIMULATION_RCF_HOST");
+	char const* env_quiggeldy_enabled = std::getenv(vision_quiggeldy_enabled_env_name);
 
 	static std::string default_host = "127.0.0.1";
 	if (env_sim_host == nullptr) {
 		env_sim_host = default_host.c_str();
+	}
+
+	if (env_quiggeldy_enabled != nullptr) {
+		return ConnectionVariantType{std::in_place_type<QuiggeldyClient>};
 	}
 
 	if (fpga_ip_list.size() == 1) {

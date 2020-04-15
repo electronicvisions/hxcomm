@@ -1,7 +1,7 @@
 @Library("jenlib") _
 
 wafDefaultPipeline(projects: ["hxcomm"],
-                   container: [app: "dls-core"],
+                   container: [app: "dls-core", singularityArgs: "-B /run/munge"],
                    testSlurmResource: [partition: "cube", wafer: 62, "fpga-without-aout": 3],
                    testOptions: "--test-execall -j1",
                    notificationChannel: "#dls-software")

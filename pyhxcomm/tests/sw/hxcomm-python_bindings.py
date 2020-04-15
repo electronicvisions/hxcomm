@@ -18,10 +18,12 @@ class PyBindings(unittest.TestCase):
         self.check_arg_exists(self.hxcomm, "Connection")
         self.check_arg_exists(self.hxcomm, "ARQConnection")
         self.check_arg_exists(self.hxcomm, "SimConnection")
+        self.check_arg_exists(self.hxcomm, "QuiggeldyClient")
         self.check_arg_exists(self.hxcomm, "get_connection_from_env")
         self.check_arg_exists(self.hxcomm, "TargetRestriction")
         self.check_arg_exists(self.hxcomm.ARQConnection, "supports")
         self.check_arg_exists(self.hxcomm.SimConnection, "supports")
+        self.check_arg_exists(self.hxcomm.QuiggeldyClient, "supports")
 
     def check_arg_exists(self, parent, arg):
         self.assertTrue(getattr(parent, arg, None) is not None)

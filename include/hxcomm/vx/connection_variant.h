@@ -4,10 +4,13 @@
 
 #include "hxcomm/vx/connection_parameter.h"
 #include "hxcomm/vx/genpybind.h"
+#include "hxcomm/vx/quiggeldy_rcf.h"
 
 namespace hxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
 
-typedef hxcomm::ConnectionVariantType<hxcomm::vx::ConnectionParameter> ConnectionVariantType;
+typedef hxcomm::
+    ConnectionVariantType<hxcomm::vx::ConnectionParameter, hxcomm::vx::detail::rcf_client_type>
+        ConnectionVariantType;
 
 GENPYBIND_MANUAL({
 	parent->py::template class_<::hxcomm::vx::ConnectionVariantType>(

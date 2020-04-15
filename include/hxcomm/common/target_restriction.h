@@ -11,6 +11,7 @@ enum class TargetRestriction
 {
 	hardware,
 	simulation,
+	hardware_non_interactive,
 	SIZE // Only to be used for iteration
 };
 

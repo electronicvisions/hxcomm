@@ -9,7 +9,8 @@ namespace hxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
  * Automatically determine from environment what connection type to use and
  * return the corresponding variant.
  *
- * Order of precedence is HardwareBackend > CoSim right now if both are available.
+ * Order of precedence is QuiggeldyClient > Real Hardware > CoSim right now if several are
+ * available.
  *
  * @return An already allocated connection object.
  */
