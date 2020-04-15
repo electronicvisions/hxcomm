@@ -144,7 +144,7 @@ void Managed<std::variant<Connections...>>::setup_logger()
 }
 
 
-#if defined(__GENPYBIND__) or defined(__GENPYBIND_GENERATED__)
+// #if defined(__GENPYBIND__) or defined(__GENPYBIND_GENERATED__)
 
 namespace detail {
 
@@ -169,6 +169,14 @@ struct has_init_parameters_type : std::false_type
 
 template <typename C>
 struct has_init_parameters_type<C, std::void_t<typename C::init_parameter_type>> : std::true_type
+{};
+
+template <typename C, typename = void>
+struct has_time_info : std::false_type
+{};
+
+template <typename C>
+struct has_time_info<C, std::void_t<decltype(std::declval<C>().time_info)>> : std::true_type
 {};
 
 } // namespace detail
@@ -199,8 +207,10 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
     pybind11::module& parent, HanaString const& name) :
     parent_type(parent, name), handle(parent, (name + "Handle"_s).c_str())
 {
-	handle.def_property_readonly(
-	    "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
+	if constexpr (detail::has_time_info<Connection>::value) {
+		handle.def_property_readonly(
+		    "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
+	}
 	handle.def(
 	    "get_unique_identifier",
 	    [](handle_type const& h, std::optional<std::string> hwdb_path) {
@@ -209,6 +219,6 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
 	    pybind11::arg("hwdb_path") = std::nullopt);
 }
 
-#endif
+// #endif
 
 } // namespace pyhxcomm

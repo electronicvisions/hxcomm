@@ -31,7 +31,7 @@ struct ConnectionTimeInfo;
 
 
 /**
- * Base concept for all connections (ARQ, CoSim, QuiggeldyClient, ...).
+ * Base concept for all connections (ARQ, CoSim, QuiggeldyConnection, ...).
  */
 template <typename Connection>
 struct ConnectionConcept

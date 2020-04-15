@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import os
 from os.path import join
 from socket import gethostname
@@ -14,6 +15,7 @@ def depends(dep):
     dep('logger')
     dep('visions-slurm', branch='production')
     dep('flange')
+    dep('lib-rcf')
 
 
 def options(opt):
@@ -31,6 +33,14 @@ def options(opt):
                      choices=["trace", "debug", "info", "warning", "error", "fatal"],
                      default="warning",
                      help="Maximal loglevel to compile in.")
+
+    opt.add_withoption('munge', default=True,
+                       help='Toggle build of quiggeldy with munge-based '
+                            'authentification support')
+
+    opt.add_withoption('quiggeldy', default=True,
+                       help='Toggle build of quiggeldy-tool '
+                            '(has extra dependencies).')
 
 
 def configure(conf):
@@ -63,6 +73,20 @@ def configure(conf):
     ]
 
     conf.recurse("pyhxcomm")
+
+    conf.env.build_with_munge = conf.options.with_munge
+    if conf.env.build_with_munge:
+        conf.check_cxx(lib="munge",
+                       header_name="munge.h",
+                       msg="Checking for munge",
+                       uselib_store="MUNGE")
+        conf.env.DEFINES_MUNGE = ["USE_MUNGE_AUTH"]
+
+    conf.env.build_with_quiggeldy = conf.options.with_quiggeldy
+    if conf.env.build_with_quiggeldy:
+        conf.check_boost(lib='program_options system',
+                         uselib_store='BOOST4QUIGGELDY')
+        conf.check_cxx(lib="pthread", uselib_store="PTHREAD")
 
 
 def build_loopbackconnection_test(bld):
@@ -103,9 +127,10 @@ def build(bld):
     bld(
         target       = 'hxcomm',
         features     = 'use',
-        use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
+        use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM', 'rcf-sf-only',
                         'flange', 'rant', 'hate_inc', 'TBB', 'logger_obj',
-                        'visions-slurm_inc', 'hwdb4cpp'],
+                        'visions-slurm_inc', 'rcf_extensions', 'hwdb4cpp']
+                        + (["MUNGE]"] if bld.env.build_with_munge else []),
         install_path = '${PREFIX}/lib',
     )
 
@@ -145,7 +170,7 @@ def build(bld):
         target       = 'hxcomm_tests_helper',
         features     = 'cxx',
         source       = bld.path.ant_glob('tests/common/src/test-*.cpp'),
-        use          = ['hxcomm', 'hxcomm_tests_inc'],
+        use          = ['hxcomm', 'hxcomm_tests_inc', 'logger_obj'],
     )
 
     loopbackconnection_obj_targets = build_loopbackconnection_test(bld)
@@ -184,6 +209,29 @@ def build(bld):
         test_timeout = 60,
         uselib       = 'HXCOMM',
     )
+
+    if bld.env.build_with_quiggeldy:
+        use_quiggeldy = ["hxcomm", "BOOST4QUIGGELDY", "PTHREAD"]
+
+        bld(
+            target = 'quiggeldy',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/quiggeldy_binary.cpp'),
+                ],
+            use = use_quiggeldy,
+            install_path = '${PREFIX}/bin',
+        )
+        bld(
+            target = 'quiggeldy_mock_client',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/quiggeldy_mock_client.cpp'),
+                ],
+            use = use_quiggeldy,
+            install_path = '${PREFIX}/bin',
+        )
+
 
     bld(
         features = 'doxygen',

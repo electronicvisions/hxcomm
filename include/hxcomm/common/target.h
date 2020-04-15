@@ -9,6 +9,7 @@ namespace hxcomm {
 enum class Target
 {
 	hardware,
+	hardware_non_interactive,
 	simulation,
 };
 
