@@ -3,8 +3,11 @@
 #include "hxcomm/vx/axiconnection.h"
 #include "hxcomm/vx/connection_from_env.h"
 #include "hxcomm/vx/connection_variant.h"
+#include "hxcomm/vx/quiggeldy_connection.h"
 #include "hxcomm/vx/simconnection.h"
 #include "hxcomm/vx/zeromockconnection.h"
+
+#include "slurm/vision_defines.h"
 
 #include <cstdlib>
 #include <optional>
@@ -79,11 +82,23 @@ inline std::vector<ConnectionVariant> get_axiconnection_list_from_env()
 	return connection_list;
 }
 
+inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::optional<size_t>)
+{
+	std::vector<ConnectionVariant> list;
+	char const* env_quiggeldy_enabled = std::getenv(vision_quiggeldy_enabled_env_name);
+	if (env_quiggeldy_enabled != nullptr) {
+		list.emplace_back(ConnectionVariant{std::in_place_type<QuiggeldyConnection>});
+	}
+	return list;
+}
+
 } // namespace detail
 
 std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t> limit)
 {
-	if (auto arq = detail::get_arqconnection_list_from_env(limit); !arq.empty()) {
+	if (auto qgc = detail::get_quiggeldyclient_list_from_env(limit); !qgc.empty()) {
+		return qgc;
+	} else if (auto arq = detail::get_arqconnection_list_from_env(limit); !arq.empty()) {
 		return arq;
 	} else if (auto sim = detail::get_simconnection_list_from_env(); !sim.empty()) {
 		return sim;

@@ -9,6 +9,7 @@ namespace hxcomm {
 enum class Target
 {
 	hardware,
+	self_contained_pbmem,
 	simulation,
 };
 

@@ -18,6 +18,8 @@ class PyBindings(unittest.TestCase):
         their connection handle upon construction, we can only check for their
         existence here.
         """
+        self.check_arg_exists(self.hxcomm, "get_unused_port")
+        self.check_arg_exists(self.hxcomm, "terminate")
 
     @property
     def connections(self):
@@ -25,6 +27,7 @@ class PyBindings(unittest.TestCase):
                 "ARQConnection",
                 "AXIConnection",
                 "SimConnection",
+                "QuiggeldyConnection",
                 "ZeroMockConnection"]
 
     @property
