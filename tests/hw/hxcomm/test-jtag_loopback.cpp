@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "connection.h"
-#include "test-helper.h"
+#include "hxcomm/test-helper.h"
+
+using namespace hxcomm::test;
 
 /**
  * Generate random JTAG data payload with a random number of sent bits.

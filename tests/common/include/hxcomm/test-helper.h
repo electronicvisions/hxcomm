@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+namespace hxcomm::test {
+
 /**
  * Draw random integer value in specified bounds.
  * @param min Minimal value to be drawn
@@ -66,3 +68,5 @@ T draw_ranged_non_default_value(uintmax_t default_value)
 	} while ((rnd == default_value) || (rnd > T::max) || (rnd < T::min));
 	return T(rnd);
 }
+
+} // namespace hxcomm::test
