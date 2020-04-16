@@ -136,13 +136,13 @@ def build(bld):
 
     bld(
         target          = 'hxcomm_tests_inc',
-        export_includes = 'tests/common'
+        export_includes = 'tests/common/include'
     )
 
     bld.shlib(
         target       = 'hxcomm_tests_helper',
         features     = 'cxx',
-        source       = bld.path.ant_glob('tests/common/test-helper.cpp'),
+        source       = bld.path.ant_glob('tests/common/src/*.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_inc'],
     )
 

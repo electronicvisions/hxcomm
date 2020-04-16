@@ -1,4 +1,6 @@
-#include "test-helper.h"
+#include "hxcomm/test-helper.h"
+
+namespace hxcomm::test {
 
 size_t random_integer(size_t const min, size_t const max)
 {
@@ -7,3 +9,5 @@ size_t random_integer(size_t const min, size_t const max)
 	std::uniform_int_distribution<size_t> random(min, max);
 	return random(gen);
 }
+
+} // namespace hxcomm::test

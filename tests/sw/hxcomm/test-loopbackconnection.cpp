@@ -5,12 +5,13 @@
 #include "hxcomm/vx/utmessage.h"
 #include "hxcomm/vx/utmessage_random.h"
 
-#include "test-helper.h"
+#include "hxcomm/test-helper.h"
 
 using namespace hxcomm;
 using namespace hxcomm::random;
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
+using namespace hxcomm::test;
 
 #ifndef SUBWORD_TYPE
 #define SUBWORD_TYPE uint64_t
