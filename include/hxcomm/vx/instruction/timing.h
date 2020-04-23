@@ -28,7 +28,17 @@ struct SystimeInit
 	typedef hxcomm::instruction::detail::payload::Bitset<SystimeInit, size> Payload;
 };
 
+/** Block further execution until specified set of communication channels is idle. */
+struct Barrier
+{
+	constexpr static size_t size = 3;
+	typedef hxcomm::instruction::detail::payload::Bitset<Barrier, size> Payload;
+	constexpr static Payload omnibus{0b001};
+	constexpr static Payload jtag{0b010};
+	constexpr static Payload systime{0b100};
+};
+
 /** Dictionary of all timing instructions. */
-typedef hate::type_list<Setup, WaitUntil, SystimeInit> Dictionary;
+typedef hate::type_list<Setup, WaitUntil, SystimeInit, Barrier> Dictionary;
 
 } // namespace hxcomm::vx::instruction::timing

@@ -20,6 +20,7 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(timing::Setup), "hxcomm::vx::instruction::timing::Setup()"},
     {typeid(timing::WaitUntil), "hxcomm::vx::instruction::timing::WaitUntil(0)"},
     {typeid(timing::SystimeInit), "hxcomm::vx::instruction::timing::SystimeInit(0)"},
+    {typeid(timing::Barrier), "hxcomm::vx::instruction::timing::Barrier(000)"},
     {typeid(system::Loopback), "hxcomm::vx::instruction::system::Loopback(0)"},
     {typeid(system::Reset), "hxcomm::vx::instruction::system::Reset(0)"},
     {typeid(omnibus_to_fpga::Address), "hxcomm::vx::instruction::omnibus_to_fpga::Address(is_read: "
