@@ -26,9 +26,11 @@ void LoopbackConnection<UTMessageParameter>::add(send_message_type const& messag
 }
 
 template <typename UTMessageParameter>
-void LoopbackConnection<UTMessageParameter>::add(std::vector<send_message_type> const& messages)
+template <typename InputIterator>
+void LoopbackConnection<UTMessageParameter>::add(
+    InputIterator const& begin, InputIterator const& end)
 {
-	m_encoder(messages);
+	m_encoder(begin, end);
 }
 
 template <typename UTMessageParameter>
@@ -65,7 +67,7 @@ void LoopbackConnection<UTMessageParameter>::work_receive()
 {
 	while (m_run_receive) {
 		std::lock_guard<std::mutex> lock(m_intermediate_queue_mutex);
-		m_decoder(m_intermediate_queue);
+		m_decoder(m_intermediate_queue.begin(), m_intermediate_queue.end());
 		m_intermediate_queue.clear();
 	}
 }

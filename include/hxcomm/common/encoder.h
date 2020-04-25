@@ -75,12 +75,12 @@ public:
 	 * During the process multiple words might be produced and pushed to the word queue.
 	 * The implementation requires messages to have a cbegin and cend function for iteration.
 	 * The containers' entries are to be message variants.
-	 * @tparam Iterable Iterable container storing message variants
-	 * @param messages Message container to encode iteratively
+	 * @tparam InputIterator Iterator to UTMessage variant sequence
+	 * @param begin Iterator to beginning of message sequence
+	 * @param end Iterator to end of message sequence
 	 */
-	template <typename Iterable>
-	typename std::enable_if<!detail::IsUTMessage<Iterable>::value, void>::type operator()(
-	    Iterable const& messages);
+	template <typename InputIterator>
+	void operator()(InputIterator const& begin, InputIterator const& end);
 
 	/**
 	 * Flush the possibly partially filled head-word of the buffer to the queue.

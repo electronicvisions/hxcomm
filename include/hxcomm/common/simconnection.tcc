@@ -164,10 +164,11 @@ void SimConnection<ConnectionParameter>::add(send_message_type const& message)
 }
 
 template <typename ConnectionParameter>
-void SimConnection<ConnectionParameter>::add(std::vector<send_message_type> const& messages)
+template <typename InputIterator>
+void SimConnection<ConnectionParameter>::add(InputIterator const& begin, InputIterator const& end)
 {
 	hate::Timer timer;
-	m_encoder(messages);
+	m_encoder(begin, end);
 	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
@@ -207,7 +208,8 @@ void SimConnection<ConnectionParameter>::work_receive(flange::SimulatorClient& l
 	while (m_run_receive) {
 		while (local_sim.receive_data_available() && m_run_receive) {
 			hate::Timer timer;
-			m_decoder(local_sim.receive());
+			auto const words = local_sim.receive();
+			m_decoder(words.begin(), words.end());
 			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
 		}
 	}

@@ -71,11 +71,12 @@ public:
 	 * Decode a ensemble of words from an iterable.
 	 * During the process multiple messages might be decoded and pushed to the message queue.
 	 * The iterable has to define a cbegin and cend function for iteration.
-	 * @tparam Iterable Iterable type of words
-	 * @param iterable Iterable of words to decode
+	 * @tparam InputIterator Iterator to word sequence
+	 * @param begin Iterator to beginning of word sequence
+	 * @param end Iterator to end of word sequence
 	 */
-	template <typename Iterable>
-	void operator()(Iterable const& iterable);
+	template <typename InputIterator>
+	void operator()(InputIterator const& begin, InputIterator const& end);
 
 private:
 	static constexpr size_t num_bits_word = sizeof(word_type) * CHAR_BIT;

@@ -46,12 +46,19 @@ public:
 		    decltype(std::declval<ConnType>().add(std::declval<MessageT const&>())),
 		    void>::type;
 
+		template <typename InputIteratorT>
+		using has_add_iterator_method = typename std::is_same<
+		    decltype(std::declval<ConnType>().add(
+		        std::declval<InputIteratorT const&>(), std::declval<InputIteratorT const&>())),
+		    void>::type;
+
 		static_assert(
 		    has_add_method<send_message_type>::value,
 		    "Connection missing add-method for single messages.");
 
 		static_assert(
-		    has_add_method<typename detail::execute_messages_argument_t<ConnType>>::value,
+		    has_add_iterator_method<
+		        typename detail::execute_messages_argument_t<ConnType>::const_iterator>::value,
 		    "Connection missing add-method for sequences.");
 
 		static_assert(
@@ -114,11 +121,14 @@ public:
 
 	/**
 	 * Add multiple UT messages to the send queue.
-	 * @param messages Messages to add
+	 * @tparam InputIterator Iterator type to sequence of messages to add
+	 * @param begin Iterator to beginning of sequence
+	 * @param end Iterator to end of sequence
 	 */
-	void add(typename detail::execute_messages_argument_t<connection_type> const& messages)
+	template <typename InputIterator>
+	void add(InputIterator const begin, InputIterator const end)
 	{
-		m_connection.add(messages);
+		m_connection.add(begin, end);
 	}
 
 	/**

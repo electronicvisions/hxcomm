@@ -48,7 +48,7 @@ void throughput_measurement(size_t const num, unsigned int const seed)
 	{
 		auto const begin = std::chrono::high_resolution_clock::now();
 
-		connection.add(instructions);
+		connection.add(instructions.begin(), instructions.end());
 
 		auto const end = std::chrono::high_resolution_clock::now();
 		auto const dur = end - begin;

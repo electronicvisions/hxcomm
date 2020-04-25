@@ -76,7 +76,7 @@ std::pair<double, double> throughput_measurement(size_t num)
 
 		hate::Timer timer;
 
-		encoder(instructions);
+		encoder(instructions.begin(), instructions.end());
 
 		auto ms = timer.get_ms();
 		mega_rates.first = to_mega_rate(byte_count, ms);
@@ -88,7 +88,7 @@ std::pair<double, double> throughput_measurement(size_t num)
 		std::queue<typename UTMessageParameter::PhywordType> packets;
 		hxcomm::Encoder<UTMessageParameter, std::queue<typename UTMessageParameter::PhywordType>>
 		    encoder(packets);
-		encoder(instructions);
+		encoder(instructions.begin(), instructions.end());
 
 		// align stream in memory for easy access
 		std::vector<typename UTMessageParameter::PhywordType> packets_vector;
@@ -103,7 +103,7 @@ std::pair<double, double> throughput_measurement(size_t num)
 
 		hate::Timer timer;
 
-		decoder(packets_vector);
+		decoder(packets_vector.begin(), packets_vector.end());
 
 		auto ms = timer.get_ms();
 		mega_rates.second = to_mega_rate(byte_count, ms);

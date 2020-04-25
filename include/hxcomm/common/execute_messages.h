@@ -46,7 +46,7 @@ struct ExecutorMessages
 		Stream<connection_type> stream(conn);
 		auto const time_begin = conn.get_time_info();
 
-		stream.add(messages);
+		stream.add(messages.begin(), messages.end());
 		stream.add(send_halt_message_type());
 		stream.commit();
 

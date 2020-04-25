@@ -60,17 +60,25 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(word
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
-template <typename Iterable>
+template <typename InputIterator>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
-    Iterable const& iterable)
+    InputIterator const& begin, InputIterator const& end)
 {
-	for (auto it = iterable.cbegin(); it != iterable.cend(); ++it) {
+	typedef std::iterator_traits<InputIterator> iterator_traits;
+	// Expect iterator value type to be send_message_type
+	static_assert(std::is_same_v<typename iterator_traits::value_type, word_type>);
+
+	// Expect the iterator category to satisfy input iterator category
+	static_assert(
+	    std::is_base_of_v<std::input_iterator_tag, typename iterator_traits::iterator_category>);
+
+	for (auto it = begin; it != end; ++it) {
 		HXCOMM_LOG_DEBUG(
 		    m_logger, "operator(): Got PHY word to decode: " << std::showbase << std::setfill('0')
 		                                                     << std::setw(sizeof(word_type) * 2)
 		                                                     << std::hex << *it);
 	}
-	std::copy(iterable.cbegin(), iterable.cend(), begin(m_coroutine));
+	std::copy(begin, end, typename coroutine_type::push_type::iterator(&m_coroutine));
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>

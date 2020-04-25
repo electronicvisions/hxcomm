@@ -97,7 +97,7 @@ MYTEST(Name, MultipleMessages)
 	}
 
 	LoopbackConnection<TestUTMessageParameter> connection;
-	connection.add(messages);
+	connection.add(messages.begin(), messages.end());
 	connection.commit();
 	for (size_t i = 0; i < message_count; ++i) {
 		while (connection.receive_empty()) {

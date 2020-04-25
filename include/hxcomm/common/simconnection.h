@@ -128,9 +128,12 @@ private:
 
 	/**
 	 * Add multiple UT messages to the send queue.
-	 * @param messages Messages to add
+	 * @tparam InputIterator Iterator type to sequence of messages to add
+	 * @param begin Iterator to beginning of sequence
+	 * @param end Iterator to end of sequence
 	 */
-	void add(std::vector<send_message_type> const& messages);
+	template <typename InputIterator>
+	void add(InputIterator const& begin, InputIterator const& end);
 
 	/**
 	 * Send messages in send queue.

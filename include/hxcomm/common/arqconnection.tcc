@@ -171,13 +171,14 @@ void ARQConnection<ConnectionParameter>::add(send_message_type const& message)
 }
 
 template <typename ConnectionParameter>
-void ARQConnection<ConnectionParameter>::add(std::vector<send_message_type> const& messages)
+template <typename InputIterator>
+void ARQConnection<ConnectionParameter>::add(InputIterator const& begin, InputIterator const& end)
 {
 	hate::Timer timer;
 	if (!m_arq_stream) {
 		throw std::runtime_error("Unexpected access to moved-from ARQConnection.");
 	}
-	m_encoder(messages);
+	m_encoder(begin, end);
 	auto const duration = timer.get_ns();
 	m_encode_duration.fetch_add(duration, std::memory_order_relaxed);
 	m_execution_duration.fetch_add(duration, std::memory_order_relaxed);
@@ -232,9 +233,7 @@ void ARQConnection<ConnectionParameter>::work_receive()
 			}
 			HXCOMM_LOG_TRACE(m_logger, "Forwarding packet contents to decoder-coroutine..");
 			hate::Timer timer;
-			for (size_t i = 0; i < packet.len; ++i) {
-				m_decoder(packet.pdu[i]);
-			}
+			m_decoder(&(packet.pdu[0]), &(packet.pdu[packet.len - 1]));
 			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
 			HXCOMM_LOG_TRACE(m_logger, "Forwarded packet contents to decoder-coroutine.");
 		}

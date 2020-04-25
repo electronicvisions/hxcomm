@@ -54,12 +54,20 @@ Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& messag
 }
 
 template <typename UTMessageParameter, typename WordQueueType>
-template <typename Iterable>
-typename std::enable_if<!detail::IsUTMessage<Iterable>::value, void>::type
-Encoder<UTMessageParameter, WordQueueType>::operator()(Iterable const& messages)
+template <typename InputIterator>
+void Encoder<UTMessageParameter, WordQueueType>::operator()(
+    InputIterator const& begin, InputIterator const& end)
 {
-	for (auto const& message : messages) {
-		std::visit([this](auto const& m) { this->operator()(m); }, message);
+	typedef std::iterator_traits<InputIterator> iterator_traits;
+	// Expect iterator value type to be send_message_type
+	static_assert(std::is_same_v<typename iterator_traits::value_type, send_message_type>);
+
+	// Expect the iterator category to satisfy input iterator category
+	static_assert(
+	    std::is_base_of_v<std::input_iterator_tag, typename iterator_traits::iterator_category>);
+
+	for (auto it = begin; it != end; ++it) {
+		std::visit([this](auto const& m) { this->operator()(m); }, *it);
 	}
 }
 
