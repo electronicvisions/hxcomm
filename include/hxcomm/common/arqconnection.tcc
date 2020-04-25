@@ -181,6 +181,19 @@ void ARQConnection<ConnectionParameter>::work_fill_receive_buffer()
 			m_receive_buffer.notify();
 			return;
 		}
+		// blocking wait for data
+		constexpr useconds_t max_delay = 1000;
+		useconds_t delay = 1;
+		while (!m_arq_stream->received_packet_available()) {
+			usleep(delay);
+			if (delay <= max_delay) {
+				delay *= 2;
+			}
+			if (!m_run_receive) {
+				m_receive_buffer.notify();
+				return;
+			}
+		}
 		{
 			size_t packets_written = 0;
 			while (m_arq_stream->received_packet_available() &&
