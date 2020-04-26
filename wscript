@@ -185,6 +185,7 @@ def build(bld):
         pars = {
             "PROJECT_NAME": "\"HX Communication\"",
             "INPUT": join(get_toplevel_path(), "hxcomm", "include"),
+            "INCLUDE_PATH": join(get_toplevel_path(), "hxcomm", "include"),
             "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
         },
     )
