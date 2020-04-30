@@ -4,7 +4,7 @@
 #include "cereal/types/variant.hpp"
 #include "cereal/types/vector.hpp"
 
-#include "hxcomm/common/cerealization_utmessage.h"
+#include "cereal/types/hxcomm/common/utmessage.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/sf_serialization.h"

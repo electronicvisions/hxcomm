@@ -1,5 +1,5 @@
+#include "cereal/types/hxcomm/common/utmessage.h"
 #include "hate/type_index.h"
-#include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/vx/payload_random.h"
 #include "hxcomm/vx/utmessage.h"
 #include "test-to_testing_types.h"

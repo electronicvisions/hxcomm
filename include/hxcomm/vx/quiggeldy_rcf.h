@@ -4,9 +4,9 @@
 #include "cereal/types/variant.hpp"
 #include "cereal/types/vector.hpp"
 
+#include "cereal/types/hxcomm/common/quiggeldy_interface_types.h"
+#include "cereal/types/hxcomm/common/utmessage.h"
 #include "hate/visibility.h"
-#include "hxcomm/common/cerealization_quiggeldy_interface_types.h"
-#include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/sf_serialization.h"

@@ -1,4 +1,4 @@
-#include "hxcomm/common/cerealization_utmessage.h"
+#include "cereal/types/hxcomm/common/utmessage.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "test-to_testing_types.h"
 #include <fstream>

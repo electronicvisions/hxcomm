@@ -14,7 +14,7 @@
 #include "logger.h"
 #include "logging_ctrl.h"
 
-#include "hxcomm/common/cerealization_utmessage.h"
+#include "cereal/types/hxcomm/common/utmessage.h"
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/quiggeldy_utility.h"
 #ifdef WITH_HXCOMM_HOSTARQ
