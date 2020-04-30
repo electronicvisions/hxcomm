@@ -48,6 +48,14 @@ def configure(conf):
          'error':   4,
          'fatal':   5}[conf.options.hxcomm_loglevel]
     )
+    conf.env.CXXFLAGS_HXCOMM = [
+        '-fvisibility=hidden',
+        '-fvisibility-inlines-hidden',
+    ]
+    conf.env.LINKFLAGS_HXCOMM = [
+        '-fvisibility=hidden',
+        '-fvisibility-inlines-hidden',
+    ]
 
 
 def build_loopbackconnection_test(bld):
@@ -99,6 +107,7 @@ def build(bld):
         source       = ['example/hxcomm_arq.cpp'],
         use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
+        uselib       = 'HXCOMM',
     )
 
     bld(
@@ -107,6 +116,7 @@ def build(bld):
         source       = ['example/hxcomm_sim.cpp'],
         use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
+        uselib       = 'HXCOMM',
     )
 
     bld(
@@ -115,6 +125,7 @@ def build(bld):
         source       = ['example/hxcomm_loopback_throughput.cpp'],
         use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
         install_path = '${PREFIX}/bin',
+        uselib       = 'HXCOMM',
     )
 
     bld(
@@ -137,6 +148,7 @@ def build(bld):
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
                            excl='tests/sw/hxcomm/test-*_throughput.cpp tests/sw/hxcomm/test-loopbackconnection.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_helper'] + loopbackconnection_obj_targets,
+        uselib       = 'HXCOMM',
     )
 
     bld(
@@ -147,7 +159,8 @@ def build(bld):
         cxxflags     = ['-O2'],
         # Throughput targets are only valid for HBPHosts and AMTHosts
         skip_run     = not (gethostname().startswith("HBPHost") or
-                            gethostname().startswith("AMTHost"))
+                            gethostname().startswith("AMTHost")),
+        uselib       = 'HXCOMM',
     )
 
     bld(target          = 'hxcomm_hwtests_inc',
@@ -161,6 +174,7 @@ def build(bld):
         skip_run     = not bld.env.DLSvx_HARDWARE_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_hwtests_inc', 'BOOST4HXCOMMTOOLS'],
+        uselib       = 'HXCOMM',
     )
 
     bld(target          = 'hxcomm_simtests_inc',
@@ -174,7 +188,8 @@ def build(bld):
         skip_run     = not bld.env.DLSvx_SIM_AVAILABLE,
         test_main    = 'tests/hw/hxcomm/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
-        test_timeout = 60
+        test_timeout = 60,
+        uselib       = 'HXCOMM',
     )
 
     bld(
