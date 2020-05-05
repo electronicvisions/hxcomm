@@ -38,7 +38,17 @@ struct Barrier
 	constexpr static Payload systime{0b100};
 };
 
+/**
+ * Block further execution until specified Omnibus address has value & mask == target.
+ * Configuration is found in the FPGA Omnibus register file of the executor.
+ */
+struct PollingOmnibusBlock
+{
+	constexpr static size_t size = 1;
+	typedef hxcomm::instruction::detail::payload::Bitset<PollingOmnibusBlock, size> Payload;
+};
+
 /** Dictionary of all timing instructions. */
-typedef hate::type_list<Setup, WaitUntil, SystimeInit, Barrier> Dictionary;
+typedef hate::type_list<Setup, WaitUntil, SystimeInit, Barrier, PollingOmnibusBlock> Dictionary;
 
 } // namespace hxcomm::vx::instruction::timing
