@@ -3,6 +3,7 @@
 #include <memory>
 #include <variant>
 
+#include "hate/type_traits.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/visit_connection.h"
@@ -27,6 +28,10 @@ struct ExecutorMessages
 	using return_type = Sequence<receive_message_type>;
 	using messages_type = Sequence<send_message_type>;
 	using send_halt_message_type = typename connection_type::send_halt_message_type;
+
+	static_assert(
+	    hate::is_detected_v<ConnectionConcept, connection_type>,
+	    "Connection does not adhere to ConnectionConcept.");
 
 	return_type operator()(connection_type& conn, messages_type const& messages)
 	{
