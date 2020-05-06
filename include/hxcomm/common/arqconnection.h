@@ -18,6 +18,7 @@
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/stream.h"
+#include "hxcomm/common/target.h"
 #include "hxcomm/common/utmessage.h"
 
 namespace log4cxx {
@@ -84,6 +85,8 @@ public:
 	 * Destruct connection to FPGA joining all receive threads.
 	 */
 	~ARQConnection();
+
+	constexpr static auto supported_targets = {Target::hardware};
 
 private:
 	friend Stream<ARQConnection>;

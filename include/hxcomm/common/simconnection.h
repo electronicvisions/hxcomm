@@ -21,6 +21,7 @@
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/signal.h"
 #include "hxcomm/common/stream.h"
+#include "hxcomm/common/target.h"
 #include "hxcomm/common/utmessage.h"
 
 
@@ -107,6 +108,8 @@ public:
 	 * @return Boolean value
 	 */
 	bool get_enable_terminate_on_destruction() const;
+
+	constexpr static auto supported_targets = {Target::simulation};
 
 private:
 	friend class Stream<SimConnection>;
