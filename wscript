@@ -156,7 +156,8 @@ def build(bld):
         target       = 'hxcomm_throughputtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*_throughput.cpp'),
-        use          = ['hxcomm', 'hxcomm_tests_helper'],
+        use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'],
+        test_main    = 'tests/sw/hxcomm/main.cpp',
         cxxflags     = ['-O2'],
         # Throughput targets are only valid for HBPHosts and AMTHosts
         skip_run     = not (gethostname().startswith("HBPHost") or

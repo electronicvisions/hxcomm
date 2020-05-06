@@ -14,6 +14,8 @@ using namespace hxcomm::vx::instruction;
 using send_dict = hxcomm::vx::instruction::ToFPGADictionary;
 using recv_dict = hxcomm::vx::instruction::FromFPGADictionary;
 
+extern bool hxcomm_verbose;
+
 /**
  * Queue that stores only one element and blindly overwrites it without memory allocation.
  * Used for throughput measurement simulating a fast and non-blocking circular buffer.
@@ -118,6 +120,9 @@ TEST(Encoder, Throughput)
 {
 	auto result = throughput_measurement<typename hxcomm::vx::ConnectionParameter::Send>(num);
 	auto encode_mega_rate = result.first;
+	if (hxcomm_verbose) {
+		std::cout << "[ INFO     ] Encode rate: " << encode_mega_rate << " MB/s" << std::endl;
+	}
 	EXPECT_GT(encode_mega_rate, 125.); // reach minimally 1GBit
 }
 
@@ -126,5 +131,8 @@ TEST(Decoder, Throughput)
 	auto result =
 	    throughput_measurement<typename hxcomm::vx::ConnectionParameter::Receive>(num);
 	auto decode_mega_rate = result.second;
+	if (hxcomm_verbose) {
+		std::cout << "[ INFO     ] Decode rate: " << decode_mega_rate << " MB/s" << std::endl;
+	}
 	EXPECT_GT(decode_mega_rate, 125.); // reach minimally 1GBit
 }

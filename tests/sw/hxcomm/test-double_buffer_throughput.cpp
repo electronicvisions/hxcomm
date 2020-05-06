@@ -7,6 +7,8 @@
 
 using namespace hxcomm;
 
+extern bool hxcomm_verbose;
+
 TEST(DoubleBuffer, Throughput)
 {
 	constexpr size_t num = 1000000;
@@ -55,5 +57,9 @@ TEST(DoubleBuffer, Throughput)
 	producer.join();
 	consumer.join();
 
-	EXPECT_GT(to_kilo_rate(num, ms), 300.);
+	auto const kilo_rate = to_kilo_rate(num, ms);
+	if (hxcomm_verbose) {
+		std::cout << "[ INFO     ] Rate: " << kilo_rate << " kHz" << std::endl;
+	}
+	EXPECT_GT(kilo_rate, 300.);
 }
