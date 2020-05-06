@@ -2,6 +2,7 @@
 #include <thread>
 #include <gtest/gtest.h>
 
+#include "hate/timer.h"
 #include "hxcomm/common/double_buffer.h"
 
 using namespace hxcomm;
@@ -17,7 +18,7 @@ TEST(DoubleBuffer, Throughput)
 	std::atomic<bool> run = true;
 	DoubleBuffer<Packet<int, 1>> buffer(run);
 
-	auto begin = std::chrono::high_resolution_clock::now();
+	hate::Timer timer;
 
 	auto producer = std::thread([&run, &buffer]() {
 		while (true) {
@@ -47,15 +48,12 @@ TEST(DoubleBuffer, Throughput)
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	auto end = std::chrono::high_resolution_clock::now();
+	auto const ms = timer.get_ms();
 
 	run = false;
 	buffer.notify();
 	producer.join();
 	consumer.join();
 
-	auto dur = end - begin;
-	EXPECT_GT(
-	    to_kilo_rate(num, std::chrono::duration_cast<std::chrono::milliseconds>(dur).count()),
-	    300.);
+	EXPECT_GT(to_kilo_rate(num, ms), 300.);
 }

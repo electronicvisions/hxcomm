@@ -1,7 +1,7 @@
-#include <chrono>
 #include <queue>
 #include <gtest/gtest.h>
 
+#include "hate/timer.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/vx/connection_parameter.h"
@@ -75,14 +75,11 @@ std::pair<double, double> throughput_measurement(size_t num)
 		word_queue_type packets;
 		hxcomm::Encoder<UTMessageParameter, word_queue_type> encoder(packets);
 
-		auto begin = std::chrono::high_resolution_clock::now();
+		hate::Timer timer;
 
 		encoder(instructions);
 
-		auto end = std::chrono::high_resolution_clock::now();
-		auto dur = end - begin;
-		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
-
+		auto ms = timer.get_ms();
 		mega_rates.first = to_mega_rate(byte_count, ms);
 	}
 
@@ -105,14 +102,11 @@ std::pair<double, double> throughput_measurement(size_t num)
 		FastQueue<message_type> responses;
 		hxcomm::Decoder<UTMessageParameter, decltype(responses)> decoder(responses);
 
-		auto begin = std::chrono::high_resolution_clock::now();
+		hate::Timer timer;
 
 		decoder(packets_vector);
 
-		auto end = std::chrono::high_resolution_clock::now();
-		auto dur = end - begin;
-		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
-
+		auto ms = timer.get_ms();
 		mega_rates.second = to_mega_rate(byte_count, ms);
 	}
 	return mega_rates;
