@@ -124,7 +124,8 @@ public:
 
 private:
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
-	sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> m_arq_stream;
+	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;
+	arq_stream_type m_arq_stream;
 
 	typedef sctrltp::packet<sctrltp::ParametersFcpBss2Cube>::entry_t subpacket_type;
 

@@ -112,7 +112,7 @@ void ARQConnection<ConnectionParameter>::commit()
 	[[maybe_unused]] size_t const num_packets = packets.size();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
 	for (auto const packet : packets) {
-		m_arq_stream.send(packet, sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube>::NOTHING);
+		m_arq_stream.send(packet, arq_stream_type::NOTHING);
 	}
 	m_arq_stream.flush();
 }
