@@ -216,4 +216,10 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 	}
 }
 
+template <typename ConnectionParameter>
+bool SimConnection<ConnectionParameter>::supports(TargetRestriction const restriction) const
+{
+	return (restriction == TargetRestriction::simulation);
+}
+
 } // namespace hxcomm

@@ -15,13 +15,16 @@ class PyBindings(unittest.TestCase):
         their connection handle upon construction, we can only check for their
         existence here.
         """
-        self.check_arg_exists("Connection")
-        self.check_arg_exists("ARQConnection")
-        self.check_arg_exists("SimConnection")
-        self.check_arg_exists("get_connection_from_env")
+        self.check_arg_exists(self.hxcomm, "Connection")
+        self.check_arg_exists(self.hxcomm, "ARQConnection")
+        self.check_arg_exists(self.hxcomm, "SimConnection")
+        self.check_arg_exists(self.hxcomm, "get_connection_from_env")
+        self.check_arg_exists(self.hxcomm, "TargetRestriction")
+        self.check_arg_exists(self.hxcomm.ARQConnection, "supports")
+        self.check_arg_exists(self.hxcomm.SimConnection, "supports")
 
-    def check_arg_exists(self, arg):
-        self.assertTrue(getattr(self.hxcomm, arg, None) is not None)
+    def check_arg_exists(self, parent, arg):
+        self.assertTrue(getattr(parent, arg, None) is not None)
 
 
 if __name__ == '__main__':

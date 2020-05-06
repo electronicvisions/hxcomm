@@ -242,4 +242,10 @@ void ARQConnection<ConnectionParameter>::run_until_halt()
 	m_listener_halt.reset();
 }
 
+template <typename ConnectionParameter>
+bool ARQConnection<ConnectionParameter>::supports(TargetRestriction const restriction) const
+{
+	return (restriction == TargetRestriction::hardware);
+}
+
 } // namespace hxcomm

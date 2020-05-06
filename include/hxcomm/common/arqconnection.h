@@ -18,6 +18,7 @@
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/stream.h"
+#include "hxcomm/common/target_restriction.h"
 #include "hxcomm/common/utmessage.h"
 
 namespace log4cxx {
@@ -82,6 +83,13 @@ public:
 	 * Destruct connection to FPGA joining all receive threads.
 	 */
 	~ARQConnection();
+
+	/**
+	 * Get whether connection supports given target restriction.
+	 * @param restriction Restriction to check support for
+	 * @return Boolean support value
+	 */
+	bool supports(TargetRestriction restriction) const;
 
 private:
 	friend Stream<ARQConnection>;

@@ -13,7 +13,8 @@ GENPYBIND_MANUAL({
 	using ARQConnection = ::hxcomm::vx::ARQConnection;
 	parent->py::template class_<ARQConnection>(parent, "ARQConnection")
 	    .def(parent->py::template init<>())
-	    .def(parent->py::template init<hxcomm::ip_t>());
+	    .def(parent->py::template init<hxcomm::ip_t>())
+	    .def("supports", &::hxcomm::vx::ARQConnection::supports);
 })
 
 } // namespace hxcomm::vxGENPYBIND_TAG_HXCOMM_VX

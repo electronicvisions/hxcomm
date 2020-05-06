@@ -21,6 +21,7 @@
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/signal.h"
 #include "hxcomm/common/stream.h"
+#include "hxcomm/common/target_restriction.h"
 #include "hxcomm/common/utmessage.h"
 
 
@@ -93,6 +94,13 @@ public:
 	 * Destruct simulation connection joining all receive threads.
 	 */
 	~SimConnection();
+
+	/**
+	 * Get whether connection supports given target restriction.
+	 * @param restriction Restriction to check support for
+	 * @return Boolean support value
+	 */
+	bool supports(TargetRestriction restriction) const;
 
 private:
 	friend class Stream<SimConnection>;
