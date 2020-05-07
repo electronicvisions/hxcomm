@@ -38,14 +38,50 @@ struct exceptionalized_static_assert
 struct Connection
 {
 	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void send_message_type;
+	typedef void receive_message_type;
+	typedef void send_halt_message_type;
 
 	Connection(Connection&&);
 	Connection(Connection const&) = delete;
 };
 
+struct MissingSendMessageTypeConnection
+{
+	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void receive_message_type;
+	typedef void send_halt_message_type;
+
+	MissingSendMessageTypeConnection(MissingSendMessageTypeConnection&&);
+	MissingSendMessageTypeConnection(MissingSendMessageTypeConnection const&) = delete;
+};
+
+struct MissingReceiveMessageTypeConnection
+{
+	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void send_message_type;
+	typedef void send_halt_message_type;
+
+	MissingReceiveMessageTypeConnection(MissingReceiveMessageTypeConnection&&);
+	MissingReceiveMessageTypeConnection(MissingReceiveMessageTypeConnection const&) = delete;
+};
+
+struct MissingSendHaltMessageTypeConnection
+{
+	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void send_message_type;
+	typedef void receive_message_type;
+
+	MissingSendHaltMessageTypeConnection(MissingSendHaltMessageTypeConnection&&);
+	MissingSendHaltMessageTypeConnection(MissingSendHaltMessageTypeConnection const&) = delete;
+};
+
 struct NotMoveableConnection
 {
 	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void send_message_type;
+	typedef void receive_message_type;
+	typedef void send_halt_message_type;
 
 	NotMoveableConnection(NotMoveableConnection&&) = delete;
 	NotMoveableConnection(NotMoveableConnection const&) = delete;
@@ -54,6 +90,9 @@ struct NotMoveableConnection
 struct CopyableConnection
 {
 	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void send_message_type;
+	typedef void receive_message_type;
+	typedef void send_halt_message_type;
 
 	CopyableConnection(CopyableConnection&&);
 	CopyableConnection(CopyableConnection const&);
@@ -61,6 +100,10 @@ struct CopyableConnection
 
 struct NoSupportedTargetsConnection
 {
+	typedef void send_message_type;
+	typedef void receive_message_type;
+	typedef void send_halt_message_type;
+
 	NoSupportedTargetsConnection(NoSupportedTargetsConnection&&);
 	NoSupportedTargetsConnection(NoSupportedTargetsConnection const&) = delete;
 };
@@ -68,6 +111,12 @@ struct NoSupportedTargetsConnection
 TEST(ConnectionConcept, General)
 {
 	EXPECT_NO_THROW(hxcomm::ConnectionConcept<Connection>{});
+
+	EXPECT_THROW(hxcomm::ConnectionConcept<MissingSendMessageTypeConnection>{}, std::logic_error);
+	EXPECT_THROW(
+	    hxcomm::ConnectionConcept<MissingReceiveMessageTypeConnection>{}, std::logic_error);
+	EXPECT_THROW(
+	    hxcomm::ConnectionConcept<MissingSendHaltMessageTypeConnection>{}, std::logic_error);
 
 	EXPECT_THROW(hxcomm::ConnectionConcept<NotMoveableConnection>{}, std::logic_error);
 	EXPECT_THROW(hxcomm::ConnectionConcept<CopyableConnection>{}, std::logic_error);

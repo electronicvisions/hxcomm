@@ -9,6 +9,25 @@
 
 namespace hxcomm {
 
+#ifdef HXCOMM_HELPER_CHECK_MESSAGE_TYPE
+#error "HXCOMM_HELPER_CHECK_MESSAGE_TYPE already defined"
+#endif
+
+#define HXCOMM_HELPER_CHECK_MESSAGE_TYPE(MESSAGE_TYPE)                                             \
+	template <typename C, typename = void>                                                         \
+	struct has_##MESSAGE_TYPE : std::false_type                                                    \
+	{};                                                                                            \
+                                                                                                   \
+	template <typename C>                                                                          \
+	struct has_##MESSAGE_TYPE<C, std::void_t<typename C::MESSAGE_TYPE>> : std::true_type           \
+	{};                                                                                            \
+                                                                                                   \
+	template <typename C>                                                                          \
+	constexpr static bool has_##MESSAGE_TYPE##_v = has_##MESSAGE_TYPE<C>::value;                   \
+                                                                                                   \
+	static_assert(has_##MESSAGE_TYPE##_v<Connection>, "Connection missing " #MESSAGE_TYPE ".");
+
+
 /**
  * Base concept for all connections (ARQ, CoSim, QuiggeldyClient, ...).
  */
@@ -39,7 +58,13 @@ struct ConnectionConcept
 
 	static_assert(
 	    has_supported_targets_v<Connection>, "Connection supported_targets list not declared.");
+
+	HXCOMM_HELPER_CHECK_MESSAGE_TYPE(send_message_type)
+	HXCOMM_HELPER_CHECK_MESSAGE_TYPE(receive_message_type)
+	HXCOMM_HELPER_CHECK_MESSAGE_TYPE(send_halt_message_type)
 };
+
+#undef HXCOMM_HELPER_CHECK_MESSAGE_TYPE
 
 /**
  * Helper struct that defines message types from ConnectionParameters.
@@ -97,5 +122,19 @@ struct GetMessageTypes<std::variant<Cs...>>
 {
 	using type = typename std::common_type<typename GetMessageTypes<Cs>::type...>::type;
 };
+
+#ifdef HXCOMM_EXPOSE_MESSAGE_TYPES
+#error "HXCOMM_EXPOSE_MESSAGE_TYPES already defined"
+#else
+/**
+ * Helper macro that re-exposes all message types from MessageTypes in the current connection.
+ */
+#define HXCOMM_EXPOSE_MESSAGE_TYPES(CONN_PARAMS)                                                   \
+	using message_types = MessageTypes<CONN_PARAMS>;                                               \
+                                                                                                   \
+	using receive_message_type = typename message_types::receive_type;                             \
+	using send_message_type = typename message_types::send_type;                                   \
+	using send_halt_message_type = typename message_types::send_halt_type;
+#endif
 
 } // namespace hxcomm

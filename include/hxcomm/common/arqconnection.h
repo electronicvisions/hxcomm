@@ -37,11 +37,7 @@ template <typename ConnectionParameter>
 class ARQConnection
 {
 public:
-	using message_types = MessageTypes<ConnectionParameter>;
-
-	using receive_message_type = typename message_types::receive_type;
-	using send_message_type = typename message_types::send_type;
-	using send_halt_message_type = typename message_types::send_halt_type;
+	HXCOMM_EXPOSE_MESSAGE_TYPES(ConnectionParameter)
 
 	using init_parameters_type = typename std::tuple<ip_t>;
 
