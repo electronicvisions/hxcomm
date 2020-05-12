@@ -28,28 +28,25 @@ Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
     m_buffer_filling_level(0),
     m_message_queue(message_queue),
     m_listener(listener...),
-    m_coroutine(std::bind(
-        &Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine,
-        this,
-        std::placeholders::_1)),
-    m_logger(log4cxx::Logger::getLogger("hxcomm.Decoder"))
+    m_logger(log4cxx::Logger::getLogger("hxcomm.Decoder")),
+    m_state(State::dropping_leading_comma),
+    m_current_header(0),
+    m_current_message_size(0)
 {}
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
     Decoder& other, message_queue_type& message_queue, Listener&... listener) :
     m_buffer(other.m_buffer),
-    m_buffer_filling_level(other.m_buffer_filling_level),
+    m_buffer_filling_level(std::exchange(other.m_buffer_filling_level, 0)),
     m_message_queue(message_queue),
     m_listener(listener...),
-    m_coroutine(std::bind(
-        &Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine,
-        this,
-        std::placeholders::_1)),
-    m_logger(log4cxx::Logger::getLogger("hxcomm.Decoder"))
+    m_logger(log4cxx::Logger::getLogger("hxcomm.Decoder")),
+    m_state(std::exchange(other.m_state, State::dropping_leading_comma)),
+    m_current_header(std::exchange(other.m_current_header, 0)),
+    m_current_message_size(std::exchange(other.m_current_message_size, 0))
 {
 	other.m_buffer.reset();
-	other.m_buffer_filling_level = 0;
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
@@ -58,7 +55,123 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(word
 	HXCOMM_LOG_TRACE(
 	    m_logger, "operator(): Got PHY word to decode: 0x"
 	                  << std::setfill('0') << std::setw(sizeof(word_type) * 2) << std::hex << word);
-	m_coroutine(word);
+	switch (m_state) {
+		case State::dropping_leading_comma: {
+			/**
+			 * If we currently drop leading commas, we continue to do so if we see a leading comma
+			 * again.
+			 */
+			if (has_leading_comma(word)) {
+				return;
+			}
+			/**
+			 * If we don't see a leading comma anymore, we shift the word into the buffer.
+			 */
+			shift_in_buffer(word);
+			if constexpr (header_size > num_bits_word) {
+				/**
+				 * Only if the size of a word is smaller than one header size, we need to continue
+				 * filling words into the buffer until we have at least one header.
+				 */
+				if (m_buffer_filling_level < header_size) {
+					m_state = State::filling_until_header_size;
+					return;
+				}
+			}
+			/**
+			 * We have enough data to decode a header and directly continue to do so.
+			 */
+			goto decoding_header;
+		}
+		case State::filling_until_header_size: {
+			/**
+			 * We don't yet have a single header to decode, but know, that every word which in this
+			 * state is processed will be shifted into the buffer.
+			 */
+			shift_in_buffer(word);
+			/**
+			 * If we still don't have enough data for decoding a single header, we continue to do so
+			 * with the next processed word.
+			 */
+			if (m_buffer_filling_level < header_size) {
+				return;
+			}
+			/**
+			 * We have enough data to decode a header and directly continue to do so.
+			 */
+			goto decoding_header;
+		}
+		case State::filling_until_message_size: {
+			/**
+			 * We have decoded the header of the next message, but don't yet have enough data to
+			 * decode the message and therefore shift this word into the buffer.
+			 */
+			shift_in_buffer(word);
+			/**
+			 * If we still don't have enough data for decoding the message, we continue to do shift
+			 * the next processed word into the buffer and check again.
+			 */
+			if (m_buffer_filling_level < m_current_message_size) {
+				return;
+			}
+			/**
+			 * We have enough data to decode the message and directly continue to do so.
+			 */
+			goto decoding_message;
+		}
+		default: {
+			throw std::logic_error("default should never be reached");
+		}
+	}
+
+decoding_header:
+	/**
+	 * We decode the header from the data in the buffer and calculate the message's size.
+	 */
+	m_current_header = decode_header();
+	m_current_message_size = get_message_size(m_current_header);
+	/**
+	 * If the buffer doesn't contain enough data for the message to be decoded, we will shift the
+	 * next processed word into the buffer and check again.
+	 */
+	if (m_buffer_filling_level < m_current_message_size) {
+		m_state = State::filling_until_message_size;
+		return;
+	}
+	/**
+	 * Otherwise we directly continue to decode the message.
+	 */
+decoding_message:
+	/**
+	 * We decode the message given by the header from the data in the buffer.
+	 */
+	decode_message(m_current_header);
+	/**
+	 * Now the buffer doesn't contain the just decoded message data anymore.
+	 */
+	m_buffer_filling_level -= m_current_message_size;
+	/**
+	 * If the remaining content of the last word in the buffer has a leading comma, we drop the
+	 * word.
+	 */
+	if (m_buffer_filling_level) {
+		if (m_buffer.test(m_buffer_filling_level - 1)) {
+			m_buffer_filling_level -= (m_buffer_filling_level % num_bits_word);
+		}
+	}
+	if (m_buffer_filling_level < header_size) {
+		/**
+		 * If we don't have enough data in the buffer to directly decode the next message's header,
+		 * we fall back into being able to drop leading commas in processed words.
+		 */
+		m_state = State::dropping_leading_comma;
+		return;
+	} else {
+		/**
+		 * Otherwise we directly continue to decode the next message's header.
+		 */
+		goto decoding_header;
+	}
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
@@ -75,12 +188,8 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
 	    std::is_base_of_v<std::input_iterator_tag, typename iterator_traits::iterator_category>);
 
 	for (auto it = begin; it != end; ++it) {
-		HXCOMM_LOG_TRACE(
-		    m_logger, "operator(): Got PHY word to decode: " << std::showbase << std::setfill('0')
-		                                                     << std::setw(sizeof(word_type) * 2)
-		                                                     << std::hex << *it);
+		operator()(*it);
 	}
-	std::copy(begin, end, typename coroutine_type::push_type::iterator(&m_coroutine));
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
@@ -177,43 +286,6 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message_
 {
 	constexpr static auto function_table = std::array{&Decoder::decode_message<Header>...};
 	(this->*function_table[header])();
-}
-
-template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
-void Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine(
-    typename coroutine_type::pull_type& source)
-{
-	while (true) {
-		if (m_buffer_filling_level < header_size) {
-			while (has_leading_comma(source.get())) {
-				source();
-			}
-			shift_in_buffer(source.get());
-			if constexpr (header_size > num_bits_word) {
-				while (m_buffer_filling_level < header_size) {
-					source();
-					shift_in_buffer(source.get());
-				}
-			}
-		}
-		size_t const header = decode_header();
-		size_t const message_size = get_message_size(header);
-		while (m_buffer_filling_level < message_size) {
-			source();
-			shift_in_buffer(source.get());
-		}
-		decode_message(header);
-		m_buffer_filling_level -= message_size;
-		// if remaining tail of word has a leading comma, drop the word.
-		if (m_buffer_filling_level) {
-			if (m_buffer.test(m_buffer_filling_level - 1)) {
-				m_buffer_filling_level -= (m_buffer_filling_level % num_bits_word);
-			}
-		}
-		if (m_buffer_filling_level < header_size) {
-			source();
-		}
-	}
 }
 
 } // namespace hxcomm

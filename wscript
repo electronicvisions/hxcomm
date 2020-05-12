@@ -58,7 +58,6 @@ def configure(conf):
     conf.load('compiler_c')
     conf.load('compiler_cxx')
     conf.load('boost')
-    conf.check_boost(lib='coroutine context', uselib_store='BOOST4HXCOMM')
     conf.check_boost(lib='program_options', uselib_store='BOOST4HXCOMMTOOLS')
     conf.load("test_base")
     conf.load("gtest")
@@ -144,7 +143,7 @@ def build(bld):
     bld.shlib(
         target       = 'hxcomm',
         source       = bld.path.ant_glob('src/hxcomm/**/*.cpp'),
-        use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
+        use          = ['hxcomm_inc', 'arqstream_obj',
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',

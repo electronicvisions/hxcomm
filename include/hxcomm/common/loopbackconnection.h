@@ -3,6 +3,7 @@
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/utmessage.h"
 #include <atomic>
+#include <mutex>
 #include <queue>
 #include <stdint.h>
 #include <thread>

@@ -1,7 +1,6 @@
 #pragma once
 #include "hxcomm/common/utmessage.h"
 #include <climits>
-#include <boost/coroutine2/all.hpp>
 #include <boost/fusion/tuple.hpp>
 
 namespace log4cxx {
@@ -140,13 +139,20 @@ private:
 	template <size_t... Header>
 	void decode_message_table_generator(size_t header, std::index_sequence<Header...>);
 
-	typedef boost::coroutines2::coroutine<word_type> coroutine_type;
-
-	typename coroutine_type::push_type m_coroutine;
-
-	void coroutine(typename coroutine_type::pull_type& source);
-
 	log4cxx::Logger* m_logger;
+
+	enum class State
+	{
+		dropping_leading_comma,    /* drop phyword word as long as the word contains a leading comma
+		                              (highest bit) */
+		filling_until_header_size, /* fill buffer until at least one header is contained */
+		filling_until_message_size /* fill buffer until at least one message of type given by
+		                              current header is contained */
+	};
+
+	State m_state;
+	size_t m_current_header;
+	size_t m_current_message_size;
 };
 
 } // namespace hxcomm
