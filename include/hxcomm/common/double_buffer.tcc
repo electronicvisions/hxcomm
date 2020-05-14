@@ -33,6 +33,7 @@ DoubleBuffer<T>& DoubleBuffer<T>::operator=(DoubleBuffer const& other)
 	m_mutex = other.m_mutex;
 	m_cv = other.m_cv;
 	m_run = other.m_run;
+	return *this;
 }
 
 template <typename T>
