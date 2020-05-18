@@ -1,8 +1,8 @@
+#include "hate/type_index.h"
 #include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/vx/payload_random.h"
 #include "hxcomm/vx/utmessage.h"
 #include "test-to_testing_types.h"
-#include <boost/type_index.hpp>
 #include <cereal/archives/json.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -80,8 +80,7 @@ TYPED_TEST(CommonUTMessageTests, Ostream)
 	actual_payload << payload;
 
 	std::stringstream expected_payload_prefix;
-	expected_payload_prefix
-	    << boost::typeindex::type_id<typename TypeParam::instruction_type>().pretty_name() << "(";
+	expected_payload_prefix << hate::full_name<typename TypeParam::instruction_type>() << "(";
 
 	// instruction type prefix
 	EXPECT_EQ(

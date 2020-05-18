@@ -1,10 +1,10 @@
 #pragma once
 #include "hate/math.h"
+#include "hate/type_index.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 #include "rant/int.h"
 #include <climits>
-#include <boost/type_index.hpp>
 
 /** JTAG instructions to the fpga. */
 namespace hxcomm::vx::instruction::to_fpga_jtag {
@@ -115,8 +115,8 @@ struct Data
 
 		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
 		{
-			os << boost::typeindex::type_id<Data>().pretty_name()
-			   << "(keep_response: " << std::boolalpha << value.m_keep_response
+			os << hate::full_name<Data>() << "(keep_response: " << std::boolalpha
+			   << value.m_keep_response
 			   << ", num_bits: " << static_cast<uintmax_t>(value.m_num_bits)
 			   << ", payload: " << value.m_payload << ")";
 			return os;

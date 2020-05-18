@@ -1,8 +1,8 @@
 #pragma once
+#include "hate/type_index.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 #include <climits>
-#include <boost/type_index.hpp>
 
 /** Instructions for omnibus communication to the FPGA. */
 namespace hxcomm::vx::instruction::omnibus_to_fpga {
@@ -54,7 +54,7 @@ struct Address
 
 		friend std::ostream& operator<<(std::ostream& os, Payload const& value)
 		{
-			os << boost::typeindex::type_id<Address>().pretty_name() << "(is_read: ";
+			os << hate::full_name<Address>() << "(is_read: ";
 			os << std::boolalpha << value.m_is_read << ", byte_enables: " << value.m_byte_enables
 			   << ", address: " << value.m_address << ")";
 			return os;

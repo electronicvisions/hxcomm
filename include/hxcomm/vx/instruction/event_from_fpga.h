@@ -1,10 +1,10 @@
 #pragma once
 #include "hate/join.h"
+#include "hate/type_index.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 #include "hxcomm/vx/instruction/event_constants.h"
 #include <climits>
-#include <boost/type_index.hpp>
 
 /** Instructions for events from the FPGA. */
 namespace hxcomm::vx::instruction::event_from_fpga {
@@ -115,7 +115,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, MADCSamplePackPayload const& value)
 	{
-		os << boost::typeindex::type_id<MADCSamplePack<num_samples>>().pretty_name() << "("
+		os << hate::full_name<MADCSamplePack<num_samples>>() << "("
 		   << hate::join_string(value.m_samples, ", ") << ")";
 		return os;
 	}
@@ -238,7 +238,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, SpikePackPayload const& value)
 	{
-		os << boost::typeindex::type_id<SpikePack<num_spikes>>().pretty_name() << "("
+		os << hate::full_name<SpikePack<num_spikes>>() << "("
 		   << hate::join_string(value.m_spikes, ", ") << ")";
 		return os;
 	}

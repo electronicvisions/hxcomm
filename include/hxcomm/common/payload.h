@@ -1,8 +1,8 @@
 #pragma once
 #include "hate/bitset.h"
+#include "hate/type_index.h"
 #include <climits>
 #include <stddef.h>
-#include <boost/type_index.hpp>
 
 /**
  * Payload formatting.
@@ -57,8 +57,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, Bitset const& value)
 	{
-		os << boost::typeindex::type_id<Tag>().pretty_name() << "("
-		   << static_cast<value_type>(value) << ")";
+		os << hate::full_name<Tag>() << "(" << static_cast<value_type>(value) << ")";
 		return os;
 	}
 };
@@ -106,7 +105,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, Number const& value)
 	{
-		os << boost::typeindex::type_id<Tag>().pretty_name() << "("
+		os << hate::full_name<Tag>() << "("
 		   << static_cast<std::conditional_t<std::is_same<unsigned char, T>::value, uintmax_t, T>>(
 		          value.m_value)
 		   << ")";
