@@ -18,7 +18,6 @@
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/decoder.h"
-#include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/signal.h"
@@ -203,14 +202,8 @@ private:
 
 	std::atomic<bool> m_run_receive;
 
-	constexpr static size_t receive_buffer_size = 100000;
-	DoubleBuffer<Packet<subpacket_type, receive_buffer_size>> m_receive_buffer;
-
-	void work_fill_receive_buffer(flange::SimulatorClient& sim);
-	std::thread m_worker_fill_receive_buffer;
-
-	void work_decode_messages();
-	std::thread m_worker_decode_messages;
+	void work_receive(flange::SimulatorClient& sim);
+	std::thread m_worker_receive;
 
 	std::mutex m_runnable_mutex;
 

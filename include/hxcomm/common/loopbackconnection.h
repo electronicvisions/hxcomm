@@ -6,7 +6,6 @@
 #include <tbb/concurrent_queue.h>
 
 #include "hxcomm/common/decoder.h"
-#include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/utmessage.h"
 
@@ -102,14 +101,8 @@ private:
 
 	std::atomic<bool> m_run_receive;
 
-	constexpr static size_t receive_buffer_size = 100000;
-	DoubleBuffer<Packet<subpacket_type, receive_buffer_size>> m_receive_buffer;
-
-	void work_fill_receive_buffer();
-	std::thread m_worker_fill_receive_buffer;
-
-	void work_decode_messages();
-	std::thread m_worker_decode_messages;
+	std::thread m_worker_receive;
+	void work_receive();
 };
 
 } // namespace hxcomm

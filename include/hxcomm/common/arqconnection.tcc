@@ -56,10 +56,7 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(
-        &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
-    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this),
+    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this),
     m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {}
@@ -73,10 +70,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(
-        &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
-    m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this),
+    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this),
     m_time_info_mutex(),
     m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
@@ -93,18 +87,14 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt), // temporary
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(),
-    m_worker_decode_messages(),
+    m_worker_receive(),
     m_time_info_mutex(),
     m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {
 	// shutdown other threads
 	other.m_run_receive = false;
-	other.m_receive_buffer.notify();
-	other.m_worker_fill_receive_buffer.join();
-	other.m_worker_decode_messages.join();
+	other.m_worker_receive.join();
 	m_time_info = other.m_time_info;
 	{
 		std::lock_guard<std::mutex> lock(other.m_time_info_mutex);
@@ -120,10 +110,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
 	m_decoder.~decoder_type();
 	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
 	// create and start threads
-	m_worker_fill_receive_buffer =
-	    std::thread(&ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this);
-	m_worker_decode_messages =
-	    std::thread(&ARQConnection<ConnectionParameter>::work_decode_messages, this);
+	m_worker_receive = std::thread(&ARQConnection<ConnectionParameter>::work_receive, this);
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
 }
 
@@ -133,9 +120,7 @@ ARQConnection<ConnectionParameter>::~ARQConnection()
 	HXCOMM_LOG_TRACE(m_logger, "~ARQConnection(): Stopping ARQ connection.");
 	if (m_run_receive) {
 		m_run_receive = false;
-		m_receive_buffer.notify();
-		m_worker_fill_receive_buffer.join();
-		m_worker_decode_messages.join();
+		m_worker_receive.join();
 	}
 }
 
@@ -208,56 +193,26 @@ bool ARQConnection<ConnectionParameter>::try_receive(receive_message_type& messa
 }
 
 template <typename ConnectionParameter>
-void ARQConnection<ConnectionParameter>::work_fill_receive_buffer()
+void ARQConnection<ConnectionParameter>::work_receive()
 {
-	while (true) {
-		auto const write_pointer = m_receive_buffer.start_write();
-		if (!write_pointer) {
-			m_receive_buffer.notify();
-			return;
-		}
-		{
-			size_t packets_written = 0;
-			while (m_arq_stream->received_packet_available() &&
-			       (packets_written < receive_buffer_size)) {
-				m_arq_stream->receive(write_pointer->data[packets_written]);
-				if (write_pointer->data[packets_written].pid == pid) {
-					packets_written++;
-				} else {
-					std::stringstream ss;
-					ss << "Unknown HostARQ packet ID received: "
-					   << write_pointer->data[packets_written].pid;
-					throw std::runtime_error(ss.str());
-				}
+	sctrltp::packet<sctrltp::ParametersFcpBss2Cube> packet;
+	while (m_run_receive) {
+		while (m_arq_stream->received_packet_available() && m_run_receive) {
+			m_arq_stream->receive(packet);
+			if (packet.pid != pid) {
+				std::stringstream ss;
+				ss << "Unknown HostARQ packet ID received: " << packet.pid;
+				throw std::runtime_error(ss.str());
 			}
-			write_pointer->set_size(packets_written);
-		}
-		m_receive_buffer.stop_write();
-	}
-}
-
-template <typename ConnectionParameter>
-void ARQConnection<ConnectionParameter>::work_decode_messages()
-{
-	while (true) {
-		auto const read_pointer = m_receive_buffer.start_read();
-		if (!read_pointer) {
-			m_receive_buffer.notify();
-			return;
-		}
-		if (read_pointer->get_size()) {
 			hate::Timer timer;
-			for (auto it = read_pointer->cbegin(); it < read_pointer->cend(); ++it) {
-				for (size_t i = 0; i < it->len; ++i) {
-					m_decoder(it->pdu[i]);
-				}
+			for (size_t i = 0; i < packet.len; ++i) {
+				m_decoder(packet.pdu[i]);
 			}
 			{
 				std::lock_guard<std::mutex> const lock(m_time_info_mutex);
 				m_time_info.decode_duration += std::chrono::nanoseconds(timer.get_ns());
 			}
 		}
-		m_receive_buffer.stop_read();
 	}
 }
 

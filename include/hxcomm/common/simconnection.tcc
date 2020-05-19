@@ -13,12 +13,10 @@ SimConnection<ConnectionParameter>::SimConnection(
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer([&]() {
+    m_worker_receive([&]() {
 	    thread_local flange::SimulatorClient local_sim(ip, port);
-	    work_fill_receive_buffer(local_sim);
+	    work_receive(local_sim);
     }),
-    m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
     m_time_info_mutex(),
     m_time_info(),
@@ -40,12 +38,10 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer([&]() {
+    m_worker_receive([&]() {
 	    thread_local flange::SimulatorClient local_sim;
-	    work_fill_receive_buffer(local_sim);
+	    work_receive(local_sim);
     }),
-    m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
     m_time_info_mutex(),
     m_time_info(),
@@ -67,9 +63,7 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt), // temporary
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(),
-    m_worker_decode_messages(),
+    m_worker_receive(),
     m_runnable_mutex(),
     m_time_info_mutex(),
     m_time_info(),
@@ -78,9 +72,7 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 {
 	// shutdown other threads
 	other.m_run_receive = false;
-	other.m_receive_buffer.notify();
-	other.m_worker_fill_receive_buffer.join();
-	other.m_worker_decode_messages.join();
+	other.m_worker_receive.join();
 	m_time_info = other.m_time_info;
 	{
 		std::lock_guard<std::mutex> lock(other.m_time_info_mutex);
@@ -96,12 +88,10 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 	m_decoder.~decoder_type();
 	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
 	//
-	m_worker_fill_receive_buffer = std::thread([&]() {
+	m_worker_receive = std::thread([&]() {
 		thread_local flange::SimulatorClient local_sim;
-		work_fill_receive_buffer(local_sim);
+		work_receive(local_sim);
 	});
-	m_worker_decode_messages =
-	    std::thread(&SimConnection<ConnectionParameter>::work_decode_messages, this);
 
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
@@ -115,9 +105,7 @@ SimConnection<ConnectionParameter>::~SimConnection()
 	HXCOMM_LOG_TRACE(m_logger, "~SimConnection(): Stopping Sim connection.");
 	if (m_run_receive) {
 		m_run_receive = false;
-		m_receive_buffer.notify();
-		m_worker_fill_receive_buffer.join();
-		m_worker_decode_messages.join();
+		m_worker_receive.join();
 	}
 
 	if (m_terminate_on_destruction) {
@@ -191,47 +179,17 @@ bool SimConnection<ConnectionParameter>::try_receive(receive_message_type& messa
 }
 
 template <typename ConnectionParameter>
-void SimConnection<ConnectionParameter>::work_fill_receive_buffer(
-    flange::SimulatorClient& local_sim)
+void SimConnection<ConnectionParameter>::work_receive(flange::SimulatorClient& local_sim)
 {
-	while (true) {
-		auto const write_pointer = m_receive_buffer.start_write();
-		if (!write_pointer) {
-			m_receive_buffer.notify();
-			return;
-		}
-		{
-			size_t words_written = 0;
-			while (local_sim.receive_data_available() && (words_written < receive_buffer_size)) {
-				write_pointer->data[words_written] = local_sim.receive();
-				words_written++;
-			}
-			write_pointer->set_size(words_written);
-		}
-		m_receive_buffer.stop_write();
-		if (!m_run_receive.load(std::memory_order_acquire))
-			return;
-	}
-}
-
-template <typename ConnectionParameter>
-void SimConnection<ConnectionParameter>::work_decode_messages()
-{
-	while (true) {
-		auto const read_pointer = m_receive_buffer.start_read();
-		if (!read_pointer) {
-			m_receive_buffer.notify();
-			return;
-		}
-		if (read_pointer->get_size()) {
+	while (m_run_receive) {
+		while (local_sim.receive_data_available() && m_run_receive) {
 			hate::Timer timer;
-			m_decoder(*read_pointer);
+			m_decoder(local_sim.receive());
 			{
 				std::lock_guard<std::mutex> const lock(m_time_info_mutex);
 				m_time_info.decode_duration += std::chrono::nanoseconds(timer.get_ns());
 			}
 		}
-		m_receive_buffer.stop_read();
 	}
 }
 

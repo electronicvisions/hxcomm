@@ -16,7 +16,6 @@
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/decoder.h"
-#include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
 #include "hxcomm/common/listener_halt.h"
 #include "hxcomm/common/stream.h"
@@ -193,15 +192,8 @@ private:
 
 	std::atomic<bool> m_run_receive;
 
-	constexpr static size_t receive_buffer_size = 100;
-	DoubleBuffer<Packet<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>, receive_buffer_size>>
-	    m_receive_buffer;
-
-	void work_fill_receive_buffer();
-	std::thread m_worker_fill_receive_buffer;
-
-	void work_decode_messages();
-	std::thread m_worker_decode_messages;
+	void work_receive();
+	std::thread m_worker_receive;
 
 	std::mutex m_mutex;
 

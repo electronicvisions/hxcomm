@@ -9,19 +9,14 @@ LoopbackConnection<UTMessageParameter>::LoopbackConnection() :
     m_receive_queue(),
     m_decoder(m_receive_queue),
     m_run_receive(true),
-    m_receive_buffer(m_run_receive),
-    m_worker_fill_receive_buffer(
-        &LoopbackConnection<UTMessageParameter>::work_fill_receive_buffer, this),
-    m_worker_decode_messages(&LoopbackConnection<UTMessageParameter>::work_decode_messages, this)
+    m_worker_receive(&LoopbackConnection<UTMessageParameter>::work_receive, this)
 {}
 
 template <typename UTMessageParameter>
 LoopbackConnection<UTMessageParameter>::~LoopbackConnection()
 {
 	m_run_receive = false;
-	m_receive_buffer.notify();
-	m_worker_fill_receive_buffer.join();
-	m_worker_decode_messages.join();
+	m_worker_receive.join();
 }
 
 template <typename UTMessageParameter>
@@ -67,41 +62,12 @@ bool LoopbackConnection<UTMessageParameter>::try_receive(receive_message_type& m
 }
 
 template <typename UTMessageParameter>
-void LoopbackConnection<UTMessageParameter>::work_fill_receive_buffer()
+void LoopbackConnection<UTMessageParameter>::work_receive()
 {
-	while (true) {
-		auto const write_pointer = m_receive_buffer.start_write();
-		if (!write_pointer) {
-			m_receive_buffer.notify();
-			return;
-		}
-		{
-			std::lock_guard<std::mutex> lock(m_intermediate_queue_mutex);
-			size_t const read_size = m_intermediate_queue.size();
-			size_t const size = std::min(receive_buffer_size, read_size);
-			std::copy(
-			    m_intermediate_queue.cbegin(), m_intermediate_queue.cbegin() + size,
-			    write_pointer->data.begin());
-			for (size_t i = 0; i < size; ++i) {
-				m_intermediate_queue.pop_front();
-			}
-			write_pointer->set_size(size);
-		}
-		m_receive_buffer.stop_write();
-	}
-}
-
-template <typename UTMessageParameter>
-void LoopbackConnection<UTMessageParameter>::work_decode_messages()
-{
-	while (true) {
-		auto const read_pointer = m_receive_buffer.start_read();
-		if (!read_pointer) {
-			m_receive_buffer.notify();
-			return;
-		}
-		m_decoder(*read_pointer);
-		m_receive_buffer.stop_read();
+	while (m_run_receive) {
+		std::lock_guard<std::mutex> lock(m_intermediate_queue_mutex);
+		m_decoder(m_intermediate_queue);
+		m_intermediate_queue.clear();
 	}
 }
 
