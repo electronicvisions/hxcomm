@@ -148,6 +148,7 @@ def build(bld):
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
                            excl='tests/sw/hxcomm/test-*_throughput.cpp tests/sw/hxcomm/test-loopbackconnection.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_helper'] + loopbackconnection_obj_targets,
+        test_timeout = 120,
         uselib       = 'HXCOMM',
     )
 
