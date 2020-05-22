@@ -1,3 +1,4 @@
+#include "hate/timer.h"
 #include "hxcomm/common/logger.h"
 
 namespace hxcomm {
@@ -19,6 +20,8 @@ SimConnection<ConnectionParameter>::SimConnection(
     }),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
+    m_time_info_mutex(),
+    m_time_info(),
     m_terminate_on_destruction(enable_terminate_on_destruction),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
@@ -44,6 +47,8 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
     }),
     m_worker_decode_messages(&SimConnection<ConnectionParameter>::work_decode_messages, this),
     m_runnable_mutex(),
+    m_time_info_mutex(),
+    m_time_info(),
     m_terminate_on_destruction(enable_terminate_on_destruction),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
@@ -66,6 +71,8 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
     m_worker_fill_receive_buffer(),
     m_worker_decode_messages(),
     m_runnable_mutex(),
+    m_time_info_mutex(),
+    m_time_info(),
     m_terminate_on_destruction(false),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
@@ -74,6 +81,11 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 	other.m_receive_buffer.notify();
 	other.m_worker_fill_receive_buffer.join();
 	other.m_worker_decode_messages.join();
+	m_time_info = other.m_time_info;
+	{
+		std::lock_guard<std::mutex> lock(other.m_time_info_mutex);
+		other.m_time_info = ConnectionTimeInfo();
+	}
 	// move simulator client
 	m_sim = std::move(other.m_sim);
 	// move queues
@@ -109,7 +121,7 @@ SimConnection<ConnectionParameter>::~SimConnection()
 	}
 
 	if (m_terminate_on_destruction) {
-		std::unique_lock<std::mutex> lock(m_runnable_mutex);
+		std::lock_guard<std::mutex> const lock(m_runnable_mutex);
 		m_sim->set_runnable(true);
 		m_sim->issue_terminate();
 	}
@@ -125,24 +137,39 @@ template <typename ConnectionParameter>
 template <class MessageType>
 void SimConnection<ConnectionParameter>::add(MessageType const& message)
 {
+	hate::Timer timer;
 	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	m_encoder(message);
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
+	}
 }
 
 template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::add(std::vector<send_message_type> const& messages)
 {
+	hate::Timer timer;
 	m_encoder(messages);
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
+	}
 }
 
 template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::commit()
 {
+	hate::Timer timer;
 	m_encoder.flush();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
 	while (!m_send_queue.empty()) {
 		m_sim->send(m_send_queue.front());
 		m_send_queue.pop();
+	}
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.commit_duration += std::chrono::nanoseconds(timer.get_ns());
 	}
 }
 
@@ -196,7 +223,14 @@ void SimConnection<ConnectionParameter>::work_decode_messages()
 			m_receive_buffer.notify();
 			return;
 		}
-		m_decoder(*read_pointer);
+		if (read_pointer->get_size()) {
+			hate::Timer timer;
+			m_decoder(*read_pointer);
+			{
+				std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+				m_time_info.decode_duration += std::chrono::nanoseconds(timer.get_ns());
+			}
+		}
 		m_receive_buffer.stop_read();
 	}
 }
@@ -211,6 +245,7 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::run_until_halt()
 {
 	ResetHaltListener reset(m_listener_halt);
+	hate::Timer timer;
 	ScopedSimulationRun run(*m_sim, m_runnable_mutex);
 
 	constexpr size_t wait_period = 10000;
@@ -220,6 +255,17 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 			throw std::runtime_error("Error during usleep call.");
 		}
 	}
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.execution_duration += std::chrono::nanoseconds(timer.get_ns());
+	}
+}
+
+template <typename ConnectionParameter>
+ConnectionTimeInfo SimConnection<ConnectionParameter>::get_time_info() const
+{
+	std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+	return m_time_info;
 }
 
 template <typename ConnectionParameter>

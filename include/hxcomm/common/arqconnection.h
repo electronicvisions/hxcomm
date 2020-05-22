@@ -14,6 +14,7 @@
 
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
+#include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
@@ -84,6 +85,12 @@ public:
 	~ARQConnection();
 
 	constexpr static auto supported_targets = {Target::hardware};
+
+	/**
+	 * Get time information.
+	 * @return Time information
+	 */
+	ConnectionTimeInfo get_time_info() const;
 
 private:
 	friend Stream<ARQConnection>;
@@ -197,6 +204,9 @@ private:
 	std::thread m_worker_decode_messages;
 
 	std::mutex m_mutex;
+
+	mutable std::mutex m_time_info_mutex;
+	ConnectionTimeInfo m_time_info;
 
 	log4cxx::Logger* m_logger;
 };

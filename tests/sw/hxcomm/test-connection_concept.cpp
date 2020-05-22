@@ -44,6 +44,7 @@ struct Connection
 
 	Connection(Connection&&);
 	Connection(Connection const&) = delete;
+	hxcomm::ConnectionTimeInfo get_time_info() const;
 };
 
 struct MissingSendMessageTypeConnection
@@ -54,6 +55,7 @@ struct MissingSendMessageTypeConnection
 
 	MissingSendMessageTypeConnection(MissingSendMessageTypeConnection&&);
 	MissingSendMessageTypeConnection(MissingSendMessageTypeConnection const&) = delete;
+	hxcomm::ConnectionTimeInfo get_time_info() const;
 };
 
 struct MissingReceiveMessageTypeConnection
@@ -64,6 +66,7 @@ struct MissingReceiveMessageTypeConnection
 
 	MissingReceiveMessageTypeConnection(MissingReceiveMessageTypeConnection&&);
 	MissingReceiveMessageTypeConnection(MissingReceiveMessageTypeConnection const&) = delete;
+	hxcomm::ConnectionTimeInfo get_time_info() const;
 };
 
 struct MissingSendHaltMessageTypeConnection
@@ -74,6 +77,7 @@ struct MissingSendHaltMessageTypeConnection
 
 	MissingSendHaltMessageTypeConnection(MissingSendHaltMessageTypeConnection&&);
 	MissingSendHaltMessageTypeConnection(MissingSendHaltMessageTypeConnection const&) = delete;
+	hxcomm::ConnectionTimeInfo get_time_info() const;
 };
 
 struct NotMoveableConnection
@@ -85,6 +89,7 @@ struct NotMoveableConnection
 
 	NotMoveableConnection(NotMoveableConnection&&) = delete;
 	NotMoveableConnection(NotMoveableConnection const&) = delete;
+	hxcomm::ConnectionTimeInfo get_time_info() const;
 };
 
 struct CopyableConnection
@@ -96,6 +101,7 @@ struct CopyableConnection
 
 	CopyableConnection(CopyableConnection&&);
 	CopyableConnection(CopyableConnection const&);
+	hxcomm::ConnectionTimeInfo get_time_info() const;
 };
 
 struct NoSupportedTargetsConnection
@@ -106,6 +112,18 @@ struct NoSupportedTargetsConnection
 
 	NoSupportedTargetsConnection(NoSupportedTargetsConnection&&);
 	NoSupportedTargetsConnection(NoSupportedTargetsConnection const&) = delete;
+	hxcomm::ConnectionTimeInfo get_time_info() const;
+};
+
+struct NoGetTimeInfoConnection
+{
+	std::initializer_list<hxcomm::Target> supported_targets;
+	typedef void send_message_type;
+	typedef void receive_message_type;
+	typedef void send_halt_message_type;
+
+	NoGetTimeInfoConnection(NoGetTimeInfoConnection&&);
+	NoGetTimeInfoConnection(NoGetTimeInfoConnection const&) = delete;
 };
 
 TEST(ConnectionConcept, General)
@@ -121,4 +139,5 @@ TEST(ConnectionConcept, General)
 	EXPECT_THROW(hxcomm::ConnectionConcept<NotMoveableConnection>{}, std::logic_error);
 	EXPECT_THROW(hxcomm::ConnectionConcept<CopyableConnection>{}, std::logic_error);
 	EXPECT_THROW(hxcomm::ConnectionConcept<NoSupportedTargetsConnection>{}, std::logic_error);
+	EXPECT_THROW(hxcomm::ConnectionConcept<NoGetTimeInfoConnection>{}, std::logic_error);
 }

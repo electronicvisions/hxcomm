@@ -1,4 +1,5 @@
 #include "hate/math.h"
+#include "hate/timer.h"
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
@@ -59,6 +60,7 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_worker_fill_receive_buffer(
         &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
     m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this),
+    m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {}
 
@@ -75,6 +77,8 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_worker_fill_receive_buffer(
         &ARQConnection<ConnectionParameter>::work_fill_receive_buffer, this),
     m_worker_decode_messages(&ARQConnection<ConnectionParameter>::work_decode_messages, this),
+    m_time_info_mutex(),
+    m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
@@ -92,6 +96,8 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_receive_buffer(m_run_receive),
     m_worker_fill_receive_buffer(),
     m_worker_decode_messages(),
+    m_time_info_mutex(),
+    m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {
 	// shutdown other threads
@@ -99,6 +105,11 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
 	other.m_receive_buffer.notify();
 	other.m_worker_fill_receive_buffer.join();
 	other.m_worker_decode_messages.join();
+	m_time_info = other.m_time_info;
+	{
+		std::lock_guard<std::mutex> lock(other.m_time_info_mutex);
+		other.m_time_info = ConnectionTimeInfo();
+	}
 	// move arq stream
 	m_arq_stream = std::move(other.m_arq_stream);
 	// move queues
@@ -138,19 +149,30 @@ template <typename ConnectionParameter>
 template <class MessageType>
 void ARQConnection<ConnectionParameter>::add(MessageType const& message)
 {
+	hate::Timer timer;
 	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	m_encoder(message);
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
+	}
 }
 
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::add(std::vector<send_message_type> const& messages)
 {
+	hate::Timer timer;
 	m_encoder(messages);
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
+	}
 }
 
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::commit()
 {
+	hate::Timer timer;
 	m_encoder.flush();
 	auto const packets = m_send_queue.move_to_packet_vector();
 	[[maybe_unused]] size_t const num_packets = packets.size();
@@ -159,6 +181,13 @@ void ARQConnection<ConnectionParameter>::commit()
 		m_arq_stream->send(packet, arq_stream_type::NOTHING);
 	}
 	m_arq_stream->flush();
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		std::chrono::nanoseconds duration(timer.get_ns());
+		m_time_info.commit_duration += duration;
+		// Issue #3583 : Execution already starts upon sending
+		m_time_info.execution_duration += duration;
+	}
 }
 
 template <typename ConnectionParameter>
@@ -216,9 +245,16 @@ void ARQConnection<ConnectionParameter>::work_decode_messages()
 			m_receive_buffer.notify();
 			return;
 		}
-		for (auto it = read_pointer->cbegin(); it < read_pointer->cend(); ++it) {
-			for (size_t i = 0; i < it->len; ++i) {
-				m_decoder(it->pdu[i]);
+		if (read_pointer->get_size()) {
+			hate::Timer timer;
+			for (auto it = read_pointer->cbegin(); it < read_pointer->cend(); ++it) {
+				for (size_t i = 0; i < it->len; ++i) {
+					m_decoder(it->pdu[i]);
+				}
+			}
+			{
+				std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+				m_time_info.decode_duration += std::chrono::nanoseconds(timer.get_ns());
 			}
 		}
 		m_receive_buffer.stop_read();
@@ -234,6 +270,7 @@ bool ARQConnection<ConnectionParameter>::receive_empty() const
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::run_until_halt()
 {
+	hate::Timer timer;
 	SignalOverrideIntTerm signal_override;
 
 	size_t wait_period = 1;
@@ -246,6 +283,17 @@ void ARQConnection<ConnectionParameter>::run_until_halt()
 		wait_period = std::min(wait_period * 2, max_wait_period);
 	}
 	m_listener_halt.reset();
+	{
+		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+		m_time_info.execution_duration += std::chrono::nanoseconds(timer.get_ns());
+	}
+}
+
+template <typename ConnectionParameter>
+ConnectionTimeInfo ARQConnection<ConnectionParameter>::get_time_info() const
+{
+	std::lock_guard<std::mutex> const lock(m_time_info_mutex);
+	return m_time_info;
 }
 
 } // namespace hxcomm

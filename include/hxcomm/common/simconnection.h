@@ -16,6 +16,7 @@
 
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
+#include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/double_buffer.h"
 #include "hxcomm/common/encoder.h"
@@ -107,6 +108,12 @@ public:
 	bool get_enable_terminate_on_destruction() const;
 
 	constexpr static auto supported_targets = {Target::simulation};
+
+	/**
+	 * Get time information.
+	 * @return Time information
+	 */
+	ConnectionTimeInfo get_time_info() const;
 
 private:
 	friend class Stream<SimConnection>;
@@ -208,6 +215,8 @@ private:
 	std::mutex m_runnable_mutex;
 
 	std::mutex m_mutex;
+	mutable std::mutex m_time_info_mutex;
+	ConnectionTimeInfo m_time_info;
 	bool m_terminate_on_destruction;
 	log4cxx::Logger* m_logger;
 

@@ -28,7 +28,7 @@ def options(opt):
     hopts = opt.add_option_group('hxcomm options')
     hopts.add_option("--hxcomm-loglevel",
                      choices=["trace", "debug", "info", "warning", "error", "fatal"],
-                     default="info",
+                     default="warning",
                      help="Maximal loglevel to compile in.")
 
 

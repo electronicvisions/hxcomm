@@ -9,6 +9,8 @@
 
 namespace hxcomm {
 
+struct ConnectionTimeInfo;
+
 #ifdef HXCOMM_HELPER_CHECK_MESSAGE_TYPE
 #error "HXCOMM_HELPER_CHECK_MESSAGE_TYPE already defined"
 #endif
@@ -41,6 +43,22 @@ struct ConnectionConcept
 	static_assert(
 	    !std::is_constructible_v<Connection, Connection const&>,
 	    "Connection has a copy constructor.");
+
+	template <typename C, typename = void>
+	struct has_get_time_info : std::false_type
+	{};
+
+	template <typename C>
+	struct has_get_time_info<C, std::void_t<decltype(&C::get_time_info)>>
+	{
+		constexpr static bool value =
+		    std::is_same_v<decltype(&C::get_time_info), ConnectionTimeInfo (C::*)() const>;
+	};
+
+	template <typename C>
+	constexpr static bool has_get_time_info_v = has_get_time_info<C>::value;
+
+	static_assert(has_get_time_info_v<Connection>, "Connection missing get_time_info-method.");
 
 	template <typename C, typename = void>
 	struct has_supported_targets : std::false_type

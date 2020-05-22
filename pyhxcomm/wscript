@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 from os.path import join
 from waflib.extras.test_base import summary
 from waflib.extras.symwaf2ic import get_toplevel_path
@@ -37,6 +38,9 @@ def configure(cfg):
 
 
 def build(bld):
+    bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
+    bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
+
     pyhxcomm_defines = [
         # Needed to be able to use operator""_s instad of BOOST_HANA_STRING.
         'BOOST_HANA_CONFIG_ENABLE_STRING_UDL',
@@ -78,6 +82,19 @@ def build(bld):
         pythonpath=['tests'],
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
+        test_timeout=120,
+    )
+
+    bld(
+        target='pyhxcomm_hwtests_vx_py',
+        tests=bld.path.ant_glob('tests/hw/*.py'),
+        features='use pytest',
+        use='pyhxcomm_vx',
+        install_path='${PREFIX}/bin',
+        pythonpath=['tests'],
+        pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
+        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
+        skip_run=not (bld.env.DLSvx_SIM_AVAILABLE or bld.env.DLSvx_HARDWARE_AVAILABLE),
         test_timeout=120,
     )
 

@@ -66,6 +66,12 @@ public:
 	connection_type& get();
 
 	/**
+	 * Get a constant reference to the connection object if the handle has stored one,
+	 * otherwise a runtime error will be thrown.
+	 */
+	connection_type const& get() const;
+
+	/**
 	 * Release connection from handle if the handle has stored one, otherwise a
 	 * runtime error will be thrown.
 	 */

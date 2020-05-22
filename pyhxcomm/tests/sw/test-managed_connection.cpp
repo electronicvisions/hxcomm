@@ -54,7 +54,8 @@ template <template <typename> class Sequence>
 struct ExecutorMessages<RefCounter, Sequence>
 {
 	using connection_type = RefCounter;
-	using return_type = Sequence<typename RefCounter::message_types::receive_type>;
+	using return_type =
+	    std::pair<Sequence<typename RefCounter::message_types::receive_type>, ConnectionTimeInfo>;
 	using messages_type = Sequence<typename RefCounter::message_types::send_type>;
 
 	return_type operator()(RefCounter&, messages_type const&)

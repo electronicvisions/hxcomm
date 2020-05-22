@@ -77,6 +77,17 @@ Connection& Handle<Connection>::get()
 }
 
 template <typename Connection>
+Connection const& Handle<Connection>::get() const
+{
+	if (m_connection) {
+		return *m_connection.get();
+	} else {
+		HXCOMM_LOG_ERROR(m_logger, "Connection is not allocated!");
+		throw std::runtime_error("Connection is not allocated!");
+	}
+}
+
+template <typename Connection>
 std::unique_ptr<Connection> Handle<Connection>::release()
 {
 	if (m_connection) {
