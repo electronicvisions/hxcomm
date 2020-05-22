@@ -116,6 +116,12 @@ SimConnection<ConnectionParameter>::~SimConnection()
 }
 
 template <typename ConnectionParameter>
+std::mutex& SimConnection<ConnectionParameter>::get_mutex()
+{
+	return m_mutex;
+}
+
+template <typename ConnectionParameter>
 template <class MessageType>
 void SimConnection<ConnectionParameter>::add(MessageType const& message)
 {

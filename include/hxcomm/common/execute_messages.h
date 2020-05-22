@@ -60,6 +60,8 @@ struct ExecutorMessages
  * This function is specialized for each architecture in the corresponding
  * `hxcomm/<architecture>/execute_messages.h` header or - if needed - in the
  * connection-header itself.
+ * This function makes use of Stream, which locks the connection by acquiring the mutex via
+ * connection.get_mutex() to ensure mutual exclusion of access.
  *
  * @tparam Connection The connection on which the messages are executed.
  * @tparam Sequence In which sequential container should the messages be stored.

@@ -2,6 +2,7 @@
 #include <array>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <tuple>
@@ -130,6 +131,12 @@ private:
 	 */
 	void run_until_halt();
 
+	/**
+	 * Get internal mutex to use for mutual exclusion.
+	 * @return Mutable reference to mutex
+	 */
+	std::mutex& get_mutex();
+
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;
 	std::unique_ptr<arq_stream_type> m_arq_stream;
@@ -188,6 +195,8 @@ private:
 
 	void work_decode_messages();
 	std::thread m_worker_decode_messages;
+
+	std::mutex m_mutex;
 
 	log4cxx::Logger* m_logger;
 };

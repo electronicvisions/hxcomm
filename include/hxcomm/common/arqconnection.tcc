@@ -129,6 +129,12 @@ ARQConnection<ConnectionParameter>::~ARQConnection()
 }
 
 template <typename ConnectionParameter>
+std::mutex& ARQConnection<ConnectionParameter>::get_mutex()
+{
+	return m_mutex;
+}
+
+template <typename ConnectionParameter>
 template <class MessageType>
 void ARQConnection<ConnectionParameter>::add(MessageType const& message)
 {

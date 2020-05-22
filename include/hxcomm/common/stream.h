@@ -5,6 +5,7 @@
 
 #include "hxcomm/common/connection.h"
 
+#include <mutex>
 #include <type_traits>
 #include <vector>
 
@@ -83,14 +84,19 @@ public:
 		static_assert(
 		    std::is_same_v<decltype(&ConnType::run_until_halt), void (ConnType::*)()>,
 		    "Connection missing run_until_halt-method.");
+
+		static_assert(
+		    std::is_same_v<decltype(&ConnType::get_mutex), std::mutex& (ConnType::*) ()>,
+		    "Connection does not have a get_mutex-method.");
 	};
 
 	static_assert(sizeof(Streamable<Connection>) > 0, "Connection adhere to Stream-Interface.");
 
 	/**
 	 * Construct a Stream for the given connection handle which it manages.
+	 * Lock connection-internal mutex to ensure mutual exclusion.
 	 */
-	Stream(connection_type& conn) : m_connection(conn){};
+	Stream(connection_type& conn) : m_connection(conn), m_connection_lock(conn.get_mutex()){};
 
 	/**
 	 * There can only be one Stream per connection.
@@ -168,6 +174,7 @@ public:
 
 protected:
 	connection_type& m_connection;
+	std::unique_lock<std::mutex> m_connection_lock;
 };
 
 } // namespace hxcomm

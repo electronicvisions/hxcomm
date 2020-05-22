@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <type_traits>
@@ -155,6 +156,12 @@ private:
 	 */
 	void run_until_halt();
 
+	/**
+	 * Get internal mutex to use for mutual exclusion.
+	 * @return Mutable reference to mutex
+	 */
+	std::mutex& get_mutex();
+
 	std::unique_ptr<flange::SimulatorClient> m_sim;
 
 	typedef flange::SimulatorEvent::al_data_t subpacket_type;
@@ -200,6 +207,7 @@ private:
 
 	std::mutex m_runnable_mutex;
 
+	std::mutex m_mutex;
 	bool m_terminate_on_destruction;
 	log4cxx::Logger* m_logger;
 
