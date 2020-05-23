@@ -110,7 +110,7 @@ private:
 	 * @param word Word to test
 	 * @return Boolean test result
 	 */
-	bool has_leading_comma(word_type word) const;
+	static bool has_leading_comma(word_type word);
 
 	/**
 	 * Shift word into buffer.
@@ -135,6 +135,9 @@ private:
 	 * @param header Header to decode UT message for
 	 */
 	void decode_message(size_t header);
+
+	template <size_t Header>
+	void decode_message();
 
 	template <size_t... Header>
 	void decode_message_table_generator(size_t header, std::index_sequence<Header...>);

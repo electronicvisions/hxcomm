@@ -75,7 +75,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 bool Decoder<UTMessageParameter, MessageQueueType, Listener...>::has_leading_comma(
-    word_type const word) const
+    word_type const word)
 {
 	constexpr word_type comma_mask = (static_cast<word_type>(1) << (num_bits_word - 1));
 	return (word & comma_mask);
@@ -125,40 +125,29 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
+template <size_t Header>
+void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message()
+{
+	typedef UTMessage<
+	    UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
+	    typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
+	    typename hate::index_type_list_by_integer<
+	        Header, typename UTMessageParameter::Dictionary>::type>
+	    ut_message_t;
+	ut_message_t message(typename ut_message_t::payload_type(
+	    m_buffer >> (m_buffer_filling_level - ut_message_t::word_width)));
+	HXCOMM_LOG_DEBUG(m_logger, "decode_message(): Decoded UT message: " << message);
+	boost::fusion::for_each(m_listener, [message](auto& l) { l(message); });
+	m_message_queue.push(std::move(message));
+}
+
+template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 template <size_t... Header>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message_table_generator(
     size_t const header, std::index_sequence<Header...>)
 {
-	constexpr static std::array<
-	    void (*)(
-	        size_t&, buffer_type const&, message_queue_type&, boost::fusion::tuple<Listener&...>,
-	        decltype(m_logger) const&),
-	    sizeof...(Header)>
-	    function_table{[](size_t& filling_level, buffer_type const& buffer,
-	                      message_queue_type& queue, boost::fusion::tuple<Listener&...> listener,
-	                      decltype(m_logger) const& logger) {
-		    typedef UTMessage<
-		        UTMessageParameter::HeaderAlignment, typename UTMessageParameter::SubwordType,
-		        typename UTMessageParameter::PhywordType, typename UTMessageParameter::Dictionary,
-		        typename hate::index_type_list_by_integer<
-		            Header, typename UTMessageParameter::Dictionary>::type>
-		        ut_message_t;
-		    ut_message_t message(typename ut_message_t::payload_type(
-		        buffer >> (filling_level - ut_message_t::word_width)));
-		    filling_level -= ut_message_t::word_width;
-		    // if remaining tail of word has a leading comma, drop the word.
-		    if (filling_level) {
-			    if (buffer.test(filling_level - 1)) {
-				    filling_level -= (filling_level % num_bits_word);
-			    }
-		    }
-		    HXCOMM_LOG_DEBUG(logger, "decode_message(): Decoded UT message: " << message);
-		    static_cast<void>(logger);
-		    boost::fusion::for_each(listener, [message](auto& l) { l(message); });
-		    queue.push(std::move(message));
-	    }...};
-
-	function_table[header](m_buffer_filling_level, m_buffer, m_message_queue, m_listener, m_logger);
+	constexpr static auto function_table = std::array{&Decoder::decode_message<Header>...};
+	(this->*function_table[header])();
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
@@ -185,6 +174,13 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::coroutine(
 			shift_in_buffer(source.get());
 		}
 		decode_message(header);
+		m_buffer_filling_level -= message_size;
+		// if remaining tail of word has a leading comma, drop the word.
+		if (m_buffer_filling_level) {
+			if (m_buffer.test(m_buffer_filling_level - 1)) {
+				m_buffer_filling_level -= (m_buffer_filling_level % num_bits_word);
+			}
+		}
 		if (m_buffer_filling_level < header_size) {
 			source();
 		}
