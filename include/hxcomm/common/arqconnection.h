@@ -102,18 +102,21 @@ private:
 	friend Stream<ARQConnection>;
 	/**
 	 * Add a single UT message to the send queue.
+	 * Messages may be sent to the hardware as part of this call if the send queue is full.
 	 * @param message Message to add
 	 */
 	void add(send_message_type const& message);
 
 	/**
 	 * Add multiple UT messages to the send queue.
+	 * Messages may be sent to the hardware as part of this call if the send queue is full.
 	 * @param messages Messages to add
 	 */
 	void add(std::vector<send_message_type> const& messages);
 
 	/**
 	 * Send messages in send queue.
+	 * All messages in the send queue are guaranteed to be transfered.
 	 */
 	void commit();
 
@@ -164,14 +167,15 @@ private:
 	struct SendQueue
 	{
 	public:
-		SendQueue();
+		SendQueue(arq_stream_type& arq_stream);
 
 		void push(subpacket_type const& subpacket);
 
-		std::vector<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>> move_to_packet_vector();
+		void flush();
 
 	private:
-		std::vector<subpacket_type> m_subpackets;
+		arq_stream_type& m_arq_stream;
+		sctrltp::packet<sctrltp::ParametersFcpBss2Cube> m_packet;
 	};
 
 	typedef SendQueue send_queue_type;

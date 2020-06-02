@@ -11,50 +11,41 @@
 namespace hxcomm {
 
 template <typename ConnectionParameter>
-ARQConnection<ConnectionParameter>::SendQueue::SendQueue() : m_subpackets()
-{}
+ARQConnection<ConnectionParameter>::SendQueue::SendQueue(arq_stream_type& arq_stream) :
+    m_arq_stream(arq_stream), m_packet()
+{
+	m_packet.len = 0;
+	m_packet.pid = pid;
+}
 
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::SendQueue::push(subpacket_type const& subpacket)
 {
-	m_subpackets.push_back(subpacket);
+	m_packet.pdu[m_packet.len] = subpacket;
+	m_packet.len++;
+	if (m_packet.len == sctrltp::ParametersFcpBss2Cube::MAX_PDUWORDS) {
+		m_arq_stream.send(
+		    m_packet, sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube>::Mode::NOTHING);
+		m_packet.len = 0;
+	}
 }
 
 template <typename ConnectionParameter>
-std::vector<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>>
-ARQConnection<ConnectionParameter>::SendQueue::move_to_packet_vector()
+void ARQConnection<ConnectionParameter>::SendQueue::flush()
 {
-	size_t const num_packets = hate::math::round_up_integer_division(
-	    m_subpackets.size(), sctrltp::Parameters<>::MAX_PDUWORDS);
-	size_t const last_packet_modulo = m_subpackets.size() % sctrltp::Parameters<>::MAX_PDUWORDS;
-	size_t const last_packet_len =
-	    last_packet_modulo ? last_packet_modulo : sctrltp::Parameters<>::MAX_PDUWORDS;
-
-	std::vector<sctrltp::packet<sctrltp::ParametersFcpBss2Cube>> packets(num_packets);
-
-	auto fill_packet = [&packets, this](size_t const packet_index, size_t const len) {
-		size_t const base_subpacket_index = packet_index * sctrltp::Parameters<>::MAX_PDUWORDS;
-		for (size_t i = 0; i < len; ++i) {
-			packets[packet_index].pdu[i] = m_subpackets[base_subpacket_index + i];
-		}
-		packets[packet_index].len = len;
-		packets[packet_index].pid = pid;
-	};
-
-	for (size_t i = 0; i < num_packets - 1; ++i) {
-		fill_packet(i, sctrltp::Parameters<>::MAX_PDUWORDS);
+	if (m_packet.len) {
+		m_arq_stream.send(
+		    m_packet, sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube>::Mode::FLUSH);
+		m_packet.len = 0;
+	} else {
+		m_arq_stream.flush();
 	}
-	fill_packet(num_packets - 1, last_packet_len);
-
-	m_subpackets.clear();
-	return packets;
 }
-
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection() :
     m_arq_stream(std::make_unique<arq_stream_type>(get_fpga_ip())),
-    m_send_queue(),
+    m_send_queue(*m_arq_stream),
     m_encoder(m_send_queue),
     m_receive_queue(),
     m_listener_halt(),
@@ -67,7 +58,7 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_arq_stream(std::make_unique<arq_stream_type>(ip)),
-    m_send_queue(),
+    m_send_queue(*m_arq_stream),
     m_encoder(m_send_queue),
     m_receive_queue(),
     m_listener_halt(),
@@ -82,7 +73,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_arq_stream(),
-    m_send_queue(),
+    m_send_queue(other.m_send_queue),
     m_encoder(other.m_encoder, m_send_queue),
     m_receive_queue(),
     m_listener_halt(),
@@ -101,7 +92,6 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
 	// move arq stream
 	m_arq_stream = std::move(other.m_arq_stream);
 	// move queues
-	m_send_queue = std::move(other.m_send_queue);
 	m_receive_queue.~receive_queue_type();
 	new (&m_receive_queue) decltype(m_receive_queue)(std::move(other.m_receive_queue));
 	// create decoder
@@ -132,31 +122,38 @@ template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::add(send_message_type const& message)
 {
 	hate::Timer timer;
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to moved-from ARQConnection.");
+	}
 	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
-	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
+	auto const duration = timer.get_ns();
+	m_encode_duration.fetch_add(duration, std::memory_order_relaxed);
+	m_execution_duration.fetch_add(duration, std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::add(std::vector<send_message_type> const& messages)
 {
 	hate::Timer timer;
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to moved-from ARQConnection.");
+	}
 	m_encoder(messages);
-	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
+	auto const duration = timer.get_ns();
+	m_encode_duration.fetch_add(duration, std::memory_order_relaxed);
+	m_execution_duration.fetch_add(duration, std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::commit()
 {
 	hate::Timer timer;
-	m_encoder.flush();
-	auto const packets = m_send_queue.move_to_packet_vector();
-	[[maybe_unused]] size_t const num_packets = packets.size();
-	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << num_packets << " ARQ packet(s).");
-	for (auto const& packet : packets) {
-		m_arq_stream->send(packet, arq_stream_type::NOTHING);
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to moved-from ARQConnection.");
 	}
-	m_arq_stream->flush();
+	m_encoder.flush();
+	m_send_queue.flush();
 	auto const duration = timer.get_ns();
 	m_commit_duration.fetch_add(duration, std::memory_order_relaxed);
 	// Issue #3583 : Execution already starts upon sending
@@ -213,6 +210,9 @@ void ARQConnection<ConnectionParameter>::run_until_halt()
 	using namespace std::literals::chrono_literals;
 
 	hate::Timer timer;
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to moved-from ARQConnection.");
+	}
 	SignalOverrideIntTerm signal_override;
 
 	auto wait_period = 1us;
