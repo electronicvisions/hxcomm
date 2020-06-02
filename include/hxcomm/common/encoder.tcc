@@ -46,8 +46,8 @@ template <typename Iterable>
 typename std::enable_if<!detail::IsUTMessage<Iterable>::value, void>::type
 Encoder<UTMessageParameter, WordQueueType>::operator()(Iterable const& messages)
 {
-	for (auto it = messages.cbegin(); it < messages.cend(); ++it) {
-		boost::apply_visitor([this](auto&& m) { this->operator()(m); }, *it);
+	for (auto const& message : messages) {
+		boost::apply_visitor([this](auto const& m) { this->operator()(m); }, message);
 	}
 }
 
