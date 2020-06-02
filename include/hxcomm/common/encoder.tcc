@@ -30,8 +30,7 @@ Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& messag
 	m_buffer |= (buffer_type(message.get_raw()) << (buffer_size - m_buffer_filling_level));
 
 	size_t const num_words_to_shift_out = m_buffer_filling_level / m_buffer.num_bits_per_word;
-
-	assert(num_words_to_shift_out < m_buffer.num_words);
+	m_buffer_filling_level %= m_buffer.num_bits_per_word;
 
 	auto it = m_buffer.to_array().crbegin();
 	auto const it_end = it + num_words_to_shift_out;
@@ -40,7 +39,6 @@ Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& messag
 	}
 
 	m_buffer.shift_words_left(num_words_to_shift_out);
-	m_buffer_filling_level -= (num_words_to_shift_out * m_buffer.num_bits_per_word);
 }
 
 template <typename UTMessageParameter, typename WordQueueType>
