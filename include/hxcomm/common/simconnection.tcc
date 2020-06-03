@@ -9,6 +9,7 @@ SimConnection<ConnectionParameter>::SimConnection(
     m_sim(std::make_unique<flange::SimulatorClient>(ip, port)),
     m_send_queue(),
     m_encoder(m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
@@ -32,6 +33,7 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
     m_sim(std::make_unique<flange::SimulatorClient>()),
     m_send_queue(),
     m_encoder(m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
@@ -55,6 +57,7 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
     m_sim(),
     m_send_queue(),
     m_encoder(other.m_encoder, m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt), // temporary
@@ -186,20 +189,13 @@ void SimConnection<ConnectionParameter>::commit()
 }
 
 template <typename ConnectionParameter>
-typename SimConnection<ConnectionParameter>::receive_message_type
-SimConnection<ConnectionParameter>::receive()
+typename SimConnection<ConnectionParameter>::receive_queue_type
+SimConnection<ConnectionParameter>::receive_all()
 {
-	receive_message_type message;
-	if (__builtin_expect(!m_receive_queue.try_pop(message), false)) {
-		throw std::runtime_error("No message available to receive.");
-	}
-	return message;
-}
-
-template <typename ConnectionParameter>
-bool SimConnection<ConnectionParameter>::try_receive(receive_message_type& message)
-{
-	return m_receive_queue.try_pop(message);
+	receive_queue_type all;
+	std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
+	std::swap(all, m_receive_queue);
+	return all;
 }
 
 template <typename ConnectionParameter>
@@ -218,6 +214,7 @@ void SimConnection<ConnectionParameter>::work_receive(flange::SimulatorClient& l
 template <typename ConnectionParameter>
 bool SimConnection<ConnectionParameter>::receive_empty() const
 {
+	std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
 	return m_receive_queue.empty();
 }
 

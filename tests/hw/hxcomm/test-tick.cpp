@@ -16,8 +16,10 @@ TEST(TestConnection, Tick)
 
 		stream.run_until_halt();
 
-		auto response_tick = stream.receive();
-		auto response_halt = stream.receive();
+		auto const responses = stream.receive_all();
+		EXPECT_EQ(responses.size(), 2);
+		auto response_tick = responses.at(0);
+		auto response_halt = responses.at(1);
 		EXPECT_TRUE(stream.receive_empty());
 		EXPECT_EQ(
 		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_tick),

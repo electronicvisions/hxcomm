@@ -47,6 +47,7 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_arq_stream(std::make_unique<arq_stream_type>(get_fpga_ip())),
     m_send_queue(*m_arq_stream),
     m_encoder(m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
@@ -60,6 +61,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_arq_stream(std::make_unique<arq_stream_type>(ip)),
     m_send_queue(*m_arq_stream),
     m_encoder(m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
@@ -75,6 +77,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_arq_stream(),
     m_send_queue(other.m_send_queue),
     m_encoder(other.m_encoder, m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt), // temporary
@@ -200,20 +203,13 @@ void ARQConnection<ConnectionParameter>::commit()
 }
 
 template <typename ConnectionParameter>
-typename ARQConnection<ConnectionParameter>::receive_message_type
-ARQConnection<ConnectionParameter>::receive()
+typename ARQConnection<ConnectionParameter>::receive_queue_type
+ARQConnection<ConnectionParameter>::receive_all()
 {
-	receive_message_type message;
-	if (__builtin_expect(!m_receive_queue.try_pop(message), false)) {
-		throw std::runtime_error("No message available to receive.");
-	}
-	return message;
-}
-
-template <typename ConnectionParameter>
-bool ARQConnection<ConnectionParameter>::try_receive(receive_message_type& message)
-{
-	return m_receive_queue.try_pop(message);
+	receive_queue_type all;
+	std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
+	std::swap(all, m_receive_queue);
+	return all;
 }
 
 template <typename ConnectionParameter>
@@ -233,7 +229,10 @@ void ARQConnection<ConnectionParameter>::work_receive()
 			}
 			HXCOMM_LOG_TRACE(m_logger, "Forwarding packet contents to decoder-coroutine..");
 			hate::Timer timer;
-			m_decoder(&(packet.pdu[0]), &(packet.pdu[packet.len - 1]));
+			{
+				std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
+				m_decoder(&(packet.pdu[0]), &(packet.pdu[packet.len - 1]));
+			}
 			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
 			HXCOMM_LOG_TRACE(m_logger, "Forwarded packet contents to decoder-coroutine.");
 		}
@@ -244,6 +243,7 @@ void ARQConnection<ConnectionParameter>::work_receive()
 template <typename ConnectionParameter>
 bool ARQConnection<ConnectionParameter>::receive_empty() const
 {
+	std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
 	return m_receive_queue.empty();
 }
 

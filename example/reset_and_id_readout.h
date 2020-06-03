@@ -43,8 +43,7 @@ void reset_and_id_readout(Stream& stream)
 
 	stream.run_until_halt();
 
-	while (!stream.receive_empty()) {
-		auto message = stream.receive();
+	for (auto const message : stream.receive_all()) {
 		std::visit([&message](auto m) { std::cout << m << std::endl; }, message);
 	}
 }

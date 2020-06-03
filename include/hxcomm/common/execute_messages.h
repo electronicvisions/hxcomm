@@ -52,12 +52,7 @@ struct ExecutorMessages
 
 		stream.run_until_halt();
 
-		response_type responses;
-		receive_message_type response;
-		while (stream.try_receive(response)) {
-			responses.push_back(response);
-		}
-
+		auto const responses = stream.receive_all();
 		auto const time_difference = conn.get_time_info() - time_begin;
 		return {responses, time_difference};
 	}
@@ -87,7 +82,7 @@ detail::execute_messages_return_t<Connection> execute_messages(
 	    log, "Executed messages(" << messages.size() << ") and got responses(" << res.size()
 	                              << ") with time expenditure: " << std::endl
 	                              << time << ".");
-	return {res, time};
+	return std::pair{res, time};
 }
 
 template <typename Connection, ConnectionIsWrappedGuard<Connection> = 0>

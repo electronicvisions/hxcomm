@@ -6,7 +6,7 @@
 #include <queue>
 #include <stdint.h>
 #include <thread>
-#include <tbb/concurrent_queue.h>
+#include <vector>
 
 namespace hxcomm {
 
@@ -34,6 +34,8 @@ public:
 	    typename UTMessageParameter::PhywordType,
 	    typename UTMessageParameter::Dictionary>::type send_message_type;
 	typedef send_message_type receive_message_type;
+
+	typedef std::vector<receive_message_type> receive_queue_type;
 
 	/**
 	 * Default construct loopback connection.
@@ -66,18 +68,10 @@ public:
 	void commit();
 
 	/**
-	 * Receive a single UT message.
-	 * @throws std::runtime_error On empty message queue
-	 * @return Received message
+	 * Receive all UT messages currently in the receive queue.
+	 * @return Received messages
 	 */
-	receive_message_type receive();
-
-	/**
-	 * Try to receive a single UT message.
-	 * @param message Message to receive to
-	 * @return Boolean value whether receive was successfule
-	 */
-	bool try_receive(receive_message_type& message);
+	receive_queue_type receive_all();
 
 	/**
 	 * Get whether the connection has no UT messages available to receive.
@@ -94,7 +88,7 @@ private:
 
 	Encoder<UTMessageParameter, send_queue_type> m_encoder;
 
-	typedef tbb::concurrent_queue<receive_message_type> receive_queue_type;
+	mutable std::mutex m_receive_queue_mutex;
 	receive_queue_type m_receive_queue;
 
 	Decoder<UTMessageParameter, receive_queue_type> m_decoder;

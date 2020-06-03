@@ -51,7 +51,9 @@ MYTEST(Name, OneMessage)
 	while (connection.receive_empty()) {
 		std::this_thread::sleep_for(empty_sleep);
 	}
-	auto message_return = connection.receive();
+	auto messages_return = connection.receive_all();
+	EXPECT_EQ(messages_return.size(), 1);
+	auto message_return = messages_return.at(0);
 	EXPECT_EQ(message, message_return);
 }
 
@@ -66,7 +68,9 @@ MYTEST(Name, OneMessageAfterCommit)
 	while (connection.receive_empty()) {
 		std::this_thread::sleep_for(empty_sleep);
 	}
-	auto message_return = connection.receive();
+	auto messages_return = connection.receive_all();
+	EXPECT_EQ(messages_return.size(), 1);
+	auto message_return = messages_return.at(0);
 	EXPECT_EQ(message, message_return);
 }
 
@@ -81,7 +85,9 @@ MYTEST(Name, OneMessageMultiCommit)
 	while (connection.receive_empty()) {
 		std::this_thread::sleep_for(empty_sleep);
 	}
-	auto message_return = connection.receive();
+	auto messages_return = connection.receive_all();
+	EXPECT_EQ(messages_return.size(), 1);
+	auto message_return = messages_return.at(0);
 	EXPECT_EQ(message, message_return);
 }
 
@@ -99,13 +105,17 @@ MYTEST(Name, MultipleMessages)
 	LoopbackConnection<TestUTMessageParameter> connection;
 	connection.add(messages.begin(), messages.end());
 	connection.commit();
-	for (size_t i = 0; i < message_count; ++i) {
+	size_t i = 0;
+	while (i < message_count) {
 		while (connection.receive_empty()) {
 			std::this_thread::sleep_for(empty_sleep);
 		}
-		auto message_return = connection.receive();
-		EXPECT_EQ(message_return, messages.at(i));
+		auto messages_return = connection.receive_all();
+		for (auto const& message_return : messages_return) {
+			EXPECT_EQ(message_return, messages.at(i));
+			i++;
+		}
 	}
 	// no more messages available to receive
-	ASSERT_THROW(connection.receive(), std::runtime_error);
+	ASSERT_TRUE(connection.receive_empty());
 }

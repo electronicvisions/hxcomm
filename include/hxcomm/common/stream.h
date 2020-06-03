@@ -66,14 +66,10 @@ public:
 		    "Connection missing commit-method.");
 
 		static_assert(
-		    std::is_same_v<decltype(&ConnType::receive), receive_message_type (ConnType::*)()>,
-		    "Connection missing receive-method.");
-
-		static_assert(
 		    std::is_same_v<
-		        decltype(&ConnType::try_receive),
-		        bool (ConnType::*)(receive_message_type&)>,
-		    "Connection missing try_receive-method.");
+		        decltype(&ConnType::receive_all),
+		        typename ConnType::receive_queue_type (ConnType::*)()>,
+		    "Connection missing receive_all-method.");
 
 		static_assert(
 		    std::is_same_v<decltype(&ConnType::run_until_halt), void (ConnType::*)()>,
@@ -147,6 +143,15 @@ public:
 	receive_message_type receive()
 	{
 		return m_connection.receive();
+	}
+
+	/**
+	 * Receive all UT messages.
+	 * @return Received message queue
+	 */
+	auto receive_all()
+	{
+		return m_connection.receive_all();
 	}
 
 	/**

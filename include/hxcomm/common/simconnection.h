@@ -19,7 +19,7 @@
 #include <thread>
 #include <type_traits>
 #include <unistd.h>
-#include <tbb/concurrent_queue.h>
+#include <vector>
 
 
 namespace log4cxx {
@@ -43,6 +43,8 @@ public:
 	using init_parameters_type = typename std::tuple<ip_t, port_t>;
 
 	static constexpr char name[] = "SimConnection";
+
+	typedef std::vector<receive_message_type> receive_queue_type;
 
 	/**
 	 * Create and start connection to simulation server.
@@ -141,18 +143,10 @@ private:
 	void commit();
 
 	/**
-	 * Receive a single UT message.
-	 * @throws std::runtime_error On empty message queue
-	 * @return Received message
+	 * Receive all UT messages currently in the receive queue.
+	 * @return Received messages
 	 */
-	receive_message_type receive();
-
-	/**
-	 * Try to receive a single UT message.
-	 * @param message Message to receive to
-	 * @return Boolean value whether receive was successfule
-	 */
-	bool try_receive(receive_message_type& message);
+	receive_queue_type receive_all();
 
 	/**
 	 * Get whether the connection has no UT messages available to receive.
@@ -189,7 +183,7 @@ private:
 	typedef Encoder<typename ConnectionParameter::Send, send_queue_type> encoder_type;
 	encoder_type m_encoder;
 
-	typedef tbb::concurrent_queue<receive_message_type> receive_queue_type;
+	mutable std::mutex m_receive_queue_mutex;
 	receive_queue_type m_receive_queue;
 
 	typedef ListenerHalt<UTMessage<

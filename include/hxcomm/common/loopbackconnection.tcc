@@ -6,6 +6,7 @@ LoopbackConnection<UTMessageParameter>::LoopbackConnection() :
     m_intermediate_queue(),
     m_send_queue(),
     m_encoder(m_send_queue),
+    m_receive_queue_mutex(),
     m_receive_queue(),
     m_decoder(m_receive_queue),
     m_run_receive(true),
@@ -46,20 +47,13 @@ void LoopbackConnection<UTMessageParameter>::commit()
 }
 
 template <typename UTMessageParameter>
-typename LoopbackConnection<UTMessageParameter>::receive_message_type
-LoopbackConnection<UTMessageParameter>::receive()
+LoopbackConnection<UTMessageParameter>::receive_queue_type
+LoopbackConnection<UTMessageParameter>::receive_all()
 {
-	receive_message_type message;
-	if (__builtin_expect(!m_receive_queue.try_pop(message), false)) {
-		throw std::runtime_error("No message available to receive.");
-	}
-	return message;
-}
-
-template <typename UTMessageParameter>
-bool LoopbackConnection<UTMessageParameter>::try_receive(receive_message_type& message)
-{
-	return m_receive_queue.try_pop(message);
+	receive_queue_type all;
+	std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
+	std::swap(all, m_receive_queue);
+	return all;
 }
 
 template <typename UTMessageParameter>
@@ -67,7 +61,10 @@ void LoopbackConnection<UTMessageParameter>::work_receive()
 {
 	while (m_run_receive) {
 		std::lock_guard<std::mutex> lock(m_intermediate_queue_mutex);
-		m_decoder(m_intermediate_queue.begin(), m_intermediate_queue.end());
+		{
+			std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
+			m_decoder(m_intermediate_queue.begin(), m_intermediate_queue.end());
+		}
 		m_intermediate_queue.clear();
 	}
 }
@@ -75,6 +72,7 @@ void LoopbackConnection<UTMessageParameter>::work_receive()
 template <typename UTMessageParameter>
 bool LoopbackConnection<UTMessageParameter>::receive_empty() const
 {
+	std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
 	return m_receive_queue.empty();
 }
 

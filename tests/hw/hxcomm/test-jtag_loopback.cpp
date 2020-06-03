@@ -73,11 +73,7 @@ TEST(TestConnection, JTAGLoopback)
 
 		stream.run_until_halt();
 
-
-		typename decltype(stream)::receive_message_type message;
-		while (stream.try_receive(message)) {
-			responses.push_back(message);
-		}
+		responses = stream.receive_all();
 	};
 
 	auto connection = get_connection_full_stream_interface_from_env();

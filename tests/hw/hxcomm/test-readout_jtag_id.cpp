@@ -34,13 +34,7 @@ TEST(TestConnection, ReadoutJtagID)
 
 		stream.run_until_halt();
 
-		while (true) {
-			try {
-				responses.push_back(stream.receive());
-			} catch (std::runtime_error& ignored) {
-				break;
-			}
-		}
+		responses = stream.receive_all();
 	};
 
 	auto connection = get_connection_full_stream_interface_from_env();

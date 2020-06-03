@@ -42,7 +42,6 @@ def configure(conf):
     conf.load("test_base")
     conf.load("gtest")
     conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
-    conf.check_cxx(lib='tbb', uselib_store="TBB")
     conf.load("doxygen")
     conf.define(
         "HXCOMM_LOG_THRESHOLD",
@@ -104,7 +103,7 @@ def build(bld):
         target       = 'hxcomm',
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
-                        'flange', 'rant', 'hate_inc', 'TBB', 'logger_obj',
+                        'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp'],
         install_path = '${PREFIX}/lib',
     )

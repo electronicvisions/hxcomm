@@ -18,7 +18,9 @@ TEST(TestConnection, Halt)
 
 		stream.run_until_halt();
 
-		auto response = stream.receive();
+		auto const responses = stream.receive_all();
+		EXPECT_EQ(responses.size(), 1);
+		auto const response = responses.at(0);
 		EXPECT_TRUE(stream.receive_empty());
 		EXPECT_EQ(
 		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),

@@ -72,7 +72,7 @@ TEST(TestConnection, RunUntilHalt)
 	std::visit(test, *connection);
 }
 
-TEST(TestConnection, Receive)
+TEST(TestConnection, ReceiveAll)
 {
 	auto const test = [](auto& connection) {
 		Stream stream(connection);
@@ -85,38 +85,11 @@ TEST(TestConnection, Receive)
 		stream.run_until_halt();
 
 		EXPECT_FALSE(stream.receive_empty());
-		auto response = stream.receive();
+		auto responses = stream.receive_all();
+		EXPECT_EQ(responses.size(), 1);
 		EXPECT_TRUE(stream.receive_empty());
 		EXPECT_EQ(
-		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
-		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
-	};
-
-	auto connection = get_connection_full_stream_interface_from_env();
-	if (!connection) {
-		GTEST_SKIP();
-	}
-	std::visit(test, *connection);
-}
-
-TEST(TestConnection, TryReceive)
-{
-	auto const test = [](auto& connection) {
-		Stream stream(connection);
-
-		// Halt execution
-		stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
-
-		stream.commit();
-
-		stream.run_until_halt();
-
-		EXPECT_FALSE(stream.receive_empty());
-		UTMessageFromFPGAVariant response;
-		EXPECT_TRUE(stream.try_receive(response));
-		EXPECT_TRUE(stream.receive_empty());
-		EXPECT_EQ(
-		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(responses.at(0)),
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 

@@ -22,6 +22,8 @@ template <typename T>
 class FastQueue
 {
 public:
+	typedef T value_type;
+
 	FastQueue() : m_data() {}
 
 	void push(T const& data) { m_data = data; }

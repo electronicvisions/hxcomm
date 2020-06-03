@@ -66,9 +66,7 @@ void throughput_measurement(size_t const num, unsigned int const seed)
 
 		connection.commit();
 		while (n < num) {
-			while (connection.try_receive(message)) {
-				n++;
-			}
+			n += connection.receive_all().size();
 			std::this_thread::sleep_for(std::chrono::microseconds(10000));
 		}
 

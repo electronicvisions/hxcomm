@@ -1,5 +1,6 @@
 #include "hxcomm/common/logger.h"
 #include <sstream>
+#include <type_traits>
 
 namespace hxcomm {
 
@@ -132,6 +133,21 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(
 	                hate::type_list_size<typename UTMessageParameter::Dictionary>::value>());
 }
 
+namespace detail {
+
+template <typename Queue, typename = void>
+struct has_push : std::false_type
+{};
+
+template <typename Queue>
+struct has_push<
+    Queue,
+    std::void_t<decltype((void (Queue::*)(typename Queue::value_type&&)) & Queue::push)>>
+    : std::true_type
+{};
+
+} // namespace detail
+
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 template <size_t Header>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message()
@@ -146,7 +162,11 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(
 	    m_buffer >> (m_buffer_filling_level - ut_message_t::word_width)));
 	HXCOMM_LOG_DEBUG(m_logger, "decode_message(): Decoded UT message: " << message);
 	boost::fusion::for_each(m_listener, [message](auto& l) { l(message); });
-	m_message_queue.push(std::move(message));
+	if constexpr (detail::has_push<MessageQueueType>::value) {
+		m_message_queue.push(std::move(message));
+	} else {
+		m_message_queue.push_back(std::move(message));
+	}
 }
 
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
