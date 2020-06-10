@@ -65,6 +65,12 @@ public:
 	 */
 	connection_type& get();
 
+	/**
+	 * Release connection from handle if the handle has stored one, otherwise a
+	 * runtime error will be thrown.
+	 */
+	std::unique_ptr<connection_type> release();
+
 private:
 	// needed for disconnect()-access
 	template <typename>

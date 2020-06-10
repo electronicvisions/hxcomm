@@ -76,4 +76,15 @@ Connection& Handle<Connection>::get()
 	}
 }
 
+template <typename Connection>
+std::unique_ptr<Connection> Handle<Connection>::release()
+{
+	if (m_connection) {
+		return std::move(m_connection);
+	} else {
+		HXCOMM_LOG_ERROR(m_logger, "Connection is not allocated!");
+		throw std::runtime_error("Connection is not allocated!");
+	}
+}
+
 } // namespace pyhxcomm

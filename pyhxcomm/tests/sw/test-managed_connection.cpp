@@ -128,15 +128,20 @@ TEST(ConnectionContext, WithInitParams)
 		// ConnectionProxy<Connection>::get can only be called by friended structs this
 		// is fine.
 		EXPECT_THROW(handle->get(), std::runtime_error);
+		EXPECT_THROW(handle->release(), std::runtime_error);
 	}
 	{
 		handle = managed.enter();
-		auto& conn = handle->get();
-		ASSERT_EQ(conn.m_fancy, 42);
-		ASSERT_EQ(conn.m_params, 6.8);
+		auto conn = handle->release();
+		ASSERT_EQ(conn->m_fancy, 42);
+		ASSERT_EQ(conn->m_params, 6.8);
+
+		EXPECT_THROW(handle->get(), std::runtime_error);
+		EXPECT_THROW(handle->release(), std::runtime_error);
 	}
 
 	managed.exit();
 	ASSERT_EQ(RefCounter::count, 0);
 	EXPECT_THROW(handle->get(), std::runtime_error);
+	EXPECT_THROW(handle->release(), std::runtime_error);
 }
