@@ -3,6 +3,8 @@
 #include "hxcomm/vx/connection_from_env.h"
 #include "hxcomm/vx/connection_variant.h"
 #include "hxcomm/vx/simconnection.h"
+#include "hxcomm/vx/zeromockconnection.h"
+
 #include <cstdlib>
 #include <optional>
 #include <utility>
@@ -54,6 +56,17 @@ inline std::vector<ConnectionVariant> get_arqconnection_list_from_env(
 	return connection_list;
 }
 
+inline std::vector<ConnectionVariant> get_zeromockconnection_list_from_env()
+{
+	char const* env_zero_mock = std::getenv("HXCOMM_ENABLE_ZERO_MOCK");
+
+	std::vector<ConnectionVariant> connection_list;
+	if (env_zero_mock != nullptr && atoi(env_zero_mock)) {
+		connection_list.emplace_back(ConnectionVariant{std::in_place_type<ZeroMockConnection>});
+	}
+	return connection_list;
+}
+
 } // namespace detail
 
 std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t> limit)
@@ -62,6 +75,8 @@ std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t
 		return arq;
 	} else if (auto sim = detail::get_simconnection_list_from_env(); !sim.empty()) {
 		return sim;
+	} else if (auto zeromock = detail::get_zeromockconnection_list_from_env(); !zeromock.empty()) {
+		return zeromock;
 	} else {
 		throw std::runtime_error("No executor backend found to connect to.");
 	}

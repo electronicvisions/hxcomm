@@ -188,6 +188,20 @@ def build(bld):
         uselib       = 'HXCOMM',
     )
 
+    bld(target          = 'hxcomm_zeromocktests_inc',
+        export_includes = 'tests/hw/hxcomm/connection_zeromock'
+    )
+
+    bld(
+        target       = 'hxcomm_zeromocktests',
+        features     = 'gtest cxx cxxprogram',
+        source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
+        test_main    = 'tests/common/src/main.cpp',
+        use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_zeromocktests_inc', 'BOOST4HXCOMMTOOLS'],
+        uselib       = 'HXCOMM',
+        test_environ = dict(HXCOMM_ENABLE_ZERO_MOCK='1'),
+)
+
     bld(
         features = 'doxygen',
         name = 'hxcomm_documentation',

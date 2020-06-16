@@ -33,5 +33,8 @@ TEST(TestConnection, Tick)
 	if (!connection) {
 		GTEST_SKIP();
 	}
+	if (std::holds_alternative<hxcomm::vx::ZeroMockConnection>(*connection)) {
+		GTEST_SKIP() << "ZeroMockConnection does not support tick loopback.";
+	}
 	std::visit(test, *connection);
 }

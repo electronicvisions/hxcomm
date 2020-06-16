@@ -80,6 +80,9 @@ TEST(TestConnection, JTAGLoopback)
 	if (!connection) {
 		GTEST_SKIP();
 	}
+	if (std::holds_alternative<hxcomm::vx::ZeroMockConnection>(*connection)) {
+		GTEST_SKIP() << "ZeroMockConnection does not support JTAG loopback.";
+	}
 	std::visit(test, *connection);
 
 	// same amount of JTAG data responses as JTAG data instructions sent and a halt response.
