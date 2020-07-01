@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "connection.h"
 #include "hxcomm/test-helper.h"
+#include "hxcomm/vx/connection_from_env.h"
 
 using namespace hxcomm::test;
 
@@ -35,50 +35,54 @@ TEST(TestConnection, JTAGLoopback)
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 
-	auto connection = generate_test_connection();
-	auto stream = Stream(connection);
-
-	// Reset sequence
-	stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
-	stream.add(UTMessageToFPGA<timing::Setup>());
-	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
-	stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
-	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
-
-	// JTAG init
-	stream.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
-	stream.add(UTMessageToFPGA<to_fpga_jtag::Init>());
-
+	std::vector<UTMessageFromFPGAVariant> responses;
+	std::vector<to_fpga_jtag::Data::Payload> payloads;
 	// Number of data words to write.
 	constexpr size_t num = 10;
 
-	std::vector<to_fpga_jtag::Data::Payload> payloads;
-	for (size_t i = 0; i < num; ++i) {
-		payloads.push_back(random_data());
-	}
+	auto const test = [&responses, &payloads, num](auto& connection) {
+		auto stream = Stream(connection);
 
-	// Select JTAG register that is guaranteed to have no effect
-	stream.add(UTMessageToFPGA<to_fpga_jtag::Ins>(to_fpga_jtag::Ins::BYPASS));
+		// Reset sequence
+		stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(true)));
+		stream.add(UTMessageToFPGA<timing::Setup>());
+		stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10)));
+		stream.add(UTMessageToFPGA<system::Reset>(system::Reset::Payload(false)));
+		stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(100)));
 
-	// add write messages
-	for (auto payload : payloads) {
-		stream.add(UTMessageToFPGA<to_fpga_jtag::Data>(payload));
-	}
+		// JTAG init
+		stream.add(UTMessageToFPGA<to_fpga_jtag::Scaler>(3));
+		stream.add(UTMessageToFPGA<to_fpga_jtag::Init>());
 
-	// Halt execution
-	stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
-	stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
+		for (size_t i = 0; i < num; ++i) {
+			payloads.push_back(random_data());
+		}
 
-	stream.commit();
+		// Select JTAG register that is guaranteed to have no effect
+		stream.add(UTMessageToFPGA<to_fpga_jtag::Ins>(to_fpga_jtag::Ins::BYPASS));
 
-	stream.run_until_halt();
+		// add write messages
+		for (auto payload : payloads) {
+			stream.add(UTMessageToFPGA<to_fpga_jtag::Data>(payload));
+		}
 
-	std::vector<UTMessageFromFPGAVariant> responses;
+		// Halt execution
+		stream.add(UTMessageToFPGA<timing::WaitUntil>(timing::WaitUntil::Payload(10000)));
+		stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
 
-	TestConnection::receive_message_type message;
-	while (stream.try_receive(message)) {
-		responses.push_back(message);
-	}
+		stream.commit();
+
+		stream.run_until_halt();
+
+
+		typename decltype(stream)::receive_message_type message;
+		while (stream.try_receive(message)) {
+			responses.push_back(message);
+		}
+	};
+
+	auto connection = get_connection_from_env();
+	std::visit(test, connection);
 
 	// same amount of JTAG data responses as JTAG data instructions sent and a halt response.
 	EXPECT_EQ(responses.size(), num + 1);

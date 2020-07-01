@@ -3,14 +3,8 @@
 #include <boost/program_options.hpp>
 #include <gtest/gtest.h>
 
-#include "connection.h"
 // logger include directory structure omits prefix
 #include "logging_ctrl.h"
-
-TestConnection generate_test_connection()
-{
-	return TestConnection();
-}
 
 int main(int argc, char* argv[])
 {

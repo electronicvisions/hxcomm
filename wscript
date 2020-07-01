@@ -172,31 +172,13 @@ def build(bld):
         uselib       = 'HXCOMM',
     )
 
-    bld(target          = 'hxcomm_hwtests_inc',
-        export_includes = 'tests/hw/hxcomm/connection_hw'
-    )
-
     bld(
-        target       = 'hxcomm_hwtests',
+        target       = 'hxcomm_backendtests',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
-        skip_run     = not bld.env.DLSvx_HARDWARE_AVAILABLE,
+        skip_run     = not (bld.env.DLSvx_HARDWARE_AVAILABLE or bld.env.DLSvx_SIM_AVAILABLE),
         test_main    = 'tests/hw/hxcomm/main.cpp',
-        use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_hwtests_inc', 'BOOST4HXCOMMTOOLS'],
-        uselib       = 'HXCOMM',
-    )
-
-    bld(target          = 'hxcomm_simtests_inc',
-        export_includes = 'tests/hw/hxcomm/connection_sim'
-    )
-
-    bld(
-        target       = 'hxcomm_simtests',
-        features     = 'gtest cxx cxxprogram',
-        source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
-        skip_run     = not bld.env.DLSvx_SIM_AVAILABLE,
-        test_main    = 'tests/hw/hxcomm/main.cpp',
-        use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_simtests_inc', 'BOOST4HXCOMMTOOLS'],
+        use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'],
         test_timeout = 60,
         uselib       = 'HXCOMM',
     )
