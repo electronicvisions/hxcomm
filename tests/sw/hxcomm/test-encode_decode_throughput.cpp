@@ -4,6 +4,7 @@
 #include "hate/timer.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/encoder.h"
+#include "hxcomm/common/logger.h"
 #include "hxcomm/vx/connection_parameter.h"
 #include "hxcomm/vx/utmessage.h"
 #include "hxcomm/vx/utmessage_random.h"
@@ -13,8 +14,6 @@ using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;
 using send_dict = hxcomm::vx::instruction::ToFPGADictionary;
 using recv_dict = hxcomm::vx::instruction::FromFPGADictionary;
-
-extern bool hxcomm_verbose;
 
 /**
  * Queue that stores only one element and blindly overwrites it without memory allocation.
@@ -120,9 +119,8 @@ TEST(Encoder, Throughput)
 {
 	auto result = throughput_measurement<typename hxcomm::vx::ConnectionParameter::Send>(num);
 	auto encode_mega_rate = result.first;
-	if (hxcomm_verbose) {
-		std::cout << "[ INFO     ] Encode rate: " << encode_mega_rate << " MB/s" << std::endl;
-	}
+	auto logger = log4cxx::Logger::getLogger("hxcomm.swtest.Encoder.Throughput");
+	HXCOMM_LOG_INFO(logger, "Encode rate: " << encode_mega_rate << " MB/s");
 	EXPECT_GT(encode_mega_rate, 125.); // reach minimally 1GBit
 }
 
@@ -131,8 +129,7 @@ TEST(Decoder, Throughput)
 	auto result =
 	    throughput_measurement<typename hxcomm::vx::ConnectionParameter::Receive>(num);
 	auto decode_mega_rate = result.second;
-	if (hxcomm_verbose) {
-		std::cout << "[ INFO     ] Decode rate: " << decode_mega_rate << " MB/s" << std::endl;
-	}
+	auto logger = log4cxx::Logger::getLogger("hxcomm.swtest.Decoder.Throughput");
+	HXCOMM_LOG_INFO(logger, "Decode rate: " << decode_mega_rate << " MB/s");
 	EXPECT_GT(decode_mega_rate, 125.); // reach minimally 1GBit
 }

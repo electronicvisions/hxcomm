@@ -142,7 +142,7 @@ def build(bld):
     bld.shlib(
         target       = 'hxcomm_tests_helper',
         features     = 'cxx',
-        source       = bld.path.ant_glob('tests/common/src/*.cpp'),
+        source       = bld.path.ant_glob('tests/common/src/test-*.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_inc'],
     )
 
@@ -156,7 +156,7 @@ def build(bld):
         use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'] + loopbackconnection_obj_targets,
         test_timeout = 120,
         uselib       = 'HXCOMM',
-        test_main    = 'tests/sw/hxcomm/main.cpp',
+        test_main    = 'tests/common/src/main.cpp',
     )
 
     bld(
@@ -164,7 +164,7 @@ def build(bld):
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*_throughput.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'],
-        test_main    = 'tests/sw/hxcomm/main.cpp',
+        test_main    = 'tests/common/src/main.cpp',
         cxxflags     = ['-O2'],
         # Throughput targets are only valid for HBPHosts and AMTHosts
         skip_run     = not (gethostname().startswith("HBPHost") or
@@ -177,7 +177,7 @@ def build(bld):
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = not (bld.env.DLSvx_HARDWARE_AVAILABLE or bld.env.DLSvx_SIM_AVAILABLE),
-        test_main    = 'tests/hw/hxcomm/main.cpp',
+        test_main    = 'tests/common/src/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'],
         test_timeout = 60,
         uselib       = 'HXCOMM',
