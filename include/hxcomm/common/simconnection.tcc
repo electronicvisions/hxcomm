@@ -18,8 +18,6 @@ SimConnection<ConnectionParameter>::SimConnection(
 	    work_receive(local_sim);
     }),
     m_runnable_mutex(),
-    m_time_info_mutex(),
-    m_time_info(),
     m_terminate_on_destruction(enable_terminate_on_destruction),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
@@ -43,8 +41,6 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
 	    work_receive(local_sim);
     }),
     m_runnable_mutex(),
-    m_time_info_mutex(),
-    m_time_info(),
     m_terminate_on_destruction(enable_terminate_on_destruction),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
@@ -65,19 +61,16 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
     m_run_receive(true),
     m_worker_receive(),
     m_runnable_mutex(),
-    m_time_info_mutex(),
-    m_time_info(),
     m_terminate_on_destruction(false),
     m_logger(log4cxx::Logger::getLogger("hxcomm.SimConnection"))
 {
 	// shutdown other threads
 	other.m_run_receive = false;
 	other.m_worker_receive.join();
-	m_time_info = other.m_time_info;
-	{
-		std::lock_guard<std::mutex> lock(other.m_time_info_mutex);
-		other.m_time_info = ConnectionTimeInfo();
-	}
+	m_encode_duration = other.m_encode_duration.load(std::memory_order_relaxed);
+	m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
+	m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
+	m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
 	// move simulator client
 	m_sim = std::move(other.m_sim);
 	// move queues
@@ -127,10 +120,7 @@ void SimConnection<ConnectionParameter>::add(send_message_type const& message)
 	hate::Timer timer;
 	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
@@ -138,10 +128,7 @@ void SimConnection<ConnectionParameter>::add(std::vector<send_message_type> cons
 {
 	hate::Timer timer;
 	m_encoder(messages);
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
@@ -154,10 +141,7 @@ void SimConnection<ConnectionParameter>::commit()
 		m_sim->send({m_send_queue.front()});
 		m_send_queue.pop();
 	}
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.commit_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_commit_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
@@ -184,10 +168,7 @@ void SimConnection<ConnectionParameter>::work_receive(flange::SimulatorClient& l
 		while (local_sim.receive_data_available() && m_run_receive) {
 			hate::Timer timer;
 			m_decoder(local_sim.receive());
-			{
-				std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-				m_time_info.decode_duration += std::chrono::nanoseconds(timer.get_ns());
-			}
+			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
 		}
 	}
 }
@@ -212,17 +193,17 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 			throw std::runtime_error("Error during usleep call.");
 		}
 	}
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.execution_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_execution_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
 ConnectionTimeInfo SimConnection<ConnectionParameter>::get_time_info() const
 {
-	std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-	return m_time_info;
+	return ConnectionTimeInfo{
+	    std::chrono::nanoseconds(m_encode_duration.load(std::memory_order_relaxed)),
+	    std::chrono::nanoseconds(m_decode_duration.load(std::memory_order_acquire)),
+	    std::chrono::nanoseconds(m_commit_duration.load(std::memory_order_relaxed)),
+	    std::chrono::nanoseconds(m_execution_duration.load(std::memory_order_relaxed))};
 }
 
 template <typename ConnectionParameter>

@@ -213,8 +213,13 @@ private:
 	std::mutex m_runnable_mutex;
 
 	std::mutex m_mutex;
-	mutable std::mutex m_time_info_mutex;
-	ConnectionTimeInfo m_time_info;
+
+	typedef std::atomic<std::chrono::nanoseconds::rep> duration_type;
+	duration_type m_encode_duration{};
+	duration_type m_decode_duration{};
+	duration_type m_commit_duration{};
+	duration_type m_execution_duration{};
+
 	bool m_terminate_on_destruction;
 	log4cxx::Logger* m_logger;
 

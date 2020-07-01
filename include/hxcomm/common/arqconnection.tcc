@@ -59,7 +59,6 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this),
-    m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {}
 
@@ -73,8 +72,6 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this),
-    m_time_info_mutex(),
-    m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
@@ -90,18 +87,15 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_decoder(m_receive_queue, m_listener_halt), // temporary
     m_run_receive(true),
     m_worker_receive(),
-    m_time_info_mutex(),
-    m_time_info(),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
 {
 	// shutdown other threads
 	other.m_run_receive = false;
 	other.m_worker_receive.join();
-	m_time_info = other.m_time_info;
-	{
-		std::lock_guard<std::mutex> lock(other.m_time_info_mutex);
-		other.m_time_info = ConnectionTimeInfo();
-	}
+	m_encode_duration = other.m_encode_duration.load(std::memory_order_relaxed);
+	m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
+	m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
+	m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
 	// move arq stream
 	m_arq_stream = std::move(other.m_arq_stream);
 	// move queues
@@ -138,10 +132,7 @@ void ARQConnection<ConnectionParameter>::add(send_message_type const& message)
 	hate::Timer timer;
 	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
@@ -149,10 +140,7 @@ void ARQConnection<ConnectionParameter>::add(std::vector<send_message_type> cons
 {
 	hate::Timer timer;
 	m_encoder(messages);
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
@@ -167,13 +155,10 @@ void ARQConnection<ConnectionParameter>::commit()
 		m_arq_stream->send(packet, arq_stream_type::NOTHING);
 	}
 	m_arq_stream->flush();
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		std::chrono::nanoseconds duration(timer.get_ns());
-		m_time_info.commit_duration += duration;
-		// Issue #3583 : Execution already starts upon sending
-		m_time_info.execution_duration += duration;
-	}
+	auto const duration = timer.get_ns();
+	m_commit_duration.fetch_add(duration, std::memory_order_relaxed);
+	// Issue #3583 : Execution already starts upon sending
+	m_execution_duration.fetch_add(duration, std::memory_order_relaxed);
 }
 
 template <typename ConnectionParameter>
@@ -209,10 +194,7 @@ void ARQConnection<ConnectionParameter>::work_receive()
 			for (size_t i = 0; i < packet.len; ++i) {
 				m_decoder(packet.pdu[i]);
 			}
-			{
-				std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-				m_time_info.decode_duration += std::chrono::nanoseconds(timer.get_ns());
-			}
+			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
 		}
 	}
 }
@@ -239,17 +221,17 @@ void ARQConnection<ConnectionParameter>::run_until_halt()
 		wait_period = std::min(wait_period * 2, max_wait_period);
 	}
 	m_listener_halt.reset();
-	{
-		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-		m_time_info.execution_duration += std::chrono::nanoseconds(timer.get_ns());
-	}
+	m_execution_duration += timer.get_ns();
 }
 
 template <typename ConnectionParameter>
 ConnectionTimeInfo ARQConnection<ConnectionParameter>::get_time_info() const
 {
-	std::lock_guard<std::mutex> const lock(m_time_info_mutex);
-	return m_time_info;
+	return ConnectionTimeInfo{
+	    std::chrono::nanoseconds(m_encode_duration.load(std::memory_order_relaxed)),
+	    std::chrono::nanoseconds(m_decode_duration.load(std::memory_order_acquire)),
+	    std::chrono::nanoseconds(m_commit_duration.load(std::memory_order_relaxed)),
+	    std::chrono::nanoseconds(m_execution_duration.load(std::memory_order_relaxed))};
 }
 
 template <typename ConnectionParameter>
