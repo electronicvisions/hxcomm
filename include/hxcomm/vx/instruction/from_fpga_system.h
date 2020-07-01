@@ -16,7 +16,14 @@ struct Loopback
 	constexpr static Payload tick{1};
 };
 
+/** Highspeed-Link notifications. */
+struct HighspeedLinkNotification
+{
+	constexpr static size_t size = 8;
+	typedef hxcomm::instruction::detail::payload::Bitset<HighspeedLinkNotification, size> Payload;
+};
+
 /** Dictionary of all FPGA system response instructions. */
-typedef hate::type_list<Loopback> Dictionary;
+typedef hate::type_list<Loopback, HighspeedLinkNotification> Dictionary;
 
 } // namespace hxcomm::vx::instruction::from_fpga_system

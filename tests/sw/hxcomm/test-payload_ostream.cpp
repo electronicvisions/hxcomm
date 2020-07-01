@@ -36,6 +36,8 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
      "hxcomm::vx::instruction::jtag_from_hicann::Data(000000000000000000000000000000000)"},
     {typeid(omnibus_from_fpga::Data), "hxcomm::vx::instruction::omnibus_from_fpga::Data(0)"},
     {typeid(from_fpga_system::Loopback), "hxcomm::vx::instruction::from_fpga_system::Loopback(0)"},
+    {typeid(from_fpga_system::HighspeedLinkNotification),
+     "hxcomm::vx::instruction::from_fpga_system::HighspeedLinkNotification(00000000)"},
     {typeid(timing_from_fpga::Sysdelta),
      "hxcomm::vx::instruction::timing_from_fpga::Sysdelta(00000000)"},
     {typeid(timing_from_fpga::Systime), "hxcomm::vx::instruction::timing_from_fpga::Systime("
