@@ -168,7 +168,7 @@ private:
 
 	std::unique_ptr<flange::SimulatorClient> m_sim;
 
-	typedef flange::SimulatorEvent::al_data_t subpacket_type;
+	typedef flange::SimulatorEvent::al_data_t::value_type subpacket_type;
 
 	static_assert(
 	    std::is_same<subpacket_type, typename ConnectionParameter::Send::PhywordType>::value,
