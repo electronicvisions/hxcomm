@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
+#include "hxcomm/common/cerealization_connection_time_info.h"
 #include "hxcomm/common/cerealization_utmessage.h"
 
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/archives/xml.hpp>
+
+#include <fstream>
+#include <type_traits>
 
 #include "test-to_testing_types.h"
 
@@ -15,9 +19,10 @@ template <class T>
 class CommonSerializationTests : public ::testing::Test
 {};
 
-typedef
-    typename to_testing_types<instruction::ToFPGADictionary, instruction::FromFPGADictionary>::type
-        SerializableTypes;
+typedef typename to_testing_types<
+    instruction::ToFPGADictionary,
+    instruction::FromFPGADictionary,
+    hxcomm::ConnectionTimeInfo>::type SerializableTypes;
 
 TYPED_TEST_CASE(CommonSerializationTests, SerializableTypes);
 
@@ -37,6 +42,16 @@ TYPED_TEST(CommonSerializationTests, IsAssignable)
 	TYPED_TEST(CommonSerializationTests, HasSerialization##IArchive##OArchive)                     \
 	{                                                                                              \
 		TypeParam obj1, obj2;                                                                      \
+                                                                                                   \
+		if constexpr (std::is_standard_layout_v<TypeParam>) {                                      \
+			std::ifstream urandom("/dev/urandom", std::ios_base::in | std::ios_base::binary);      \
+			char* raw = reinterpret_cast<char*>(&obj1);                                            \
+                                                                                                   \
+			/* Fill object with random data so we detect if serialization misses some members */   \
+			for (std::size_t i = 0; i < sizeof(TypeParam); ++i) {                                  \
+				urandom >> raw[i];                                                                 \
+			}                                                                                      \
+		}                                                                                          \
                                                                                                    \
 		using namespace cereal;                                                                    \
 		std::ostringstream ostream;                                                                \
