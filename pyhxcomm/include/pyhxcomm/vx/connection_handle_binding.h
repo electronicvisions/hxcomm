@@ -38,19 +38,22 @@ struct add_shared<std::variant<Ts...>>
 template <>
 struct HandleVariantConstructor<hxcomm::vx::ConnectionVariant>
 {
-	using handle_type = typename add_shared<vx::ConnectionHandle>::type;
+	using variant_handle_type = typename add_shared<vx::ConnectionHandle>::type;
 
-	static handle_type construct()
+	static variant_handle_type construct()
 	{
-		return handle_type(std::visit(
-		    [](auto&& conn) -> handle_type {
-			    using connection_type = std::remove_cvref_t<decltype(conn)>;
-			    using handle_type = pyhxcomm::Handle<connection_type>;
-			    using shared_handle_type = std::shared_ptr<handle_type>;
+		return std::visit(
+		    [](auto&& conn) -> variant_handle_type {
+			    using connection_type = std::decay_t<decltype(conn)>;
+			    using single_handle_type = pyhxcomm::Handle<connection_type>;
+			    using shared_single_handle_type = std::shared_ptr<single_handle_type>;
 
-			    return shared_handle_type(new handle_type(std::move(conn)));
+			    shared_single_handle_type single =
+			        std::make_shared<single_handle_type>(std::move(conn));
+
+			    return variant_handle_type(std::move(single));
 		    },
-		    hxcomm::vx::get_connection_from_env()));
+		    hxcomm::vx::get_connection_from_env());
 	}
 };
 
