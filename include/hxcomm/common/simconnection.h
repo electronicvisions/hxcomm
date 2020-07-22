@@ -119,11 +119,9 @@ private:
 
 	/**
 	 * Add a single UT message to the send queue.
-	 * @tparam MessageType Type of message to add
 	 * @param message Message to add
 	 */
-	template <typename MessageType>
-	void add(MessageType const& message);
+	void add(send_message_type const& message);
 
 	/**
 	 * Add multiple UT messages to the send queue.

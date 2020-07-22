@@ -122,12 +122,11 @@ std::mutex& SimConnection<ConnectionParameter>::get_mutex()
 }
 
 template <typename ConnectionParameter>
-template <class MessageType>
-void SimConnection<ConnectionParameter>::add(MessageType const& message)
+void SimConnection<ConnectionParameter>::add(send_message_type const& message)
 {
 	hate::Timer timer;
 	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
-	m_encoder(message);
+	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
 	{
 		std::lock_guard<std::mutex> const lock(m_time_info_mutex);
 		m_time_info.encode_duration += std::chrono::nanoseconds(timer.get_ns());

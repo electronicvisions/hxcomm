@@ -50,18 +50,9 @@ public:
 		    decltype(std::declval<ConnType>().add(std::declval<MessageT const&>())),
 		    void>::type;
 
-		template <typename>
-		struct has_templated_add_method : std::false_type
-		{};
-
-		template <typename... MessageTs>
-		struct has_templated_add_method<boost::variant<MessageTs...>>
-		    : std::conjunction<has_add_method<MessageTs>...>
-		{};
-
 		static_assert(
-		    has_templated_add_method<send_message_type>::value,
-		    "Connection add-method not defined for all messages.");
+		    has_add_method<send_message_type>::value,
+		    "Connection missing add-method for single messages.");
 
 		static_assert(
 		    has_add_method<typename std::vector<send_message_type>>::value,
