@@ -1,11 +1,12 @@
 #pragma once
 
-#include "hxcomm/common/connection_variant.h"
-#include "hxcomm/vx/connection_parameter.h"
+#include "hxcomm/vx/arqconnection.h"
+#include "hxcomm/vx/simconnection.h"
 
+#include <variant>
 
 namespace hxcomm::vx {
 
-using ConnectionVariant = hxcomm::ConnectionVariant<hxcomm::vx::ConnectionParameter>;
+using ConnectionVariant = std::variant<hxcomm::vx::ARQConnection, hxcomm::vx::SimConnection>;
 
 } // namespace hxcomm::vx
