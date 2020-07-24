@@ -50,13 +50,12 @@ struct RefCounter
 
 namespace hxcomm::detail {
 
-template <template <typename> class Sequence>
-struct ExecutorMessages<RefCounter, Sequence>
+template <>
+struct ExecutorMessages<RefCounter>
 {
 	using connection_type = RefCounter;
-	using return_type =
-	    std::pair<Sequence<typename RefCounter::message_types::receive_type>, ConnectionTimeInfo>;
-	using messages_type = Sequence<typename RefCounter::message_types::send_type>;
+	using return_type = execute_messages_return_t<connection_type>;
+	using messages_type = execute_messages_argument_t<connection_type>;
 
 	return_type operator()(RefCounter&, messages_type const&)
 	{

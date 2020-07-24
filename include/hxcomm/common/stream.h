@@ -4,10 +4,10 @@
 #include "hate/type_list.h"
 
 #include "hxcomm/common/connection.h"
+#include "hxcomm/common/execute_messages_types.h"
 
 #include <mutex>
 #include <type_traits>
-#include <vector>
 
 namespace hxcomm {
 
@@ -55,8 +55,8 @@ public:
 		    "Connection missing add-method for single messages.");
 
 		static_assert(
-		    has_add_method<typename std::vector<send_message_type>>::value,
-		    "Connection missing add-method for vectors.");
+		    has_add_method<typename detail::execute_messages_argument_t<ConnType>>::value,
+		    "Connection missing add-method for sequences.");
 
 		static_assert(
 		    std::is_same_v<decltype(&ConnType::commit), void (ConnType::*)()>,
@@ -113,7 +113,7 @@ public:
 	 * Add multiple UT messages to the send queue.
 	 * @param messages Messages to add
 	 */
-	void add(std::vector<send_message_type> const& messages)
+	void add(typename detail::execute_messages_argument_t<connection_type> const& messages)
 	{
 		m_connection.add(messages);
 	}

@@ -1,15 +1,17 @@
 #pragma once
 
-#include <memory>
-#include <utility>
-#include <variant>
-
-#include "hate/type_traits.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
+#include "hxcomm/common/execute_messages_types.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/visit_connection.h"
+
+#include "hate/type_traits.h"
+
+#include <memory>
+#include <utility>
+#include <variant>
 
 namespace hxcomm {
 
@@ -22,15 +24,15 @@ namespace detail {
  *
  * TODO: Validate interface via concepts once gcc 10 is ready.
  */
-template <typename Connection, template <typename> class Sequence>
+template <typename Connection>
 struct ExecutorMessages
 {
 	using connection_type = Connection;
 	using receive_message_type = typename connection_type::receive_message_type;
 	using send_message_type = typename connection_type::send_message_type;
-	using response_type = Sequence<receive_message_type>;
-	using return_type = std::pair<response_type, ConnectionTimeInfo>;
-	using messages_type = Sequence<send_message_type>;
+	using return_type = execute_messages_return_t<Connection>;
+	using response_type = typename return_type::first_type;
+	using messages_type = execute_messages_argument_t<Connection>;
 	using send_halt_message_type = typename connection_type::send_halt_message_type;
 
 	static_assert(
@@ -73,17 +75,11 @@ struct ExecutorMessages
  * @tparam Connection The connection on which the messages are executed.
  * @tparam Sequence In which sequential container should the messages be stored.
  */
-template <
-    typename Connection,
-    template <typename>
-    class Sequence,
-    ConnectionIsPlainGuard<Connection> = 0>
-std::pair<Sequence<typename GetMessageTypes<Connection>::type::receive_type>, ConnectionTimeInfo>
-execute_messages(
-    Connection& connection,
-    Sequence<typename GetMessageTypes<Connection>::type::send_type> const& messages)
+template <typename Connection, ConnectionIsPlainGuard<Connection> = 0>
+detail::execute_messages_return_t<Connection> execute_messages(
+    Connection& connection, detail::execute_messages_argument_t<Connection> const& messages)
 {
-	auto const [res, time] = detail::ExecutorMessages<Connection, Sequence>()(connection, messages);
+	auto const [res, time] = detail::ExecutorMessages<Connection>()(connection, messages);
 	[[maybe_unused]] log4cxx::Logger* log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
 	HXCOMM_LOG_INFO(
 	    log, "Executed messages(" << messages.size() << ") and got responses(" << res.size()
@@ -92,18 +88,9 @@ execute_messages(
 	return {res, time};
 }
 
-template <
-    typename Connection,
-    template <typename>
-    class Sequence,
-    ConnectionIsWrappedGuard<Connection> = 0>
-std::pair<
-    Sequence<typename GetMessageTypes<std::remove_cvref_t<Connection>>::type::receive_type>,
-    ConnectionTimeInfo>
-execute_messages(
-    Connection&& connection,
-    Sequence<typename GetMessageTypes<std::remove_cvref_t<Connection>>::type::send_type> const&
-        messages)
+template <typename Connection, ConnectionIsWrappedGuard<Connection> = 0>
+detail::execute_messages_return_t<Connection> execute_messages(
+    Connection&& connection, detail::execute_messages_argument_t<Connection> const& messages)
 {
 	return hxcomm::visit_connection(
 	    [&messages](auto& conn) -> decltype(auto) { return execute_messages(conn, messages); },

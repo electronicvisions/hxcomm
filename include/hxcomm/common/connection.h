@@ -114,11 +114,18 @@ struct MessageTypes
 };
 
 /**
- * Helper function to get MessageTypes from a variant over the same ConnectionParameter
- * in a streamlined fashion.
+ * Helper function to get MessageTypes from a Connection or a variant etc over the same
+ * Connection in a streamlined fashion. If C is a ConnectionParameter
+ * instance, the corresponding MessageTypes will be returned.
  */
-template <typename C>
+template <typename C, typename = void>
 struct GetMessageTypes
+{
+	using type = MessageTypes<C>;
+};
+
+template <typename C>
+struct GetMessageTypes<C, std::void_t<typename C::message_types>>
 {
 	using type = typename C::message_types;
 };
