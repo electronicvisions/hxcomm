@@ -31,7 +31,7 @@ public:
 	 * @param args Agruments to construct from
 	 */
 	template <typename... Args>
-	constexpr Bitset(Args... args) : value_type(args...)
+	constexpr explicit Bitset(Args... args) : value_type(args...)
 	{}
 
 	/**
@@ -53,7 +53,7 @@ public:
 	template <typename SubwordType = unsigned long>
 	void decode(hate::bitset<N, SubwordType> const& data)
 	{
-		*this = data;
+		*this = Bitset(data);
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, Bitset const& value)

@@ -75,19 +75,19 @@ public:
 	    "SubwordType size not supported as too large.");
 
 	/** Default construct UTMessage with zeroed payload. */
-	constexpr UTMessage();
+	constexpr explicit UTMessage();
 
 	/**
 	 * Construct UTMessage with header and payload.
 	 * @param payload Payload bitset to fill UTMessage payload field with
 	 */
-	constexpr UTMessage(payload_type const& payload);
+	constexpr explicit UTMessage(payload_type const& payload);
 
 	/**
 	 * Construct UTMessage with header and payload.
 	 * @param payload Payload to fill UTMessage payload field with
 	 */
-	constexpr UTMessage(typename Instruction::Payload const& payload);
+	constexpr explicit UTMessage(typename Instruction::Payload const& payload);
 
 	/**
 	 * Get underlying bitset.

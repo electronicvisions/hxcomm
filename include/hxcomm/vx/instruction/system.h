@@ -21,8 +21,8 @@ struct Loopback
 	constexpr static size_t size = 1;
 	typedef hxcomm::instruction::detail::payload::Bitset<Loopback, size> Payload;
 
-	constexpr static Payload halt = 0;
-	constexpr static Payload tick = 1;
+	constexpr static Payload halt{0};
+	constexpr static Payload tick{1};
 };
 
 /** Dictionary of all system instructions. */
