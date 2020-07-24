@@ -28,9 +28,9 @@ inline std::vector<ConnectionVariant> get_simconnection_list_from_env()
 
 	std::vector<ConnectionVariant> connection_list;
 	if (env_sim_port != nullptr) {
-		connection_list.emplace_back(ConnectionVariant{std::in_place_type<SimConnection>,
-		                                               env_sim_host,
-		                                               static_cast<uint16_t>(atoi(env_sim_port))});
+		connection_list.emplace_back(ConnectionVariant{
+		    std::in_place_type<SimConnection>, env_sim_host,
+		    static_cast<uint16_t>(atoi(env_sim_port))});
 	}
 	return connection_list;
 }
@@ -70,9 +70,27 @@ std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t
 	}
 }
 
+
 ConnectionVariant get_connection_from_env()
 {
 	return std::move(get_connection_list_from_env(1).at(0));
+}
+
+std::optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant>
+get_connection_full_stream_interface_from_env()
+{
+	ConnectionVariant variant_from_env(get_connection_from_env());
+
+	return std::visit(
+	    [](auto&& variant) -> std::optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant> {
+		    if constexpr (hxcomm::has_full_stream_interface<decltype(variant)>::value) {
+			    return std::make_optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant>(
+			        std::in_place_type<std::decay_t<decltype(variant)>>, std::move(variant));
+		    } else {
+			    return std::nullopt;
+		    }
+	    },
+	    std::move(variant_from_env));
 }
 
 } // namespace hxcomm::vx

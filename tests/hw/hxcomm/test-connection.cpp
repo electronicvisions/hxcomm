@@ -21,8 +21,11 @@ TEST(TestConnection, ReceiveEmpty)
 		EXPECT_TRUE(stream.receive_empty());
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 }
 
 TEST(TestConnection, RunUntilHalt)
@@ -38,8 +41,11 @@ TEST(TestConnection, RunUntilHalt)
 		EXPECT_NO_THROW(stream.run_until_halt());
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 }
 
 TEST(TestConnection, Receive)
@@ -62,8 +68,11 @@ TEST(TestConnection, Receive)
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 }
 
 TEST(TestConnection, TryReceive)
@@ -87,8 +96,11 @@ TEST(TestConnection, TryReceive)
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 }
 
 TEST(TestConnection, FromEnv)

@@ -44,8 +44,11 @@ TEST(TestConnection, ReadoutJtagID)
 		}
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 
 	EXPECT_EQ(responses.size(), 2);
 	auto jtag_id = static_cast<uint32_t>(

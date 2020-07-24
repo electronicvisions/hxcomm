@@ -121,7 +121,7 @@ struct MessageTypes
 template <typename C, typename = void>
 struct GetMessageTypes
 {
-	using type = MessageTypes<C>;
+	using type = MessageTypes<std::decay_t<C>>;
 };
 
 template <typename C>

@@ -81,8 +81,11 @@ TEST(TestConnection, JTAGLoopback)
 		}
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 
 	// same amount of JTAG data responses as JTAG data instructions sent and a halt response.
 	EXPECT_EQ(responses.size(), num + 1);

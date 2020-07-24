@@ -84,6 +84,13 @@ public:
 	static_assert(sizeof(Streamable<Connection>) > 0, "Connection adhere to Stream-Interface.");
 
 	/**
+	 * Indicate whether this Stream instance supports the full interface as tested above.
+	 * Some connections only support being run via execue_messages. This is
+	 * relevant for test execution.
+	 */
+	using has_full_stream_interface = std::true_type;
+
+	/**
 	 * Construct a Stream for the given connection handle which it manages.
 	 * Lock connection-internal mutex to ensure mutual exclusion.
 	 */
@@ -167,5 +174,32 @@ protected:
 	connection_type& m_connection;
 	std::unique_lock<std::mutex> m_connection_lock;
 };
+
+namespace detail {
+
+/**
+ * Helper function because llvm is not yet able to not count defaulted template
+ * parameters when supplying templated template parameters.
+ */
+template <typename Connection, typename = void>
+struct has_full_stream_interface : std::false_type
+{};
+
+template <typename Connection>
+struct has_full_stream_interface<
+    Connection,
+    std::enable_if_t<Stream<Connection>::has_full_stream_interface::value>> : std::true_type
+{};
+
+} // namespace detail
+
+/**
+ * Helper function to distinguish between connections implementing the whole
+ * Stream interface as above and those with a custom
+ * execute_messages-implementation.
+ *
+ */
+template <typename Connection>
+using has_full_stream_interface = detail::has_full_stream_interface<std::decay_t<Connection>>;
 
 } // namespace hxcomm

@@ -25,6 +25,9 @@ TEST(TestConnection, Halt)
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 
-	auto connection = get_connection_from_env();
-	std::visit(test, connection);
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	std::visit(test, *connection);
 }
