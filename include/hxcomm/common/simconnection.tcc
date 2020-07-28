@@ -118,7 +118,6 @@ template <typename ConnectionParameter>
 void SimConnection<ConnectionParameter>::add(send_message_type const& message)
 {
 	hate::Timer timer;
-	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
 	m_encode_duration.fetch_add(timer.get_ns(), std::memory_order_relaxed);
 }

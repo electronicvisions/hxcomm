@@ -125,7 +125,6 @@ void ARQConnection<ConnectionParameter>::add(send_message_type const& message)
 	if (!m_arq_stream) {
 		throw std::runtime_error("Unexpected access to moved-from ARQConnection.");
 	}
-	HXCOMM_LOG_DEBUG(m_logger, "add(): Adding UT message to send queue: " << message);
 	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
 	auto const duration = timer.get_ns();
 	m_encode_duration.fetch_add(duration, std::memory_order_relaxed);

@@ -3,6 +3,10 @@
 #include <climits>
 #include <stdint.h>
 
+namespace log4cxx {
+class Logger;
+} // namespace log4cxx
+
 namespace hxcomm {
 
 namespace detail {
@@ -102,6 +106,8 @@ private:
 	size_t m_buffer_filling_level;
 
 	word_queue_type& m_word_queue;
+
+	log4cxx::Logger* m_logger;
 };
 
 } // namespace hxcomm

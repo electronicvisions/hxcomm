@@ -53,7 +53,7 @@ Decoder<UTMessageParameter, MessageQueueType, Listener...>::Decoder(
 template <typename UTMessageParameter, typename MessageQueueType, typename... Listener>
 void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(word_type const word)
 {
-	HXCOMM_LOG_DEBUG(
+	HXCOMM_LOG_TRACE(
 	    m_logger, "operator(): Got PHY word to decode: 0x"
 	                  << std::setfill('0') << std::setw(sizeof(word_type) * 2) << std::hex << word);
 	m_coroutine(word);
@@ -66,9 +66,9 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
 {
 	for (auto it = iterable.cbegin(); it != iterable.cend(); ++it) {
 		HXCOMM_LOG_DEBUG(
-		    m_logger, "operator(): Got PHY word to decode: 0x"
-		                  << std::setfill('0') << std::setw(sizeof(word_type) * 2) << std::hex
-		                  << *it);
+		    m_logger, "operator(): Got PHY word to decode: " << std::showbase << std::setfill('0')
+		                                                     << std::setw(sizeof(word_type) * 2)
+		                                                     << std::hex << *it);
 	}
 	std::copy(iterable.cbegin(), iterable.cend(), begin(m_coroutine));
 }
