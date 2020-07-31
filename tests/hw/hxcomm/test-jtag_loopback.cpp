@@ -92,7 +92,7 @@ TEST(TestConnection, JTAGLoopback)
 	for (size_t i = 0; i < num; ++i) {
 		// shift by one because in between TDI and TDO there's one register in BYPASS mode
 		auto response =
-		    boost::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses[i]).decode() >> 1;
+		    std::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses[i]).decode() >> 1;
 		auto expected =
 		    payloads[i].get_payload().reset(static_cast<size_t>(payloads[i].get_num_bits()) - 1);
 		EXPECT_EQ(decltype(payloads[i].get_payload())(response), expected);

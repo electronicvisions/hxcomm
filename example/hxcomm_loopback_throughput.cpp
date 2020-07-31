@@ -37,8 +37,7 @@ void throughput_measurement(size_t const num, unsigned int const seed)
 
 	size_t byte_count = 0;
 	for (auto msg : instructions) {
-		boost::apply_visitor(
-		    [&byte_count](auto&& m) { byte_count += m.word_width / CHAR_BIT; }, msg);
+		std::visit([&byte_count](auto&& m) { byte_count += m.word_width / CHAR_BIT; }, msg);
 	}
 
 	auto to_mega_rate = [](size_t const count, auto const dur_ms) -> double {

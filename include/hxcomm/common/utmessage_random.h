@@ -68,7 +68,7 @@ auto random_ut_message(std::mt19937 gen = std::mt19937(std::random_device{}())) 
 	// random default message
 	auto message = default_ut_message<UTMessageParameter>::get(random_header(gen));
 	// random payload
-	boost::apply_visitor(
+	std::visit(
 	    [&gen](auto& m) {
 		    m.encode(random_payload<
 		             typename std::remove_reference<decltype(m)>::type::instruction_type::Payload>(

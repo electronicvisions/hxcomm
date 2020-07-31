@@ -1,6 +1,6 @@
 #pragma once
 #include "hate/type_list.h"
-#include <boost/variant.hpp>
+#include <variant>
 
 namespace hxcomm {
 
@@ -27,7 +27,7 @@ struct ToUTMessageVariant;
 template <size_t HeaderAlignment, typename SubwordType, typename PhywordType, typename... Is>
 struct ToUTMessageVariant<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...> >
 {
-	typedef boost::variant<
+	typedef std::variant<
 	    UTMessage<HeaderAlignment, SubwordType, PhywordType, hate::type_list<Is...>, Is>...>
 	    type;
 };

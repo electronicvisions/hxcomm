@@ -22,7 +22,7 @@ LoopbackConnection<UTMessageParameter>::~LoopbackConnection()
 template <typename UTMessageParameter>
 void LoopbackConnection<UTMessageParameter>::add(send_message_type const& message)
 {
-	boost::apply_visitor([this](auto const& m) { m_encoder(m); }, message);
+	std::visit([this](auto const& m) { m_encoder(m); }, message);
 }
 
 template <typename UTMessageParameter>

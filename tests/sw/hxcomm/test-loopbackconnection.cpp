@@ -46,7 +46,7 @@ MYTEST(Name, OneMessage)
 	auto message = random_ut_message<TestUTMessageParameter>();
 
 	LoopbackConnection<TestUTMessageParameter> connection;
-	boost::apply_visitor([&connection](auto m) { connection.add(m); }, message);
+	std::visit([&connection](auto m) { connection.add(m); }, message);
 	connection.commit();
 	while (connection.receive_empty()) {
 		std::this_thread::sleep_for(empty_sleep);
@@ -61,7 +61,7 @@ MYTEST(Name, OneMessageAfterCommit)
 
 	LoopbackConnection<TestUTMessageParameter> connection;
 	connection.commit();
-	boost::apply_visitor([&connection](auto m) { connection.add(m); }, message);
+	std::visit([&connection](auto m) { connection.add(m); }, message);
 	connection.commit();
 	while (connection.receive_empty()) {
 		std::this_thread::sleep_for(empty_sleep);
@@ -75,7 +75,7 @@ MYTEST(Name, OneMessageMultiCommit)
 	auto message = random_ut_message<TestUTMessageParameter>();
 
 	LoopbackConnection<TestUTMessageParameter> connection;
-	boost::apply_visitor([&connection](auto m) { connection.add(m); }, message);
+	std::visit([&connection](auto m) { connection.add(m); }, message);
 	connection.commit();
 	connection.commit();
 	while (connection.receive_empty()) {

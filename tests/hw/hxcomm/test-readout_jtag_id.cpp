@@ -51,6 +51,6 @@ TEST(TestConnection, ReadoutJtagID)
 
 	EXPECT_EQ(responses.size(), 2);
 	auto jtag_id = static_cast<uint32_t>(
-	    boost::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses.front()).decode());
+	    std::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses.front()).decode());
 	EXPECT_TRUE((jtag_id == 0x048580AF) || (jtag_id == 0x248580AF));
 }

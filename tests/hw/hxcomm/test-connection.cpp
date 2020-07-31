@@ -88,7 +88,7 @@ TEST(TestConnection, Receive)
 		auto response = stream.receive();
 		EXPECT_TRUE(stream.receive_empty());
 		EXPECT_EQ(
-		    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 
@@ -116,7 +116,7 @@ TEST(TestConnection, TryReceive)
 		EXPECT_TRUE(stream.try_receive(response));
 		EXPECT_TRUE(stream.receive_empty());
 		EXPECT_EQ(
-		    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response),
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 

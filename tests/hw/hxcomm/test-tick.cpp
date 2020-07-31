@@ -20,10 +20,10 @@ TEST(TestConnection, Tick)
 		auto response_halt = stream.receive();
 		EXPECT_TRUE(stream.receive_empty());
 		EXPECT_EQ(
-		    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_tick),
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_tick),
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::tick));
 		EXPECT_EQ(
-		    boost::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_halt),
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_halt),
 		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
 	};
 

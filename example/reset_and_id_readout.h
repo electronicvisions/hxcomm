@@ -45,6 +45,6 @@ void reset_and_id_readout(Stream& stream)
 
 	while (!stream.receive_empty()) {
 		auto message = stream.receive();
-		boost::apply_visitor([&message](auto m) { std::cout << m << std::endl; }, message);
+		std::visit([&message](auto m) { std::cout << m << std::endl; }, message);
 	}
 }

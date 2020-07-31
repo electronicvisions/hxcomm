@@ -63,8 +63,7 @@ std::pair<double, double> throughput_measurement(size_t num)
 
 	// calculate number of bytes of encoded messages
 	for (auto msg : instructions) {
-		boost::apply_visitor(
-		    [&byte_count](auto&& m) { byte_count += m.word_width / CHAR_BIT; }, msg);
+		std::visit([&byte_count](auto&& m) { byte_count += m.word_width / CHAR_BIT; }, msg);
 	}
 
 	std::pair<double, double> mega_rates;
