@@ -12,3 +12,4 @@
 #include "pyhxcomm/vx/connection_handle_binding.h"
 #include "pyhxcomm/vx/connection_time_info.h"
 #include "pyhxcomm/vx/quiggeldy_utility.h"
+#include "pyhxcomm/vx/register_reinit.h"

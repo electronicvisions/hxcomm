@@ -78,6 +78,14 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_connection_attempt_wait_after(100ms),
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
     m_use_munge(true),
+    m_uploader_reinit(new uploader_reinit_type(
+        [this, params]() -> std::shared_ptr<rcf_client_type> {
+	        std::shared_ptr<rcf_client_type> client(setup_client());
+	        client->getClientStub().setRemoteCallTimeoutMs(24 * 60 * 60); // have a day to timeout
+	        return client;
+        },
+        &rcf_client_type::reinit_notify,
+        &rcf_client_type::reinit_upload)),
     m_sequence_num(0)
 {
 	m_session_uuid = boost::uuids::random_generator()();
@@ -101,6 +109,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
     m_use_munge(std::move(other.m_use_munge)),
     m_session_uuid(std::move(other.m_session_uuid)),
+    m_uploader_reinit(std::move(other.m_uploader_reinit)),
     m_sequence_num(std::move(other.m_sequence_num))
 {}
 
@@ -235,7 +244,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 {
 	return submit([&request, this](auto& client, auto& sequence_num) {
 		typename interface_types::response_type response =
-		    client->submit_work(request, sequence_num);
+		    client->submit_work(request, sequence_num, m_uploader_reinit->holds_data());
 		accumulate_time_info(response.second);
 		return response;
 	});
@@ -260,7 +269,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_async(
 			    // track time
 			    accumulate_time_info(response.second);
 		    }),
-		    request, sequence_num);
+		    request, sequence_num, m_uploader_reinit->holds_data());
 		return future_type{std::move(client), std::move(rcf_future_ptr)};
 	});
 }

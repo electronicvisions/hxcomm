@@ -35,6 +35,8 @@ public:
 
 	using request_type = typename interface_types::request_type;
 	using response_type = typename interface_types::response_type;
+	// reinit is just another set of FPGA words sent to the chip prior to resuming
+	using reinit_type = typename interface_types::reinit_type;
 
 	// pair encoding uid and UUID of the session to differentiate them (one per QuiggeldyConnection)
 	using user_session_type = std::pair<std::size_t, boost::uuids::uuid>;
@@ -82,6 +84,13 @@ public:
 	 * @param req FPGA words to be sent to the chip for this job.
 	 */
 	response_type work(request_type const& req);
+
+	/**
+	 * This function is called whenever we had to relinquish control of our
+	 * hardware resource and the user specified a reinit-program to be loaded
+	 * prior to the next work-unit being executed.
+	 */
+	void perform_reinit(reinit_type const&);
 
 	/**
 	 * This function is run whenever the server releases control (and any

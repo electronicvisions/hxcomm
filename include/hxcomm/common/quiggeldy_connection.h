@@ -92,6 +92,9 @@ public:
 
 	using future_type = QuiggeldyFuture<typename interface_types::response_type, rcf_client_type>;
 
+	using uploader_reinit_type =
+	    rcf_extensions::OnDemandUpload<rcf_client_type, typename interface_types::reinit_type>;
+
 	/**
 	 * Set maximum number of connection attempts.
 	 * @param num Number of connection attempts.
@@ -222,6 +225,22 @@ protected:
 	void set_user_data(std::unique_ptr<rcf_client_type>&) const;
 
 	/**
+	 * Register a reinit program to be used on the remote site.
+	 */
+	void register_reinit(typename interface_types::reinit_type&&);
+
+	/**
+	 * Register a reinit program to be used on the remote site.
+	 */
+	void register_reinit(std::shared_ptr<typename interface_types::reinit_type> const&);
+
+	/**
+	 * Get a reference to the uploader instance so that a possible reinit
+	 * program can be registered elsewhere.
+	 */
+	std::weak_ptr<uploader_reinit_type> get_uploader_reinit() const;
+
+	/**
 	 * Get next sequence number for a new request.
 	 */
 	rcf_extensions::SequenceNumber next_sequence_number();
@@ -244,6 +263,7 @@ protected:
 	log4cxx::Logger* m_logger;
 	bool m_use_munge;
 	boost::uuids::uuid m_session_uuid;
+	std::shared_ptr<uploader_reinit_type> m_uploader_reinit;
 	std::mutex m_mutex_sequence_num;
 	rcf_extensions::SequenceNumber m_sequence_num;
 

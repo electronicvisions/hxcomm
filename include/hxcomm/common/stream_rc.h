@@ -66,6 +66,27 @@ struct StreamRC
 		struct has_required_interface
 		    : std::conjunction<has_method_submit_async<C>, has_method_submit_blocking<C>>
 		{};
+
+		template <typename C, typename = std::void_t<>>
+		struct has_method_register_reinit : std::false_type
+		{};
+
+		template <typename C>
+		struct has_method_register_reinit<
+		    C,
+		    std::void_t<decltype(std::declval<C&>().register_reinit(
+		        std::declval<typename C::interface_types::reinit_type>()))>> : std::true_type
+		{};
+
+		template <typename C, typename = std::void_t<>>
+		struct has_method_get_uploader_reinit : std::false_type
+		{};
+
+		template <typename C>
+		struct has_method_get_uploader_reinit<
+		    C,
+		    std::void_t<decltype(std::declval<C&>().get_uploader_reinit())>> : std::true_type
+		{};
 	};
 
 	static_assert(
@@ -92,6 +113,36 @@ struct StreamRC
 	auto submit_blocking(submit_arg_type const& message)
 	{
 		return m_connection.submit_blocking(message);
+	}
+
+	void register_reinit(typename connection_type::interface_types::reinit_type&& reinit)
+	{
+		if constexpr (Check::template has_method_register_reinit<connection_type>::value) {
+			m_connection.register_reinit(std::move(reinit));
+		} else {
+			static_assert(
+			    sizeof(connection_type) == 0, "Connection does not support register_reinit!");
+		}
+	}
+
+	void register_reinit(typename connection_type::interface_types::reinit_type const& reinit)
+	{
+		if constexpr (Check::template has_method_register_reinit<connection_type>::value) {
+			m_connection.register_reinit(reinit);
+		} else {
+			static_assert(
+			    sizeof(connection_type) == 0, "Connection does not support register_reinit!");
+		}
+	}
+
+	auto get_uploader_reinit() const
+	{
+		if constexpr (Check::template has_method_get_uploader_reinit<connection_type>::value) {
+			return m_connection.get_uploader_reinit();
+		} else {
+			static_assert(
+			    sizeof(connection_type) == 0, "Connection does not support get_uploader_reinit!");
+		}
 	}
 
 protected:

@@ -2,7 +2,7 @@
 
 #include "hxcomm/common/quiggeldy_worker.h"
 
-#include "rcf-extensions/round-robin-scheduler.h"
+#include "rcf-extensions/round-robin-reinit-scheduler.h"
 
 #ifdef USE_MUNGE_AUTH
 #include <munge.h>
@@ -23,11 +23,11 @@ namespace hxcomm {
 
 template <typename Connection>
 class QuiggeldyServer
-    : public rcf_extensions::RoundRobinScheduler<QuiggeldyWorker<Connection>>
+    : public rcf_extensions::RoundRobinReinitScheduler<QuiggeldyWorker<Connection>>
 {
 public:
-	using parent_t = rcf_extensions::RoundRobinScheduler<QuiggeldyWorker<Connection>>;
-	using parent_t::RoundRobinScheduler;
+	using parent_t = rcf_extensions::RoundRobinReinitScheduler<QuiggeldyWorker<Connection>>;
+	using parent_t::RoundRobinReinitScheduler;
 
 	/**
 	 * Bind QuiggeldyServer to the RcfInterface.

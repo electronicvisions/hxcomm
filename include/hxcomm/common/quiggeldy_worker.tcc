@@ -238,6 +238,26 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 }
 
 template <typename Connection>
+void QuiggeldyWorker<Connection>::perform_reinit(reinit_type const& reinit)
+{
+	if (m_mock_mode) {
+		HXCOMM_LOG_DEBUG(m_logger, "Running mock-reinit!");
+		return;
+	}
+
+	HXCOMM_LOG_TRACE(m_logger, "Performing reinit!");
+
+	try {
+		execute_messages(*m_connection, reinit);
+	} catch (const std::exception& e) {
+		// TODO: Implement proper exception handling
+		teardown();
+		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
+		throw;
+	}
+}
+
+template <typename Connection>
 std::optional<typename QuiggeldyWorker<Connection>::user_session_type>
 QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 {
