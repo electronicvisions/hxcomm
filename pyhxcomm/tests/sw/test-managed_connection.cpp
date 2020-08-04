@@ -1,12 +1,10 @@
-#include <gtest/gtest.h>
-
-#include <optional>
-#include <tuple>
-#include <vector>
-
 #include "hxcomm/common/execute_messages.h"
 #include "pyhxcomm/common/managed_connection.h"
 #include "pyhxcomm/common/visit_connection.h"
+#include <optional>
+#include <tuple>
+#include <vector>
+#include <gtest/gtest.h>
 
 struct MockMessageTypes
 {

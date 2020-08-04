@@ -1,5 +1,5 @@
-#include <sstream>
 #include "hxcomm/common/logger.h"
+#include <sstream>
 
 namespace hxcomm {
 

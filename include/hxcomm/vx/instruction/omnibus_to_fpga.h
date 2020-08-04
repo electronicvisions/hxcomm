@@ -1,9 +1,8 @@
 #pragma once
-#include <climits>
-#include <boost/type_index.hpp>
-
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
+#include <climits>
+#include <boost/type_index.hpp>
 
 /** Instructions for omnibus communication to the FPGA. */
 namespace hxcomm::vx::instruction::omnibus_to_fpga {

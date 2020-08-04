@@ -1,17 +1,4 @@
 #pragma once
-#include <array>
-#include <atomic>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <thread>
-#include <tuple>
-
-#include <tbb/concurrent_queue.h>
-
-#include "sctrltp/ARQFrame.h"
-#include "sctrltp/ARQStream.h"
-
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
@@ -21,6 +8,16 @@
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/target.h"
 #include "hxcomm/common/utmessage.h"
+#include "sctrltp/ARQFrame.h"
+#include "sctrltp/ARQStream.h"
+#include <array>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <tuple>
+#include <tbb/concurrent_queue.h>
 
 namespace log4cxx {
 class Logger;

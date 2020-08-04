@@ -1,8 +1,7 @@
 #pragma once
-#include <climits>
-
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
+#include <climits>
 
 /** Omnibus from FPGA responses transported back to the host. */
 namespace hxcomm::vx::instruction::omnibus_from_fpga {

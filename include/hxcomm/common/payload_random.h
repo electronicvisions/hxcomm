@@ -1,7 +1,6 @@
 #pragma once
-#include <random>
-
 #include "hxcomm/common/payload.h"
+#include <random>
 
 namespace hxcomm::random {
 

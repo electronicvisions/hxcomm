@@ -1,9 +1,8 @@
+#include "hxcomm/vx/instruction/instruction.h"
+#include "test-to_testing_types.h"
 #include <typeindex>
 #include <unordered_map>
 #include <gtest/gtest.h>
-
-#include "hxcomm/vx/instruction/instruction.h"
-#include "test-to_testing_types.h"
 
 using namespace hxcomm::vx::instruction;
 

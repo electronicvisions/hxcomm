@@ -1,7 +1,7 @@
 #pragma once
-#include <climits>
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
+#include <climits>
 
 /** FPGA system responses to the host. */
 namespace hxcomm::vx::instruction::from_fpga_system {

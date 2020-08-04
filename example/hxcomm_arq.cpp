@@ -1,7 +1,7 @@
-#include <boost/program_options.hpp>
 #include "hxcomm/common/stream.h"
 #include "hxcomm/vx/arqconnection.h"
 #include "reset_and_id_readout.h"
+#include <boost/program_options.hpp>
 
 namespace bpo = boost::program_options;
 

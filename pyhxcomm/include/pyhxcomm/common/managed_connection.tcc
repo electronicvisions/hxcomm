@@ -1,15 +1,10 @@
-
+#include "hate/memory.h"
+#include "hxcomm/common/execute_messages.h"
+#include "hxcomm/common/logger.h"
 #include "pyhxcomm/common/getname.h"
 #include "pyhxcomm/common/handle_connection.h"
 #include "pyhxcomm/common/managed_connection.h"
-
-#include "hxcomm/common/execute_messages.h"
-#include "hxcomm/common/logger.h"
-
-#include "hate/memory.h"
-
 #include <tuple>
-
 #include <boost/hana/string.hpp>
 
 

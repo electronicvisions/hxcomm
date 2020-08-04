@@ -1,19 +1,5 @@
 #pragma once
-#include <atomic>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <thread>
-#include <type_traits>
-
-#include <stddef.h>
-#include <stdint.h>
-#include <unistd.h>
-
-#include <tbb/concurrent_queue.h>
-
 #include "flange/simulator_client.h"
-
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
@@ -24,6 +10,16 @@
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/target.h"
 #include "hxcomm/common/utmessage.h"
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <stddef.h>
+#include <stdint.h>
+#include <thread>
+#include <type_traits>
+#include <unistd.h>
+#include <tbb/concurrent_queue.h>
 
 
 namespace log4cxx {

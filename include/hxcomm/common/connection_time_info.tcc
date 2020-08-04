@@ -1,5 +1,5 @@
-#include <type_traits>
 #include "hate/timer.h"
+#include <type_traits>
 
 namespace hxcomm {
 

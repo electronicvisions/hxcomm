@@ -1,11 +1,10 @@
 #pragma once
+#include "hxcomm/common/utmessage.h"
 #include <climits>
 #include <boost/coroutine2/all.hpp>
 #include <boost/function.hpp>
 #include <boost/fusion/algorithm.hpp>
 #include <boost/fusion/tuple.hpp>
-
-#include "hxcomm/common/utmessage.h"
 
 namespace log4cxx {
 class Logger;

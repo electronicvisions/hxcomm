@@ -1,6 +1,6 @@
 #pragma once
-#include <algorithm>
 #include "hate/type_list.h"
+#include <algorithm>
 
 namespace hxcomm {
 

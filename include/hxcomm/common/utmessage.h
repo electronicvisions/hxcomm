@@ -1,10 +1,8 @@
 #pragma once
-
 #include "hate/bitset.h"
 #include "hate/math.h"
 #include "hate/type_list.h"
 #include "hate/visibility.h"
-
 #include "hxcomm/common/largest_utmessage_size.h"
 #include "hxcomm/common/to_utmessage_variant.h"
 #include "hxcomm/common/utmessage_header_width.h"

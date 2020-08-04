@@ -1,13 +1,12 @@
 #pragma once
+#include "hxcomm/common/decoder.h"
+#include "hxcomm/common/encoder.h"
+#include "hxcomm/common/utmessage.h"
 #include <atomic>
 #include <queue>
 #include <stdint.h>
 #include <thread>
 #include <tbb/concurrent_queue.h>
-
-#include "hxcomm/common/decoder.h"
-#include "hxcomm/common/encoder.h"
-#include "hxcomm/common/utmessage.h"
 
 namespace hxcomm {
 

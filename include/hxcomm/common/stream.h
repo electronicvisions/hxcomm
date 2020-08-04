@@ -1,11 +1,7 @@
 #pragma once
-
-#include <boost/variant.hpp>
 #include "hate/type_list.h"
-
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/execute_messages_types.h"
-
 #include <mutex>
 #include <type_traits>
 

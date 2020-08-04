@@ -1,7 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "hxcomm/vx/instruction/instruction.h"
 #include "hxcomm/vx/payload_random.h"
+#include <gtest/gtest.h>
 
 using namespace hxcomm::random;
 using namespace hxcomm::vx;

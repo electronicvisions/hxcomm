@@ -1,9 +1,8 @@
 #pragma once
+#include "hate/bitset.h"
 #include <climits>
 #include <stddef.h>
 #include <boost/type_index.hpp>
-
-#include "hate/bitset.h"
 
 /**
  * Payload formatting.

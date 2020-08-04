@@ -1,7 +1,6 @@
-#include <gtest/gtest.h>
-
 #include "hxcomm/test-helper.h"
 #include "hxcomm/vx/connection_from_env.h"
+#include <gtest/gtest.h>
 
 using namespace hxcomm::test;
 

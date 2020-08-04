@@ -1,10 +1,7 @@
-
-#include "pyhxcomm/common/getname.h"
-#include "pyhxcomm/common/handle_connection.h"
-
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/logger.h"
-
+#include "pyhxcomm/common/getname.h"
+#include "pyhxcomm/common/handle_connection.h"
 #include <boost/hana/string.hpp>
 
 namespace hxcomm {

@@ -1,10 +1,8 @@
 #pragma once
-
-#include <type_traits>
-#include <variant>
-
 #include "hxcomm/common/visit_connection.h"
 #include "pyhxcomm/common/handle_connection.h"
+#include <type_traits>
+#include <variant>
 
 namespace hxcomm {
 

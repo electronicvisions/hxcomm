@@ -1,11 +1,9 @@
-#include <gtest/gtest.h>
-
 #include "hxcomm/common/connection_parameter.h"
 #include "hxcomm/common/loopbackconnection.h"
+#include "hxcomm/test-helper.h"
 #include "hxcomm/vx/utmessage.h"
 #include "hxcomm/vx/utmessage_random.h"
-
-#include "hxcomm/test-helper.h"
+#include <gtest/gtest.h>
 
 using namespace hxcomm;
 using namespace hxcomm::random;

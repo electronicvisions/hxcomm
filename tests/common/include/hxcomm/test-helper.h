@@ -1,7 +1,6 @@
 #pragma once
-#include <random>
 #include "hate/bitset.h"
-
+#include <random>
 #include <gtest/gtest.h>
 
 namespace hxcomm::test {

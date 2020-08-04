@@ -1,6 +1,3 @@
-#include <queue>
-#include <gtest/gtest.h>
-
 #include "hate/timer.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/encoder.h"
@@ -8,6 +5,8 @@
 #include "hxcomm/vx/connection_parameter.h"
 #include "hxcomm/vx/utmessage.h"
 #include "hxcomm/vx/utmessage_random.h"
+#include <queue>
+#include <gtest/gtest.h>
 
 using namespace hxcomm::random;
 using namespace hxcomm::vx;

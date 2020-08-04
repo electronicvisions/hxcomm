@@ -1,8 +1,7 @@
 #pragma once
+#include "hxcomm/common/utmessage.h"
 #include <climits>
 #include <stdint.h>
-
-#include "hxcomm/common/utmessage.h"
 
 namespace hxcomm {
 

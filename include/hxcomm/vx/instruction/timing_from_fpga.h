@@ -1,7 +1,7 @@
 #pragma once
-#include <climits>
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
+#include <climits>
 
 /** Timing response instructions from the FPGA. */
 namespace hxcomm::vx::instruction::timing_from_fpga {

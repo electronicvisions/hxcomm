@@ -1,11 +1,8 @@
-
-#include "hxcomm/vx/connection_from_env.h"
-
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/vx/arqconnection.h"
+#include "hxcomm/vx/connection_from_env.h"
 #include "hxcomm/vx/connection_variant.h"
 #include "hxcomm/vx/simconnection.h"
-
 #include <cstdlib>
 #include <optional>
 #include <utility>

@@ -1,7 +1,5 @@
 #pragma once
-
 #include "hxcomm/common/logger.h"
-
 #include <memory>
 
 namespace log4cxx {

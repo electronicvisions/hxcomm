@@ -1,6 +1,6 @@
 #pragma once
-#include <boost/variant.hpp>
 #include "hate/type_list.h"
+#include <boost/variant.hpp>
 
 namespace hxcomm {
 

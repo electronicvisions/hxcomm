@@ -1,11 +1,10 @@
-#include <chrono>
-#include <iostream>
-#include <boost/program_options.hpp>
-
 #include "hxcomm/common/connection_parameter.h"
 #include "hxcomm/common/loopbackconnection.h"
 #include "hxcomm/vx/utmessage.h"
 #include "hxcomm/vx/utmessage_random.h"
+#include <chrono>
+#include <iostream>
+#include <boost/program_options.hpp>
 
 using namespace hxcomm;
 namespace bpo = boost::program_options;

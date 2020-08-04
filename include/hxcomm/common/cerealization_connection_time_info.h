@@ -1,7 +1,5 @@
 #pragma once
-
 #include "hxcomm/common/connection_time_info.h"
-
 #include <cereal/cereal.hpp>
 #include <cereal/types/chrono.hpp>
 

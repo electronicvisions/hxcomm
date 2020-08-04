@@ -1,6 +1,5 @@
-#include <gtest/gtest.h>
-
 #include "hate/type_traits.h"
+#include <gtest/gtest.h>
 
 /**
  * Drop-in replacement for `static_assert` performing checks at runtime.

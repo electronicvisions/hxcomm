@@ -1,11 +1,10 @@
 #pragma once
-#include <climits>
-#include <boost/type_index.hpp>
-
 #include "hate/math.h"
 #include "hate/type_list.h"
 #include "hxcomm/common/payload.h"
 #include "rant/int.h"
+#include <climits>
+#include <boost/type_index.hpp>
 
 /** JTAG instructions to the fpga. */
 namespace hxcomm::vx::instruction::to_fpga_jtag {

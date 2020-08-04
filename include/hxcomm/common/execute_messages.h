@@ -1,11 +1,13 @@
 #pragma once
-
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/execute_messages_types.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/visit_connection.h"
+#include <memory>
+#include <utility>
+#include <variant>
 
 #include "hate/type_traits.h"
 

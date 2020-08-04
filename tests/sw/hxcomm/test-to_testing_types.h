@@ -1,8 +1,7 @@
 #pragma once
+#include "hxcomm/vx/utmessage.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-
-#include "hxcomm/vx/utmessage.h"
 
 using namespace hxcomm::vx;
 using namespace hxcomm::vx::instruction;

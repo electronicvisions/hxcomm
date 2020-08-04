@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "hxcomm/vx/utmessage.h"
+#include <gtest/gtest.h>
 
 TEST(Dictionary, ToFPGA)
 {

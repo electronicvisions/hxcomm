@@ -1,10 +1,8 @@
-#include <string>
-
-#include <boost/program_options.hpp>
-#include <gtest/gtest.h>
-
 // logger include directory structure omits prefix
 #include "logging_ctrl.h"
+#include <string>
+#include <boost/program_options.hpp>
+#include <gtest/gtest.h>
 
 int main(int argc, char* argv[])
 {

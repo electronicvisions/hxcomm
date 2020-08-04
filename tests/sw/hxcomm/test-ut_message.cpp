@@ -1,14 +1,11 @@
-#include <boost/type_index.hpp>
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/vx/payload_random.h"
 #include "hxcomm/vx/utmessage.h"
-
-#include <cereal/archives/json.hpp>
-
 #include "test-to_testing_types.h"
+#include <boost/type_index.hpp>
+#include <cereal/archives/json.hpp>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using namespace hxcomm::vx;
 

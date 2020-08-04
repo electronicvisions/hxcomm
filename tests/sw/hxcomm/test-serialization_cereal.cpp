@@ -1,17 +1,13 @@
-#include <gtest/gtest.h>
-
 #include "hxcomm/common/cerealization_connection_time_info.h"
 #include "hxcomm/common/cerealization_utmessage.h"
-
+#include "test-to_testing_types.h"
+#include <fstream>
+#include <type_traits>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/archives/xml.hpp>
-
-#include <fstream>
-#include <type_traits>
-
-#include "test-to_testing_types.h"
+#include <gtest/gtest.h>
 
 using namespace hxcomm::vx;
 

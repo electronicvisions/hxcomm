@@ -1,8 +1,8 @@
-#include <boost/program_options.hpp>
 #include "flange/simulator_control_if.h"
 #include "hxcomm/common/stream.h"
 #include "hxcomm/vx/simconnection.h"
 #include "reset_and_id_readout.h"
+#include <boost/program_options.hpp>
 
 namespace bpo = boost::program_options;
 

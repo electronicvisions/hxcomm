@@ -1,5 +1,3 @@
-#include <gtest/gtest.h>
-
 #include "hxcomm/common/payload_random.h"
 #include "hxcomm/common/utmessage.h"
 

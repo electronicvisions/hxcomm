@@ -1,5 +1,5 @@
-#include <iostream>
 #include "hxcomm/vx/utmessage.h"
+#include <iostream>
 
 using namespace hxcomm::vx;
 

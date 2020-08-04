@@ -1,11 +1,9 @@
 #pragma once
-
+#include "hxcomm/common/target.h"
+#include "hxcomm/common/to_utmessage_variant.h"
 #include <memory>
 #include <type_traits>
 #include <variant>
-
-#include "hxcomm/common/target.h"
-#include "hxcomm/common/to_utmessage_variant.h"
 
 namespace hxcomm {
 

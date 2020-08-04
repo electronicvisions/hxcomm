@@ -1,11 +1,9 @@
 #pragma once
-
 #include "hate/visibility.h"
 #include "hxcomm/common/execute_messages.h"
 #include "hxcomm/common/logger.h"
 #include "pyhxcomm/common/handle_connection.h"
 #include "pyhxcomm/common/visit_connection.h"
-
 #include <memory>
 #include <optional>
 #include <type_traits>

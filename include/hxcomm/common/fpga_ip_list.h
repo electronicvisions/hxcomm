@@ -1,9 +1,8 @@
 #pragma once
+#include "slurm/vision_defines.h"
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include "slurm/vision_defines.h"
 
 namespace hxcomm {
 
