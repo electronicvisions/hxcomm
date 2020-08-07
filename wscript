@@ -149,7 +149,7 @@ def build(bld):
     loopbackconnection_obj_targets = build_loopbackconnection_test(bld)
 
     bld(
-        target       = 'hxcomm_swtests',
+        target       = 'hxcomm_swtest',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*.cpp',
                            excl='tests/sw/hxcomm/test-*_throughput.cpp tests/sw/hxcomm/test-loopbackconnection.cpp'),
@@ -160,7 +160,7 @@ def build(bld):
     )
 
     bld(
-        target       = 'hxcomm_throughputtests',
+        target       = 'hxcomm_throughputtest',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/sw/hxcomm/test-*_throughput.cpp'),
         use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'],
@@ -173,7 +173,7 @@ def build(bld):
     )
 
     bld(
-        target       = 'hxcomm_backendtests',
+        target       = 'hxcomm_backendtest',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
         skip_run     = not (bld.env.DLSvx_HARDWARE_AVAILABLE or bld.env.DLSvx_SIM_AVAILABLE),
