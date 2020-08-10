@@ -131,12 +131,6 @@ struct GetMessageTypes<C, std::void_t<typename C::message_types>>
 };
 
 template <typename C>
-struct GetMessageTypes<std::variant<C>>
-{
-	using type = typename GetMessageTypes<C>::type;
-};
-
-template <typename C>
 struct GetMessageTypes<std::shared_ptr<C>>
 {
 	using type = typename GetMessageTypes<typename std::remove_cv<C>::type>::type;
