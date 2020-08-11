@@ -114,6 +114,13 @@ public:
 	 */
 	ConnectionTimeInfo get_time_info() const;
 
+	/**
+	 * Get unique identifier from hwdb.
+	 * @param hwdb_path Optional path to hwdb
+	 * @return Unique identifier
+	 */
+	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
+
 private:
 	friend class Stream<SimConnection>;
 

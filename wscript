@@ -9,6 +9,7 @@ def depends(dep):
     dep('sctrltp')
     dep('rant')
     dep('hate')
+    dep('hwdb')
     dep('code-format')
     dep('logger')
     dep('visions-slurm', branch='production')
@@ -103,7 +104,8 @@ def build(bld):
         target       = 'hxcomm',
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
-                        'flange', 'rant', 'hate_inc', 'TBB', 'logger_obj', 'visions-slurm_inc'],
+                        'flange', 'rant', 'hate_inc', 'TBB', 'logger_obj',
+                        'visions-slurm_inc', 'hwdb4cpp'],
         install_path = '${PREFIX}/lib',
     )
 

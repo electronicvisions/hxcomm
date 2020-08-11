@@ -237,4 +237,12 @@ bool SimConnection<ConnectionParameter>::get_enable_terminate_on_destruction() c
 	return m_terminate_on_destruction;
 }
 
+template <typename ConnectionParameter>
+std::string SimConnection<ConnectionParameter>::get_unique_identifier(
+    std::optional<std::string>) const
+{
+	// TODO: make unique
+	return "simulation";
+}
+
 } // namespace hxcomm

@@ -1,5 +1,7 @@
+#include <boost/asio/ip/address_v4.hpp>
 #include "hate/math.h"
 #include "hate/timer.h"
+#include "hwdb4cpp/hwdb4cpp.h"
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
@@ -248,6 +250,30 @@ ConnectionTimeInfo ARQConnection<ConnectionParameter>::get_time_info() const
 {
 	std::lock_guard<std::mutex> const lock(m_time_info_mutex);
 	return m_time_info;
+}
+
+template <typename ConnectionParameter>
+std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
+    std::optional<std::string> hwdb_path) const
+{
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to empty instance.");
+	}
+	auto const ip = boost::asio::ip::make_address_v4(m_arq_stream->get_remote_ip());
+
+	hwdb4cpp::database hwdb;
+	hwdb.load(hwdb_path ? *hwdb_path : hwdb4cpp::database::get_default_path());
+	auto const hxcube_ids = hwdb.get_hxcube_ids();
+	hwdb4cpp::HXCubeSetupEntry entry;
+	for (auto const id : hxcube_ids) {
+		auto const& local_entry = hwdb.get_hxcube_entry(id);
+		if (std::find(local_entry.fpga_ips.begin(), local_entry.fpga_ips.end(), ip) !=
+		    local_entry.fpga_ips.end()) {
+			entry = local_entry;
+			break;
+		}
+	}
+	return entry.get_unique_identifier();
 }
 
 } // namespace hxcomm
