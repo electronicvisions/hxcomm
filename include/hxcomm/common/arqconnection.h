@@ -201,6 +201,8 @@ private:
 
 	std::atomic<bool> m_run_receive;
 
+	log4cxx::Logger* m_logger;
+
 	void work_receive();
 	std::thread m_worker_receive;
 
@@ -211,8 +213,6 @@ private:
 	duration_type m_decode_duration{};
 	duration_type m_commit_duration{};
 	duration_type m_execution_duration{};
-
-	log4cxx::Logger* m_logger;
 };
 
 } // namespace hxcomm

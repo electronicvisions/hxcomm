@@ -51,8 +51,8 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this),
-    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
+    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
+    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this)
 {}
 
 template <typename ConnectionParameter>
@@ -64,8 +64,8 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this),
-    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
+    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
+    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this)
 {
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
 }
@@ -79,8 +79,8 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt), // temporary
     m_run_receive(true),
-    m_worker_receive(),
-    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection"))
+    m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
+    m_worker_receive()
 {
 	// shutdown other threads
 	other.m_run_receive = false;
@@ -180,22 +180,28 @@ bool ARQConnection<ConnectionParameter>::try_receive(receive_message_type& messa
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::work_receive()
 {
+	HXCOMM_LOG_TRACE(m_logger, "work_receive() starting up..");
 	sctrltp::packet<sctrltp::ParametersFcpBss2Cube> packet;
 	while (m_run_receive) {
 		while (m_arq_stream->received_packet_available() && m_run_receive) {
+			HXCOMM_LOG_TRACE(m_logger, "Receiving new packet.");
 			m_arq_stream->receive(packet);
+			HXCOMM_LOG_TRACE(m_logger, "Received packet #" << packet.seq);
 			if (packet.pid != pid) {
 				std::stringstream ss;
 				ss << "Unknown HostARQ packet ID received: " << packet.pid;
 				throw std::runtime_error(ss.str());
 			}
+			HXCOMM_LOG_TRACE(m_logger, "Forwarding packet contents to decoder-coroutine..");
 			hate::Timer timer;
 			for (size_t i = 0; i < packet.len; ++i) {
 				m_decoder(packet.pdu[i]);
 			}
 			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
+			HXCOMM_LOG_TRACE(m_logger, "Forwarded packet contents to decoder-coroutine.");
 		}
 	}
+	HXCOMM_LOG_TRACE(m_logger, "work_receive() terminating..");
 }
 
 template <typename ConnectionParameter>
