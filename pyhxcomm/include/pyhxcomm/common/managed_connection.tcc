@@ -201,11 +201,12 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
 {
 	handle.def_property_readonly(
 	    "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
-	handle.def_property_readonly(
+	handle.def(
 	    "get_unique_identifier",
-	    [](handle_type const& h, std::optional<std::string> hwdb_path = std::nullopt) {
+	    [](handle_type const& h, std::optional<std::string> hwdb_path) {
 		    return h.get().get_unique_identifier(hwdb_path);
-	    });
+	    },
+	    pybind11::arg("hwdb_path") = std::nullopt);
 }
 
 #endif
