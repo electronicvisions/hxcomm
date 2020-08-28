@@ -6,6 +6,8 @@
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
 
+#include <chrono>
+
 namespace hxcomm {
 
 template <typename ConnectionParameter>
@@ -208,16 +210,15 @@ bool ARQConnection<ConnectionParameter>::receive_empty() const
 template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::run_until_halt()
 {
+	using namespace std::literals::chrono_literals;
+
 	hate::Timer timer;
 	SignalOverrideIntTerm signal_override;
 
-	size_t wait_period = 1;
-	constexpr size_t max_wait_period = 10000;
+	auto wait_period = 1us;
+	constexpr std::chrono::microseconds max_wait_period = 10ms;
 	while (!m_listener_halt.get()) {
-		int ret = usleep(wait_period);
-		if ((ret != 0) && errno != EINTR) {
-			throw std::runtime_error("Error during usleep call.");
-		}
+		std::this_thread::sleep_for(wait_period);
 		wait_period = std::min(wait_period * 2, max_wait_period);
 	}
 	m_listener_halt.reset();
