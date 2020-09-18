@@ -265,15 +265,22 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 	hwdb.load(hwdb_path ? *hwdb_path : hwdb4cpp::database::get_default_path());
 	auto const hxcube_ids = hwdb.get_hxcube_ids();
 	hwdb4cpp::HXCubeSetupEntry entry;
+	size_t fcp;
 	for (auto const id : hxcube_ids) {
-		auto const& local_entry = hwdb.get_hxcube_entry(id);
-		if (std::find(local_entry.fpga_ips.begin(), local_entry.fpga_ips.end(), ip) !=
-		    local_entry.fpga_ips.end()) {
-			entry = local_entry;
-			break;
+		auto const& local_entry = hwdb.get_hxcube_setup_entry(id);
+		for (auto const& [f, e] : local_entry.fpgas) {
+			if (e.ip == ip) {
+				fcp = f;
+				entry = local_entry;
+				break;
+			}
 		}
 	}
-	return entry.get_unique_identifier();
+	if (!entry.fpgas.at(fcp).wing) {
+		throw std::runtime_error("No chip present.");
+	}
+	return entry.get_unique_branch_identifier(
+	    entry.fpgas.at(fcp).wing.value().handwritten_chip_serial);
 }
 
 } // namespace hxcomm
