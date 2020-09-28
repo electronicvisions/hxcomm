@@ -21,7 +21,10 @@ class PyBindings(unittest.TestCase):
 
     @property
     def connections(self):
-        return ["Connection", "ARQConnection", "SimConnection",
+        return ["Connection",
+                "ARQConnection",
+                "AXIConnection",
+                "SimConnection",
                 "ZeroMockConnection"]
 
     @property
