@@ -258,7 +258,18 @@ def build(bld):
             uselib       = 'HXCOMM',
             install_path = 'bin',
         )
-
+        bld(
+            target = 'wriggeldy',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/wrap_with_quiggeldy.cpp'),
+                ],
+            use = use_quiggeldy,
+            depends_on = "quiggeldy",
+            install_path = 'bin',
+        )
+        bld.symlink_as("${PREFIX}/bin/wrap_with_quiggeldy", "wriggeldy",
+                       name="wrap_with_quiggeldy", depends_on="wriggeldy")
 
     if bld.env.DOXYGEN:
         bld(
