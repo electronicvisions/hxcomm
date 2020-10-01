@@ -10,7 +10,7 @@ std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env()
 
 	auto base_args = std::make_tuple(
 	    "quiggeldy", port, "--no-allocate-license", "--timeout",
-	    env_timeout == nullptr ? "10" : env_timeout, "--release", "86400",
+	    env_timeout == nullptr ? "10" : env_timeout, "--release", "31536000",
 	    hxcomm::is_munge_available() ? "" : "--no-munge");
 
 	pid_t pid = 0;
