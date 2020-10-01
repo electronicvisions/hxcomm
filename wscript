@@ -231,7 +231,17 @@ def build(bld):
             use = use_quiggeldy,
             install_path = '${PREFIX}/bin',
         )
-
+        bld(
+            target = 'wriggeldy',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/wrap_with_quiggeldy.cpp'),
+                ],
+            use = use_quiggeldy,
+            depends_on = "quiggeldy",
+            install_path = '${PREFIX}/bin',
+        )
+        bld.symlink_as("wrap_with_quiggeldy", "wriggeldy")
 
     bld(
         features = 'doxygen',
