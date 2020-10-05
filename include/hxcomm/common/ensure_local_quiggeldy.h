@@ -6,8 +6,9 @@
 
 #include "slurm/vision_defines.h"
 
-#include <tuple>
 #include <cstdlib>
+#include <tuple>
+#include <vector>
 
 namespace hxcomm {
 
@@ -17,12 +18,14 @@ namespace hxcomm {
 class EnsureLocalQuiggeldy
 {
 public:
-	EnsureLocalQuiggeldy() : m_quiggeldy_pid{0}
+	EnsureLocalQuiggeldy() : EnsureLocalQuiggeldy{std::vector<std::string>{}} {}
+
+	EnsureLocalQuiggeldy(std::vector<std::string> const& args) : m_quiggeldy_pid{0}
 	{
 		// If there is no remotely provided quiggeldy instance, we launch one ourselves
 		if (std::getenv(vision_quiggeldy_enabled_env_name) == nullptr) {
 			std::tie(m_quiggeldy_pid, m_quiggeldy_port) =
-			    hxcomm::vx::launch_quiggeldy_locally_from_env();
+			    hxcomm::vx::launch_quiggeldy_locally_from_env(args);
 		}
 	}
 

@@ -104,9 +104,15 @@ struct all_char_const_ptr<Head, Tail...>
 
 } // namespace detail
 
-
 template <class... Args>
 pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args)
+{
+	return setup_quiggeldy_argv(std::vector<std::string>{}, binary_name, port, args...);
+}
+
+template <class... Args>
+pid_t setup_quiggeldy_argv(
+    std::vector<std::string> const& argv, char const* binary_name, uint16_t port, Args... args)
 {
 	static_assert(
 	    detail::all_char_const_ptr<Args...>::value,
@@ -114,6 +120,9 @@ pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args)
 
 	pid_t pid = fork();
 	if (pid == 0) {
+		std::vector<std::string> arg_vec{};
+		arg_vec.reserve(3 /* binary name + '-p' + port */ + argv.size() + sizeof...(args));
+
 		std::stringstream port_ss;
 		port_ss << port;
 		auto log = log4cxx::Logger::getLogger("hxcomm.setup_quiggeldy");
@@ -124,6 +133,10 @@ pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args)
 			        << "quiggeldy "
 			        << "-p " << port_ss.str();
 			((message << ' ' << std::forward<Args>(args)), ...);
+
+			for (auto const& arg : argv) {
+				message << ' ' << arg;
+			}
 
 			HXCOMM_LOG_DEBUG(log, message.str());
 		}
@@ -136,7 +149,19 @@ pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args)
 			dup2(fd, 2);
 		}
 
-		execlp(binary_name, binary_name, "-p", port_ss.str().c_str(), args..., NULL);
+		arg_vec.push_back("-p");
+		arg_vec.push_back(port_ss.str());
+		arg_vec.insert(arg_vec.end(), argv.begin(), argv.end());
+		(arg_vec.push_back(std::forward<Args>(args)), ...);
+
+		std::vector<char const*> c_argv{};
+		std::for_each(arg_vec.begin(), arg_vec.end(), [&c_argv](std::string const& str) {
+			c_argv.push_back(str.c_str());
+		});
+		c_argv.push_back(nullptr);
+
+		// POSIX states that the argument list will not be modified by calling exec functions.
+		execvp(binary_name, const_cast<char* const*>(c_argv.data()));
 		exit(0);
 	} else if (pid < 0) {
 		std::stringstream ss;

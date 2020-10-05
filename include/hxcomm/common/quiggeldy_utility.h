@@ -1,6 +1,9 @@
 #pragma once
 
 #include <optional>
+#include <string>
+#include <vector>
+
 #include <unistd.h>
 #include <arpa/inet.h>
 
@@ -36,6 +39,24 @@ inline void terminate(pid_t pid);
  */
 template <class... Args>
 pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args);
+
+/**
+ * Convenience function to setup quiggeldy under the given port with additional
+ * arguments. In addition to setup_quiggeldy it also accepts an argv-like
+ * argument that is implemented as a vector of strings, because we can harness
+ * the comforts of c++.
+ *
+ * @param binary_name name of the binary to launch
+ * @param port The port on which quiggeldy should listen.
+ * @param argv Additional arguments to supply to quiggeldy binary generated at runtime.
+ * @param args Additional arguments to give to quiggeldy (should be C-strings). They are appended
+ * after argv.
+ *
+ * @return PID of started subprocess running quiggeldy.
+ */
+template <class... Args>
+pid_t setup_quiggeldy_argv(
+    std::vector<std::string> const& argv, char const* binary_name, uint16_t port, Args... args);
 
 /**
  * Get an integer representation of the loglevel variable from environment.

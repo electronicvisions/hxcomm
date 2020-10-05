@@ -9,7 +9,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include <tuple>
+#include <vector>
+
 #include <unistd.h>
 
 bool help_requested(int argc, char* argv[])
@@ -23,12 +26,41 @@ bool help_requested(int argc, char* argv[])
 
 void print_usage(char* argv[])
 {
-	std::cerr << "Usage: " << argv[0] << " EXECUTABLE [ARGS...]\n\n"
-	          << "    Ensure a local quiggeldy is running (and set in env) prior to running\n"
-	             "    the given executable with the provided arguments.\n"
+	std::cerr << "Usage: " << argv[0]
+	          << " EXECUTABLE [ARGS...]\n\n"
+	             "    Ensure a local quiggeldy is running (and set in env) prior to running the\n"
+	             "    given executable with the provided arguments.\n\n"
+	             "    Any arguments provided prior to the binary name will be forwarded to\n"
+	             "    quiggeldy instance. See `quiggeldy --help` for details.\n\n"
+	             "    Additionally, the arguments provided to quiggeldy can be cut short early by\n"
+	             "    specifying `--`.\n\n"
 	          << std::endl;
 }
 
+/**
+ * Collect all arguments for quiggeldy. Stop at first non-option or early if
+ * encountering `--`.
+ *
+ * @param argv Original argv provided to executable.
+ * @return Collected arguments.
+ */
+std::vector<std::string> collect_args_for_quiggeldy(char* argv[])
+{
+	std::vector<std::string> collected{};
+
+	for (std::size_t idx = 0; argv[idx] != nullptr; ++idx) {
+		if (argv[idx][0] == '-') {
+			if (argv[idx][1] == '-' && argv[idx][2] == '\0') {
+				break;
+			} else {
+				collected.push_back(std::string{argv[idx]});
+			}
+		} else {
+			break;
+		}
+	}
+	return collected;
+}
 
 int main(int argc, char* argv[])
 {
@@ -48,13 +80,15 @@ int main(int argc, char* argv[])
 	logger_default_config(Logger::log4cxx_level_v2(loglevel));
 
 	{
-		[[maybe_unused]] hxcomm::EnsureLocalQuiggeldy quiggeldy{};
+		auto args_for_quiggeldy = collect_args_for_quiggeldy(argv + 1);
+		auto argv_offset = args_for_quiggeldy.size() + 1;
+		[[maybe_unused]] hxcomm::EnsureLocalQuiggeldy quiggeldy{std::move(args_for_quiggeldy)};
 
 		// perform execvp in fork because we need to destruct (i.e. kill
 		// quiggeldy-binary) after the given command exits
 		auto pid = fork();
 		if (pid == 0) {
-			execvp(argv[1], argv + 1);
+			execvp(argv[argv_offset], argv + argv_offset);
 		} else {
 			int status;
 			waitpid(pid, &status, 0); // wait for the child to exit
