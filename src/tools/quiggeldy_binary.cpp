@@ -101,11 +101,12 @@ struct Config
 	std::size_t num_max_connections;
 
 	bool mock_mode;
-	bool no_allocate_gres;
+	bool no_allocate_license;
 	bool no_munge;
 
 	std::string architecture;
 	std::string slurm_partition;
+	std::string slurm_license;
 
 	bool backend_arq;
 	bool backend_sim;
@@ -134,12 +135,12 @@ void configure(WorkerT& worker, Config& cfg)
 	}
 	worker.set_enable_mock_mode(cfg.mock_mode);
 
-	if (cfg.no_allocate_gres) {
+	if (cfg.no_allocate_license) {
 		HXCOMM_LOG_DEBUG(
-		    log, "NOT allocating gres prior to executing work! This should only be enabled for "
+		    log, "NOT allocating license prior to executing work! This should only be enabled for "
 		         "local use!")
 	}
-	worker.set_enable_allocate_gres(!cfg.no_allocate_gres);
+	worker.set_enable_allocate_license(!cfg.no_allocate_license);
 	HXCOMM_LOG_DEBUG(log, "Setting slurm partition: " << cfg.slurm_partition);
 	worker.set_slurm_partition(cfg.slurm_partition);
 
@@ -225,19 +226,22 @@ int main(int argc, const char* argv[])
 
 	("mock-mode", po::bool_switch(&(cfg.mock_mode))->default_value(false),
 	 "Operate in mock-mode, i.e., accept connections but return empty results.")
-	("no-allocate-gres", po::bool_switch(&(cfg.no_allocate_gres))->default_value(false),
-	 "Do not allocate gres prior to running jobs.")
+	("no-allocate-license", po::bool_switch(&(cfg.no_allocate_license))->default_value(false),
+	 "Do not allocate license prior to running jobs.")
 	("no-munge", po::bool_switch(&(cfg.no_munge))->default_value(false),
 	 "Do not verify clients using munge.")
 
 	("num-threads-input,n", po::value<std::size_t>(&(cfg.num_threads_input))->default_value(8),
 	 "Number of threads handling incoming connections.")
 	("num-threads-outputs,m",
-	 po::value<std::size_t>(&(cfg.num_threads_output))->default_value(8),
+	 po::value<std::size_t>(&(cfg.num_threads_output))->default_value(2),
 	 "Number of threads handling distribution of results.")
 
+    ("slurm-license", po::value<std::string>(),
+     "Slurm license which to allocate (if not disabled via --no-allocate-license).")
+
 	("slurm-partition", po::value<std::string>()->default_value("cube"),
-	 "Slurm partition in which to allocate gres (if not disabled via --no-allocate-gres).")
+	 "Slurm partition in which to allocate license (if not disabled via --no-allocate-license).")
 
 	("timeout,t", po::value<std::size_t>(&(cfg.timeout_seconds)),
 	 "Number of seconds after which quiggeldy shuts down when idling (0=disable).")
@@ -262,6 +266,12 @@ int main(int argc, const char* argv[])
 	cfg.listen_ip = vm["listen-ip"].as<std::string>();
 	cfg.connect_ip = vm["connect-ip"].as<std::string>();
 	cfg.slurm_partition = vm["slurm-partition"].as<std::string>();
+	{
+		std::string slurm_license vm["slurm-license"].as<std::string>();
+		if (slurm_license.size() > 0) {
+			cfg.slurm_license = slurm_license;
+		}
+	}
 	cfg.architecture = vm["architecture"].as<std::string>();
 
 	if (auto loglevel_from_env = hxcomm::get_loglevel_from_env("QUIGGELDY_LOGLEVEL");

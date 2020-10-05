@@ -51,6 +51,14 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(Args&&... args) :
 	} else {
 		m_slurm_partition = env_partition;
 	}
+	{
+		// set dummy slurm license
+		std::stringstream ss;
+		ss << "quiggeldy";
+		auto paste = [&ss](auto&& arg) { ss << "_" << arg; };
+		std::apply([&ss, &paste](auto&&... arg) { (..., paste(arg)); }, m_connection_init);
+		m_slurm_license = ss.str();
+	}
 }
 
 template <typename Connection>
@@ -68,28 +76,11 @@ void QuiggeldyWorker<Connection>::slurm_allocation_acquire()
 	if (has_slurm_allocation()) {
 		return;
 	}
-	HXCOMM_LOG_DEBUG(
-	    m_logger, "Getting slurm allocation for " << get_slurm_jobname().c_str() << ".");
-	HXCOMM_LOG_TRACE(
-	    m_logger, "Running: /usr/local/bin/salloc salloc -p "
-	                  << m_slurm_partition.c_str() << " --no-shell --mem 0 --gres "
-	                  << get_slurm_gres().c_str() << " -J " << get_slurm_jobname().c_str());
-	int status;
+	HXCOMM_LOG_DEBUG(m_logger, "Getting slurm allocation for " << get_slurm_jobname() << ".");
+	exec_slurm_binary(
+	    "salloc", "salloc", "-p", m_slurm_partition.c_str(), "--no-shell", "--license",
+	    get_slurm_license().c_str(), "--mem", "0M", "-J", get_slurm_jobname().c_str());
 
-	int pid = fork();
-	if (pid) {
-		waitpid(pid, &status, 0); // wait for the child to exit
-	} else {
-		// TODO: Link to actual libslurm instead of forking
-		execlp(
-		    "salloc", "salloc", "-p", m_slurm_partition.c_str(), "--no-shell", "--gres",
-		    get_slurm_gres().c_str(), "--mem", "0M", "-J", get_slurm_jobname().c_str(), NULL);
-		exit(0);
-	}
-
-	if (status) {
-		throw std::logic_error("slurm allocation failed");
-	}
 	m_has_slurm_allocation = true;
 	HXCOMM_LOG_DEBUG(
 	    m_logger,
@@ -100,7 +91,7 @@ template <typename Connection>
 void QuiggeldyWorker<Connection>::setup()
 {
 	if (!m_mock_mode) {
-		if (m_allocate_gres) {
+		if (m_allocate_license) {
 			slurm_allocation_acquire();
 		}
 		HXCOMM_LOG_TRACE(m_logger, "Setting up local connection.");
@@ -141,7 +132,7 @@ void QuiggeldyWorker<Connection>::teardown()
 	HXCOMM_LOG_DEBUG(m_logger, "teardown() started..");
 	if (!m_mock_mode) {
 		m_connection.reset();
-		if (m_allocate_gres) {
+		if (m_allocate_license) {
 			slurm_allocation_release();
 		}
 	}
@@ -355,33 +346,19 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 }
 
 template <typename Connection>
-std::string QuiggeldyWorker<Connection>::get_slurm_gres()
-{
-	std::stringstream ss;
-
-	ss << "quiggeldy";
-
-	auto paste = [&ss](auto&& arg) { ss << "_" << arg; };
-
-	std::apply([&ss, &paste](auto&&... arg) { (..., paste(arg)); }, m_connection_init);
-
-	return ss.str();
-}
-
-template <typename Connection>
 void QuiggeldyWorker<Connection>::set_enable_mock_mode(bool mode_enable)
 {
 	m_mock_mode = mode_enable;
 }
 
 template <typename Connection>
-void QuiggeldyWorker<Connection>::set_enable_allocate_gres(bool enable_gres_alloc)
+void QuiggeldyWorker<Connection>::set_enable_allocate_license(bool enable_license_alloc)
 {
-	if (has_slurm_allocation() && !enable_gres_alloc) {
-		// release slurm allocation if we go into mock mode with allocated gres
+	if (has_slurm_allocation() && !enable_license_alloc) {
+		// release slurm allocation if we go into mock mode with allocated license
 		slurm_allocation_release();
 	}
-	m_allocate_gres = enable_gres_alloc;
+	m_allocate_license = enable_license_alloc;
 }
 
 template <typename Connection>
@@ -414,9 +391,9 @@ std::string QuiggeldyWorker<Connection>::get_unique_identifier(
 }
 
 template <typename Connection>
-std::string QuiggeldyWorker<Connection>::get_slurm_jobname()
+std::string QuiggeldyWorker<Connection>::get_slurm_jobname() const
 {
-	return "chip_alloc_" + get_slurm_gres();
+	return "chip_alloc_" + get_slurm_license();
 }
 
 } // namespace hxcomm

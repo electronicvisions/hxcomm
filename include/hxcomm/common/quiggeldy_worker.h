@@ -70,7 +70,7 @@ public:
 	 * to receive) but the chip is currently not used by us.
 	 *
 	 * The function performs whatever is necessary to run experiments on a
-	 * locally attach board. This includes getting a gres allocation.
+	 * locally attach board. This includes getting a license allocation.
 	 *
 	 * NOTE: If the GRES is already allocated in SLURM, this function will
 	 * block until it becomes available!
@@ -108,11 +108,11 @@ public:
 	void set_enable_mock_mode(bool mode_enable);
 
 	/**
-	 * Set or unset if the worker should perform its work with a gres allocation.
+	 * Set or unset if the worker should perform its work with a license allocation.
 	 *
-	 * @param enable_gres_alloc Whether or not to perform work with a gres allocation.
+	 * @param enable_license Whether or not to perform work with a license allocation.
 	 */
-	void set_enable_allocate_gres(bool enable_gres_alloc);
+	void set_enable_allocate_license(bool enable_license_alloc);
 
 	/**
 	 * Set slurm partition. (If unset defaults to "cube".)
@@ -168,11 +168,26 @@ public:
 		return m_max_num_connection_attempts;
 	}
 
+	/**
+	 * Set slurm license to allocate.
+	 */
+	void set_slurm_license(std::string license)
+	{
+		m_slurm_license = std::move(license);
+	}
+
+	/**
+	 * Get slurm license that is allocated by worker.
+	 */
+	std::string const& get_slurm_license() const
+	{
+		return m_slurm_license;
+	}
+
 protected:
 	using connection_init_type = typename Connection::init_parameters_type;
 
-	std::string get_slurm_jobname();
-	std::string get_slurm_gres();
+	std::string get_slurm_jobname() const;
 
 	/**
 	 * Helper function to execute slurm binaries.
@@ -187,8 +202,9 @@ protected:
 
 	connection_init_type m_connection_init; /// Initial parameters for connection
 	std::string m_slurm_partition;          /// Which slurm partition to allocate in.
+	std::string m_slurm_license;            /// Explicit slurm license to use for allocation.
 	bool m_has_slurm_allocation;
-	bool m_allocate_gres;
+	bool m_allocate_license;
 	bool m_mock_mode;
 	std::unique_ptr<Connection> m_connection; /// Wrapped connection object.
 	log4cxx::Logger* m_logger;
