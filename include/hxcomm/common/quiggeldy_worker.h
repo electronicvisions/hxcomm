@@ -193,6 +193,13 @@ protected:
 	 */
 	void setup_connection();
 
+	/**
+	 * Check if response contains a timeout response, resetting the held connection if so.
+	 *
+	 * @param response to check for timeouts.
+	 */
+	void check_for_timeout(typename response_type::first_type const& response);
+
 	std::string get_slurm_jobname() const;
 
 	/**

@@ -14,7 +14,8 @@ typedef hxcomm::ConnectionParameter<
     ut_message_from_fpga_subword_type,
     ut_message_from_fpga_phyword_type,
     instruction::FromFPGADictionary,
-    instruction::from_fpga_system::Loopback>
+    instruction::from_fpga_system::Loopback,
+    instruction::from_fpga_system::TimeoutNotification>
     ConnectionParameter;
 
 } // namespace hxcomm::vx

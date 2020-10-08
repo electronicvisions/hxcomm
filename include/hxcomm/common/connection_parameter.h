@@ -48,7 +48,8 @@ template <
     typename ReceiveSubwordType,
     typename ReceivePhywordType,
     typename ReceiveDictionary,
-    typename ReceiveHaltInstructionType>
+    typename ReceiveHaltInstructionType,
+    typename ReceiveTimeoutInstructionType>
 struct ConnectionParameter
 {
 	typedef UTMessageParameter<
@@ -65,6 +66,7 @@ struct ConnectionParameter
 	    ReceiveDictionary>
 	    Receive;
 	typedef ReceiveHaltInstructionType ReceiveHalt;
+	typedef ReceiveTimeoutInstructionType ReceiveTimeout;
 };
 
 } // namespace hxcomm
