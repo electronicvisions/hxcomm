@@ -109,6 +109,8 @@ struct MessageTypes
 	    typename ConnectionParameter::Send::Dictionary,
 	    typename ConnectionParameter::SendHalt>
 	    send_halt_type;
+
+	using connection_parameter_type = ConnectionParameter;
 };
 
 /**

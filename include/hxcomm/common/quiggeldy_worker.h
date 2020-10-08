@@ -4,6 +4,7 @@
 #include <munge.h>
 #endif
 
+#include "hxcomm/common/listener_seen.h"
 #include "hxcomm/common/quiggeldy_interface_types.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -193,6 +194,13 @@ protected:
 	 */
 	void setup_connection();
 
+	/**
+	 * Check if response contains a timeout response, resetting the held connection if so.
+	 *
+	 * @param response to check for timeouts.
+	 */
+	void check_for_timeout(typename response_type::first_type const& response);
+
 	std::string get_slurm_jobname() const;
 
 	/**
@@ -219,6 +227,11 @@ protected:
 	std::chrono::milliseconds m_delay_after_connection_attempt;
 
 	static constexpr char default_slurm_partition[]{"cube"};
+
+	using listener_timeout_type =
+	    ListenerSeen<typename Connection::message_types::connection_parameter_type::ReceiveTimeout>;
+	// Listener contains atomics and hence should not be moved -> pointer
+	std::unique_ptr<listener_timeout_type> m_listener_timeout;
 };
 
 } // namespace hxcomm

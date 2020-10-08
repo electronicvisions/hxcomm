@@ -14,6 +14,7 @@
 
 #include <boost/uuid/uuid_generators.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <functional>
@@ -39,7 +40,8 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(Args&&... args) :
     m_logger(log4cxx::Logger::getLogger("hxcomm.QuiggeldyWorker")),
     m_use_munge(true),
     m_max_num_connection_attempts{10},
-    m_delay_after_connection_attempt{1s}
+    m_delay_after_connection_attempt{1s},
+    m_listener_timeout{new listener_timeout_type{}}
 {
 	if (m_logger->isEnabledFor(log4cxx::Level::getTrace())) {
 		std::stringstream ss;
@@ -136,6 +138,24 @@ void QuiggeldyWorker<Connection>::setup_connection()
 }
 
 template <typename Connection>
+void QuiggeldyWorker<Connection>::check_for_timeout(
+    typename QuiggeldyWorker<Connection>::response_type::first_type const& response)
+{
+	HXCOMM_LOG_DEBUG(m_logger, "Checking for timeout.");
+	m_listener_timeout->reset();
+	std::for_each(response.cbegin(), response.cend(), [this](auto const& msg) {
+		std::visit([this](auto const& m) { (*m_listener_timeout)(m); }, msg);
+	});
+	if (m_listener_timeout->get()) {
+		HXCOMM_LOG_WARN(
+		    m_logger,
+		    "Encountered timeout notifications in response stream -> resetting connection.");
+		setup_connection();
+	}
+	HXCOMM_LOG_DEBUG(m_logger, "Checked for timeout.");
+}
+
+template <typename Connection>
 void QuiggeldyWorker<Connection>::teardown()
 {
 	HXCOMM_LOG_DEBUG(m_logger, "teardown() started..");
@@ -216,7 +236,9 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 
 	HXCOMM_LOG_TRACE(m_logger, "Executing program!");
 	try {
-		return execute_messages(*m_connection, req);
+		auto retval = execute_messages(*m_connection, req);
+		check_for_timeout(std::get<0>(retval));
+		return retval;
 	} catch (const std::exception& e) {
 		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
 		throw;
