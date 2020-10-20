@@ -93,6 +93,47 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 }
 
 template <typename ConnectionParameter>
+SimConnection<ConnectionParameter>& SimConnection<ConnectionParameter>::operator=(
+    SimConnection&& other)
+{
+	if (&other != this) {
+		// shutdown own threads
+		if (m_run_receive) {
+			m_run_receive = false;
+			m_worker_receive.join();
+		}
+		m_run_receive = static_cast<bool>(other.m_run_receive);
+		// shutdown other threads
+		if (other.m_run_receive) {
+			other.m_run_receive = false;
+			other.m_worker_receive.join();
+		}
+		m_encode_duration = other.m_encode_duration.load(std::memory_order_relaxed);
+		m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
+		m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
+		m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
+		// move simulation client
+		m_sim = std::move(other.m_sim);
+		// move queues
+		m_send_queue = std::move(other.m_send_queue);
+		m_receive_queue.~receive_queue_type();
+		new (&m_receive_queue) decltype(m_receive_queue)(std::move(other.m_receive_queue));
+		// create decoder
+		m_decoder.~decoder_type();
+		new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
+		// create encoder
+		m_encoder.~encoder_type();
+		new (&m_encoder) encoder_type(other.m_encoder, m_send_queue);
+		// create and start thread
+		m_worker_receive = std::thread([&]() {
+			thread_local flange::SimulatorClient local_sim;
+			work_receive(local_sim);
+		});
+	}
+	return *this;
+}
+
+template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::~SimConnection()
 {
 	HXCOMM_LOG_TRACE(m_logger, "~SimConnection(): Stopping Sim connection.");

@@ -73,7 +73,7 @@ public:
 	/**
 	 * Assignment operator.
 	 */
-	ARQConnection& operator=(ARQConnection&& other) = default;
+	ARQConnection& operator=(ARQConnection&& other);
 
 	/**
 	 * Destruct connection to FPGA joining all receive threads.
@@ -178,7 +178,8 @@ private:
 	typedef SendQueue send_queue_type;
 	send_queue_type m_send_queue;
 
-	Encoder<typename ConnectionParameter::Send, send_queue_type> m_encoder;
+	typedef Encoder<typename ConnectionParameter::Send, send_queue_type> encoder_type;
+	encoder_type m_encoder;
 
 	typedef tbb::concurrent_queue<receive_message_type> receive_queue_type;
 	receive_queue_type m_receive_queue;

@@ -12,6 +12,31 @@ TEST(TestConnection, Moveable)
 	auto moved_to_connection = std::move(connection);
 }
 
+TEST(TestConnection, MoveAssignable)
+{
+	auto const test = [](auto& connection) {
+		auto stream = Stream(connection);
+
+		// Halt execution
+		stream.add(UTMessageToFPGA<system::Loopback>(system::Loopback::halt));
+
+		stream.commit();
+
+		EXPECT_NO_THROW(stream.run_until_halt());
+	};
+
+	auto connection = get_connection_full_stream_interface_from_env();
+	if (!connection) {
+		GTEST_SKIP();
+	}
+	// move constructor
+	auto moved_to_connection = std::move(connection);
+	// move assignment operator
+	connection = std::move(moved_to_connection);
+
+	std::visit(test, *connection);
+}
+
 TEST(TestConnection, ReceiveEmpty)
 {
 	auto const test = [](auto& connection) {
