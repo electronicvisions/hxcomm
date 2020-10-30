@@ -231,7 +231,7 @@ void ARQConnection<ConnectionParameter>::work_receive()
 			hate::Timer timer;
 			{
 				std::unique_lock<std::mutex> lock(m_receive_queue_mutex);
-				m_decoder(&(packet.pdu[0]), &(packet.pdu[packet.len - 1]));
+				m_decoder(packet.begin(), packet.end());
 			}
 			m_decode_duration.fetch_add(timer.get_ns(), std::memory_order_release);
 			HXCOMM_LOG_TRACE(m_logger, "Forwarded packet contents to decoder-coroutine.");
