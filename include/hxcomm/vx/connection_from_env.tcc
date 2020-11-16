@@ -80,7 +80,7 @@ get_connection_full_stream_interface_from_env()
 
 	return std::visit(
 	    [](auto&& variant) -> std::optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant> {
-		    if constexpr (hxcomm::has_full_stream_interface<decltype(variant)>::value) {
+		    if constexpr (hxcomm::supports_full_stream_interface<decltype(variant)>::value) {
 			    return std::make_optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant>(
 			        std::in_place_type<std::decay_t<decltype(variant)>>, std::move(variant));
 		    } else {
