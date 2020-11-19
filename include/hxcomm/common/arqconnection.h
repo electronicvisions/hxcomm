@@ -144,6 +144,17 @@ private:
 	 */
 	std::mutex& get_mutex();
 
+	/**
+	 * Check for bitfile version compatibility.
+	 */
+	void check_compatibility() const;
+
+	/**
+	 * Numbers to compare against bitfile protocol version
+	 */
+	static constexpr size_t oldest_supported_version = 0;
+	static constexpr size_t newest_supported_compatible_until = 0;
+
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;
 	std::unique_ptr<arq_stream_type> m_arq_stream;

@@ -67,6 +67,10 @@ def configure(conf):
     if getattr(conf.options, 'with_hxcomm_python_bindings', True):
         conf.recurse("pyhxcomm")
 
+    conf.check_cfg(package='yaml-cpp',
+                   args=['yaml-cpp >= 0.5.3', '--cflags', '--libs'],
+                   uselib_store='YAMLCPP')
+
 
 def build_loopbackconnection_test(bld):
     """
@@ -108,7 +112,7 @@ def build(bld):
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
                         'flange', 'rant', 'hate_inc', 'logger_obj',
-                        'visions-slurm_inc', 'hwdb4cpp'],
+                        'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP'],
         install_path = '${PREFIX}/lib',
     )
 

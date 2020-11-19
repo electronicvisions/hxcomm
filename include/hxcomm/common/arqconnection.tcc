@@ -5,6 +5,7 @@
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/signal.h"
+#include <yaml-cpp/yaml.h>
 
 #include <chrono>
 
@@ -54,7 +55,9 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_run_receive(true),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
     m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this)
-{}
+{
+	check_compatibility();
+}
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
@@ -70,6 +73,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this)
 {
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
+	check_compatibility();
 }
 
 template <typename ConnectionParameter>
@@ -102,6 +106,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
 	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
 	// create and start threads
 	m_worker_receive = std::thread(&ARQConnection<ConnectionParameter>::work_receive, this);
+	check_compatibility();
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
 }
 
@@ -307,6 +312,38 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 	}
 	return entry.get_unique_branch_identifier(
 	    entry.fpgas.at(fcp).wing.value().handwritten_chip_serial);
+}
+
+template <typename ConnectionParameter>
+void ARQConnection<ConnectionParameter>::check_compatibility() const
+{
+	auto const yaml = m_arq_stream->get_response().bitfile_info;
+	if (yaml.empty()) {
+		throw std::runtime_error("Bitfile info empty");
+	}
+	YAML::Node info = YAML::Load(yaml);
+	HXCOMM_LOG_DEBUG(m_logger, "check_compatibility(): bitfile info raw yaml:\n" << info);
+
+	if(!(info["version"] && info["compatible_until"])) {
+		throw std::runtime_error("Cannot find version info in bitfile info");
+	}
+	size_t const version = info["version"].as<size_t>();
+	size_t const compat_until = info["compatible_until"].as<size_t>();
+	if (version < oldest_supported_version) {
+		throw std::runtime_error(
+		    "Bitfile protocol version " + std::to_string(version) +
+		    " too old. Must be at least " + std::to_string(oldest_supported_version));
+	}
+	if (compat_until > newest_supported_compatible_until) {
+		throw std::runtime_error(
+		    "Software too old. Bitfile needs at least " + std::to_string(compat_until) +
+		    ". Software only supports " + std::to_string(newest_supported_compatible_until));
+	}
+	HXCOMM_LOG_DEBUG(
+	    m_logger, "check_compatibility():\n\tFPGA:\tversion: "
+	                  << version << "\t compat_until: " << compat_until
+	                  << "\tSW:\tversion: " << oldest_supported_version
+	                  << "\t compat_until: " << newest_supported_compatible_until);
 }
 
 } // namespace hxcomm
