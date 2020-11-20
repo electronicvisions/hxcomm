@@ -35,8 +35,10 @@ hxcomm::instruction::detail::payload::Bitset<Tag, N> random_payload(
 {
 	std::bernoulli_distribution distribution;
 	hate::bitset<N> value;
-	for (size_t i = 0; i < N; ++i) {
-		value.set(i, distribution(gen));
+	if constexpr (N > 0) {
+		for (size_t i = 0; i < N; ++i) {
+			value.set(i, distribution(gen));
+		}
 	}
 	return hxcomm::instruction::detail::payload::Bitset<Tag, N>(value);
 }
