@@ -171,7 +171,7 @@ public:
 	 */
 	void run_until_halt()
 	{
-		return m_connection.run_until_halt();
+		m_connection.run_until_halt();
 	};
 
 protected:
