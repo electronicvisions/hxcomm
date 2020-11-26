@@ -131,6 +131,15 @@ def build(bld):
     )
 
     bld(
+        target       = 'hxcomm_example_axi',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hxcomm_axi.cpp'],
+        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
+        install_path = '${PREFIX}/bin',
+        uselib       = 'HXCOMM',
+    )
+
+    bld(
         target       = 'hxcomm_example_loopback_throughput',
         features     = 'cxx cxxprogram',
         source       = ['example/hxcomm_loopback_throughput.cpp'],
