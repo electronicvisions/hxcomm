@@ -17,6 +17,7 @@
 #include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/common/quiggeldy_utility.h"
 #include "hxcomm/vx/arqconnection.h"
+#include "hxcomm/vx/axiconnection.h"
 #include "hxcomm/vx/simconnection.h"
 
 #include "hxcomm/common/logger.h"
@@ -112,6 +113,7 @@ struct Config
 	std::string slurm_license;
 
 	bool backend_arq;
+	bool backend_axi;
 	bool backend_sim;
 
 	std::size_t delay_after_connect_ms;
@@ -180,12 +182,14 @@ void allocate(std::unique_ptr<VariantT>& server, WorkerT&& worker, Config& cfg)
 namespace po = boost::program_options;
 
 using QuiggeldyWorkerARQ = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::ARQConnection>;
+using QuiggeldyWorkerAXI = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::AXIConnection>;
 using QuiggeldyWorkerSim = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::SimConnection>;
 
 using QuiggeldyServerARQ = hxcomm::vx::QuiggeldyServer<hxcomm::vx::ARQConnection>;
+using QuiggeldyServerAXI = hxcomm::vx::QuiggeldyServer<hxcomm::vx::AXIConnection>;
 using QuiggeldyServerSim = hxcomm::vx::QuiggeldyServer<hxcomm::vx::SimConnection>;
 
-using quiggeldy_server_t = std::variant<QuiggeldyServerARQ, QuiggeldyServerSim>;
+using quiggeldy_server_t = std::variant<QuiggeldyServerARQ, QuiggeldyServerAXI, QuiggeldyServerSim>;
 
 int main(int argc, const char* argv[])
 {
@@ -211,6 +215,8 @@ int main(int argc, const char* argv[])
 
 	("connection-arq", po::bool_switch(&(cfg.backend_arq))->default_value(false),
 	 "Proxy an ARQ-connection (default mode of operation).")
+    ("connection-axi", po::bool_switch(&(cfg.backend_axi))->default_value(false),
+     "Proxy an AXI-connection.")
 	("connection-sim", po::bool_switch(&(cfg.backend_sim))->default_value(false),
 	 "Proxy connection to simulation backend.")
 
@@ -324,10 +330,12 @@ int main(int argc, const char* argv[])
 	std::unique_ptr<quiggeldy_server_t> server;
 
 	// create server
-	if (cfg.backend_arq + cfg.backend_sim > 1) {
-		std::cerr << "Please specify only one of: --conneciton-arq --connection-sim." << std::endl;
+	if (cfg.backend_arq + cfg.backend_axi + cfg.backend_sim > 1) {
+		std::cerr
+		    << "Please specify only one of: --conneciton-arq --connection-axi --connection-sim."
+		    << std::endl;
 		return EXIT_FAILURE;
-	} else if (cfg.backend_arq + cfg.backend_sim == 0) {
+	} else if (cfg.backend_arq + cfg.backend_axi + cfg.backend_sim == 0) {
 		cfg.backend_arq = true;
 	}
 
@@ -340,7 +348,23 @@ int main(int argc, const char* argv[])
 		auto worker = QuiggeldyWorkerARQ(cfg.connect_ip);
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerARQ>(server, std::move(worker), cfg);
-
+	} else if (cfg.backend_axi) {
+		if (cfg.connect_ip.length() != 0) {
+			HXCOMM_LOG_WARN(
+			    log, "Specified --connect-ip, but irrelevant for AXI-connection -> ignoring..");
+		}
+		if (cfg.connect_port != 0) {
+			HXCOMM_LOG_WARN(
+			    log, "Specified --connect-port, but irrelevant for AXI-connection -> ignoring..");
+		}
+		HXCOMM_LOG_DEBUG(log, "Setting up AXI-based worker to connect to..");
+		HXCOMM_LOG_WARN(
+		    log,
+		    "AXI-connection only meant to be run locally on zynq, disabling slurm allocation..");
+		cfg.no_allocate_license = true;
+		auto worker = QuiggeldyWorkerAXI();
+		quiggeldy::configure(worker, cfg);
+		quiggeldy::allocate<QuiggeldyServerAXI>(server, std::move(worker), cfg);
 	} else if (cfg.backend_sim) {
 		HXCOMM_LOG_DEBUG(
 		    log, "Setting up CoSim-based worker to connect to: " << cfg.connect_ip << ":"
