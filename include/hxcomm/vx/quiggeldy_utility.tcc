@@ -1,5 +1,7 @@
 #include "hxcomm/vx/quiggeldy_utility.h"
 
+#include <cstdlib>
+
 namespace hxcomm::vx {
 
 std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env()
@@ -19,6 +21,10 @@ std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env()
 		auto conn_args = std::tuple_cat(
 		    base_args,
 		    std::make_tuple("--connect-ip", hxcomm::get_fpga_ip().c_str(), "--connection-arq"));
+		pid = std::apply(
+		    [](auto... args) -> pid_t { return hxcomm::setup_quiggeldy(args...); }, conn_args);
+	} else if (nullptr != std::getenv("HAVE_AXICONNECTION")) {
+		auto conn_args = std::tuple_cat(base_args, std::make_tuple("--connection-axi"));
 		pid = std::apply(
 		    [](auto... args) -> pid_t { return hxcomm::setup_quiggeldy(args...); }, conn_args);
 	} else {
