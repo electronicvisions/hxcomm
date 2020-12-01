@@ -25,9 +25,9 @@ inline std::vector<ConnectionVariant> get_simconnection_list_from_env()
 
 	std::vector<ConnectionVariant> connection_list;
 	if (env_sim_port != nullptr) {
-		connection_list.emplace_back(ConnectionVariant{
-		    std::in_place_type<SimConnection>, env_sim_host,
-		    static_cast<uint16_t>(atoi(env_sim_port))});
+		connection_list.emplace_back(ConnectionVariant{std::in_place_type<SimConnection>,
+		                                               env_sim_host,
+		                                               static_cast<uint16_t>(atoi(env_sim_port))});
 	}
 	return connection_list;
 }
