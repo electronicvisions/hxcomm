@@ -182,6 +182,15 @@ def build(bld):
     )
 
     bld(
+        target       = 'hxcomm_example_zeromock_throughput',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hxcomm_zeromock_throughput.cpp'],
+        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
+        install_path = '${PREFIX}/bin',
+        uselib       = 'HXCOMM',
+    )
+
+    bld(
         target          = 'hxcomm_tests_inc',
         export_includes = 'tests/common/include'
     )
