@@ -38,3 +38,30 @@ TEST(TestConnection, Tick)
 	}
 	std::visit(test, *connection);
 }
+
+TEST(TestConnection, TickRestrictedStream)
+{
+	using namespace hxcomm::vx;
+	using namespace hxcomm::vx::instruction;
+
+	auto const test = [](auto& connection) {
+		std::vector<hxcomm::vx::UTMessageToFPGAVariant> messages;
+		messages.push_back(UTMessageToFPGA<system::Loopback>(system::Loopback::tick));
+
+		// halt message added by execute_messages
+		auto [responses, connection_time_info] = hxcomm::execute_messages(connection, messages);
+
+		EXPECT_EQ(responses.size(), 2);
+		auto response_tick = responses.at(0);
+		EXPECT_EQ(
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_tick),
+		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::tick));
+		auto response_halt = responses.at(1);
+		EXPECT_EQ(
+		    std::get<UTMessageFromFPGA<from_fpga_system::Loopback>>(response_halt),
+		    UTMessageFromFPGA<from_fpga_system::Loopback>(from_fpga_system::Loopback::halt));
+	};
+
+	auto connection = get_connection_from_env();
+	std::visit(test, connection);
+}
