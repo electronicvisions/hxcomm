@@ -45,6 +45,7 @@ RR_GENERATE_INTERFACE_EXPLICIT_TYPES(
     typename quiggeldy_interface_types::response_type,
     typename quiggeldy_interface_types::request_type)
 RCF_METHOD_R1(std::string, get_unique_identifier, std::optional<std::string>)
+RCF_METHOD_R0(std::string, get_version_string)
 RCF_END(I_HXCommQuiggeldyVX)
 
 namespace detail {
