@@ -45,6 +45,29 @@ public:
 		return parent_t::visit_worker_const(
 		    [&hwdb_path](auto const& worker) { return worker.get_unique_identifier(hwdb_path); });
 	}
+
+	/**
+	 * Retrieve version information in human readable string-form.
+	 *
+	 * @return currently set version.
+	 */
+	std::string get_version_string() const
+	{
+		return m_version;
+	}
+
+	/**
+	 * Set version information in human readable string-form.
+	 *
+	 * @param version Currently set version (typically set during compile).
+	 */
+	void set_version(std::string version)
+	{
+		m_version = std::move(version);
+	}
+
+private:
+	std::string m_version;
 };
 
 } // namespace hxcomm

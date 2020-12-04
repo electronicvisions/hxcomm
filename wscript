@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 import argparse
 import os
+import time
 from os.path import join
 from socket import gethostname
 from waflib.extras.test_base import summary
 from waflib.extras.symwaf2ic import get_toplevel_path
 
+_dependencies = [
+        {'project': 'sctrltp'},
+        {'project': 'rant'},
+        {'project': 'hate'},
+        {'project': 'hwdb'},
+        {'project': 'code-format'},
+        {'project': 'logger'},
+        {'project': 'visions-slurm', 'branch': 'production'},
+        {'project': 'flange'},
+        {'project': 'lib-rcf'},
+    ]
+
+
 def depends(dep):
-    dep('sctrltp')
-    dep('rant')
-    dep('hate')
-    dep('hwdb')
-    dep('code-format')
-    dep('logger')
-    dep('visions-slurm', branch='production')
-    dep('flange')
-    dep('lib-rcf')
+    for dependency in _dependencies:
+        dep(**dependency)
 
 
 def options(opt):
@@ -240,6 +247,10 @@ def build(bld):
     if bld.env.build_with_quiggeldy:
         use_quiggeldy = ["hxcomm", "BOOST4QUIGGELDY", "PTHREAD"]
 
+        project_states = "\\n".join(sorted(map(lambda d: "* " + bld.describe_project(d["project"]), _dependencies)))
+        quiggeldy_version_string = "built at {} with\\n* {}\\n{}".format(
+            time.strftime("%Y-%m-%d %H:%M:%S"), bld.describe_project("hxcomm"), project_states)
+
         bld(
             target = 'quiggeldy',
             features = 'cxx cxxprogram',
@@ -248,6 +259,7 @@ def build(bld):
                 ],
             use = use_quiggeldy,
             install_path = '${PREFIX}/bin',
+            defines = ["QUIGGELDY_VERSION_STRING=" + quiggeldy_version_string],
         )
         bld(
             target = 'quiggeldy_mock_client',
