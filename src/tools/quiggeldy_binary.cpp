@@ -29,6 +29,18 @@
 // needed to have lambdas as signal handlers
 namespace quiggeldy {
 
+#ifdef QUIGGELDY_VERSION_STRING
+#define QUIGGELDY_STRINGIFY2(S) #S
+#define QUIGGELDY_STRINGIFY(S) QUIGGELDY_STRINGIFY2(S)
+static std::string const quiggeldy_version_string =
+    "built at " __DATE__ " " __TIME__ " with\n" QUIGGELDY_STRINGIFY(QUIGGELDY_VERSION_STRING);
+#undef QUIGGELDY_STRINGIFY
+#undef QUIGGELDY_STRINGIFY2
+#else
+static std::string const quiggeldy_version_string =
+    "built at" __DATE__ " " __TIME__ " without version information.";
+#endif
+
 std::function<int(int)> signal_handler;
 
 void* handle_signals_thread(void*);
@@ -173,6 +185,7 @@ void allocate(std::unique_ptr<VariantT>& server, WorkerT&& worker, Config& cfg)
 	    std::move(worker), cfg.num_threads_input, cfg.num_threads_output, cfg.num_max_connections});
 	std::visit(
 	    [&cfg](auto& server) {
+		    server.set_version(quiggeldy_version_string);
 		    server.template bind_to_interface<hxcomm::vx::I_HXCommQuiggeldyVX>();
 		    server.set_period_per_user(std::chrono::milliseconds(cfg.period_per_user_ms));
 	    },
@@ -266,8 +279,9 @@ int main(int argc, const char* argv[])
 
 	("user-period-ms,u", po::value<std::size_t>(&(cfg.period_per_user_ms)),
 	 "Number of milliseconds after which we switch from one user to another in case "
-	 "there are people waiting.");
+	 "there are people waiting.")
 
+	("version,v", "print version and exit");
 	// clang-format on
 
 	// populate vm variable
@@ -276,6 +290,10 @@ int main(int argc, const char* argv[])
 
 	if (vm.count("help")) {
 		std::cerr << desc << std::endl;
+		return EXIT_SUCCESS;
+	}
+	if (vm.count("version")) {
+		std::cout << "quiggeldy " << quiggeldy::quiggeldy_version_string << std::endl;
 		return EXIT_SUCCESS;
 	}
 	po::notify(vm);
