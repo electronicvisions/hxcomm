@@ -271,6 +271,15 @@ def build(bld):
             install_path = '${PREFIX}/bin',
         )
         bld(
+            target = 'quiggeldy-query-version',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/quiggely_query_version.cpp'),
+                ],
+            use = use_quiggeldy,
+            install_path = '${PREFIX}/bin',
+        )
+        bld(
             target = 'wriggeldy',
             features = 'cxx cxxprogram',
             source = [
@@ -281,6 +290,7 @@ def build(bld):
             install_path = '${PREFIX}/bin',
         )
         bld.symlink_as("${PREFIX}/bin/wrap_with_quiggeldy", "wriggeldy")
+
 
     bld(
         features = 'doxygen',
