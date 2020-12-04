@@ -210,6 +210,13 @@ public:
 	 */
 	std::optional<std::string> get_custom_username();
 
+	/**
+	 * Get compile time version information in human-readable form from server side.
+	 *
+	 * @return Human-readable form of version information.
+	 */
+	std::string get_version_string() const;
+
 protected:
 	// needs to be first so it is initialized first and RCF-functionality is set up
 	RCF::RcfInit m_rcf_init_deinit;

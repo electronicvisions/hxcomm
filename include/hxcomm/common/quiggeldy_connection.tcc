@@ -420,6 +420,13 @@ std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_iden
 }
 
 template <typename ConnectionParameter, typename RcfClient>
+std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_version_string() const
+{
+	auto client = setup_client();
+	return client->get_version_string();
+}
+
+template <typename ConnectionParameter, typename RcfClient>
 void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_out_of_order()
 {
 	m_sequence_num = rcf_extensions::SequenceNumber::out_of_order();
