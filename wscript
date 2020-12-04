@@ -271,6 +271,18 @@ def build(bld):
             install_path = 'bin',
         )
         bld(
+            target = 'viggeldy',
+            features = 'cxx cxxprogram',
+            source = [
+                bld.path.find_node('src/tools/quiggely_query_version.cpp'),
+                ],
+            use = use_quiggeldy,
+            uselib       = 'HXCOMM',
+            install_path = '${PREFIX}/bin',
+        )
+        bld.symlink_as("${PREFIX}/bin/quiggeldy_query_version", "viggeldy",
+                       name="quiggeldy_query_version", depends_on="viggeldy")
+        bld(
             target = 'wriggeldy',
             features = 'cxx cxxprogram',
             source = [
