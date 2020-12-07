@@ -175,6 +175,15 @@ def build(bld):
     )
 
     bld(
+        target       = 'hxcomm_example_phy_debug',
+        features     = 'cxx cxxprogram',
+        source       = ['example/hxcomm_phy_debug.cpp'],
+        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
+        install_path = '${PREFIX}/bin',
+        uselib       = 'HXCOMM',
+    )
+
+    bld(
         target          = 'hxcomm_tests_inc',
         export_includes = 'tests/common/include'
     )
