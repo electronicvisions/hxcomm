@@ -32,6 +32,9 @@ def options(opt):
                      default="warning",
                      help="Maximal loglevel to compile in.")
 
+    hopts.add_withoption('hxcomm-python-bindings', default=True,
+                        help='Toggle the generation and build of hxcomm python bindings')
+
 
 def configure(conf):
     conf.load('compiler_c')
@@ -61,7 +64,8 @@ def configure(conf):
         '-fvisibility-inlines-hidden',
     ]
 
-    conf.recurse("pyhxcomm")
+    if getattr(conf.options, 'with_hxcomm_python_bindings', True):
+        conf.recurse("pyhxcomm")
 
 
 def build_loopbackconnection_test(bld):
@@ -198,7 +202,8 @@ def build(bld):
         },
     )
 
-    bld.recurse('pyhxcomm')
+    if getattr(bld.options, 'with_hxcomm_python_bindings', True):
+        bld.recurse('pyhxcomm')
 
     # Create test summary (to stdout and XML file)
     bld.add_post_fun(summary)
