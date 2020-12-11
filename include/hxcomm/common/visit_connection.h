@@ -67,6 +67,24 @@ struct VisitConnection<Visitor, std::variant<Connections...>&>
 	}
 };
 
+template <typename Visitor, typename... Connections>
+struct VisitConnection<Visitor, std::variant<Connections...> const&>
+{
+	using variant_type = std::variant<Connections...> const;
+	using return_type = typename std::common_type<
+	    typename VisitConnection<Visitor, Connections&>::return_type...>::type;
+
+	return_type operator()(Visitor&& visitor, variant_type& variant)
+	{
+		return std::visit(
+		    [&visitor](auto&& connection) -> return_type {
+			    return VisitConnection<Visitor, decltype(connection) const&>()(
+			        std::forward<Visitor>(visitor), connection);
+		    },
+		    variant);
+	}
+};
+
 } // namespace detail
 
 /**
