@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <type_traits>
 #include <variant>
 #include <hate/type_traits.h> // for some gcc 8 hacks
