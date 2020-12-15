@@ -379,6 +379,10 @@ int main(int argc, const char* argv[])
 		    log,
 		    "AXI-connection only meant to be run locally on zynq, disabling slurm allocation..");
 		cfg.no_allocate_license = true;
+		HXCOMM_LOG_WARN(
+		    log, "AXI-connection not meant to release resources, keeping connection open "
+		         "indefinitely..");
+		cfg.release_seconds = 10 * 365 * 24 * 3600; // ten years should be more than enough
 		auto worker = QuiggeldyWorkerAXI();
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerAXI>(server, std::move(worker), cfg);
