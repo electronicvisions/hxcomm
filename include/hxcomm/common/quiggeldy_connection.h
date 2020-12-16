@@ -5,13 +5,17 @@
 #include "hxcomm/common/execute_messages.h"
 #include "hxcomm/common/quiggeldy_future.h"
 #include "hxcomm/common/quiggeldy_interface_types.h"
+#include "hxcomm/common/reinit_stack.h"
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/stream_rc.h"
 #include "hxcomm/common/target.h"
 
+#include "rcf-extensions/on-demand-upload.h"
 #include "rcf-extensions/sequence-number.h"
 
 #include "RCF/RCF.hpp"
+
+#include <boost/uuid/uuid.hpp>
 
 #include <chrono>
 #include <string>
@@ -93,6 +97,14 @@ public:
 	using rcf_client_type = RcfClient;
 
 	using future_type = QuiggeldyFuture<typename interface_types::response_type, rcf_client_type>;
+
+	using reinit_uploader_type =
+	    rcf_extensions::OnDemandUpload<rcf_client_type, typename interface_types::reinit_type>;
+
+	using f_create_client_shared_ptr_t =
+	    typename reinit_uploader_type::f_create_client_shared_ptr_t;
+
+	using reinit_stack_type = ReinitStack<ConnectionParameter>;
 
 	/**
 	 * Set maximum number of connection attempts.
@@ -224,6 +236,24 @@ protected:
 	void set_user_data(std::unique_ptr<rcf_client_type>&) const;
 
 	/**
+	 * Get a reference to the uploader instance so that a possible reinit
+	 * program can be registered elsewhere.
+	 */
+	std::weak_ptr<reinit_uploader_type> get_reinit_upload() const;
+
+	/**
+	 * Get a reference to the reinit stack. This is only used by ReinitStackEntry
+	 * to support nested reinit programs and is not really useful otherwise.
+	 */
+	std::weak_ptr<reinit_stack_type> get_reinit_stack() const;
+
+	/**
+	 * Enforce reinit program to be used on the remote site prior to executing
+	 * result-producing FPGA word streams.
+	 */
+	void reinit_enforce();
+
+	/**
 	 * Get next sequence number for a new request.
 	 */
 	rcf_extensions::SequenceNumber next_sequence_number();
@@ -240,13 +270,21 @@ protected:
 	template <typename Submitter>
 	auto submit(Submitter const&);
 
+	/**
+	 * Return function that creates RCF clients with this connection's info.
+	 */
+	f_create_client_shared_ptr_t get_create_client_function();
+
 	connect_parameters_type m_connect_parameters;
 	size_t m_connection_attempt_num_max;
 	std::chrono::milliseconds m_connection_attempt_wait_after;
 	log4cxx::Logger* m_logger;
 	bool m_use_munge;
+	boost::uuids::uuid m_session_uuid;
+	std::shared_ptr<reinit_uploader_type> m_reinit_uploader;
 	std::mutex m_mutex_sequence_num;
 	rcf_extensions::SequenceNumber m_sequence_num;
+	std::shared_ptr<reinit_stack_type> m_reinit_stack;
 
 	mutable std::mutex m_mutex_time_info;
 	ConnectionTimeInfo m_time_info;

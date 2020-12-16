@@ -5,6 +5,7 @@
 
 #include "SF/Archive.hpp"
 #include "SF/string.hpp"
+#include "SF/vector.hpp"
 
 #include "cereal/archives/portable_binary.hpp"
 

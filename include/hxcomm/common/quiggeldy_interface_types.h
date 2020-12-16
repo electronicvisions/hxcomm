@@ -16,6 +16,8 @@ struct quiggeldy_interface_types
 
 	using request_type = detail::execute_messages_argument_t<ConnectionParameter>;
 	using response_type = detail::execute_messages_return_t<ConnectionParameter>;
+	using reinit_type = std::vector<request_type>;
+	using reinit_entry_type = typename reinit_type::value_type;
 };
 
 // convenience partial specialization if only message types are available

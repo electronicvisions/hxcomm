@@ -63,6 +63,36 @@ struct StreamRC
 		struct has_required_interface
 		    : std::conjunction<has_method_submit_async<C>, has_method_submit_blocking<C>>
 		{};
+
+		template <typename C, typename = std::void_t<>>
+		struct has_method_get_reinit_stack : std::false_type
+		{};
+
+		template <typename C>
+		struct has_method_get_reinit_stack<
+		    C,
+		    std::void_t<decltype(std::declval<C&>().get_reinit_stack())>> : std::true_type
+		{};
+
+		template <typename C, typename = std::void_t<>>
+		struct has_method_get_reinit_uploader : std::false_type
+		{};
+
+		template <typename C>
+		struct has_method_get_reinit_uploader<
+		    C,
+		    std::void_t<decltype(std::declval<C&>().get_reinit_upload())>> : std::true_type
+		{};
+
+		template <typename C, typename = std::void_t<>>
+		struct has_method_reinit_enforce : std::false_type
+		{};
+
+		template <typename C>
+		struct has_method_reinit_enforce<
+		    C,
+		    std::void_t<decltype(std::declval<C&>().reinit_enforce())>> : std::true_type
+		{};
 	};
 
 	static_assert(
@@ -88,6 +118,36 @@ struct StreamRC
 	auto submit_blocking(submit_arg_type const& message)
 	{
 		return m_connection.submit_blocking(message);
+	}
+
+	auto get_reinit_stack() const
+	{
+		if constexpr (Check::template has_method_get_reinit_stack<connection_type>::value) {
+			return m_connection.get_reinit_stack();
+		} else {
+			static_assert(
+			    sizeof(connection_type) == 0, "Connection does not support get_reinit_stack!");
+		}
+	}
+
+	auto get_reinit_upload() const
+	{
+		if constexpr (Check::template has_method_get_reinit_uploader<connection_type>::value) {
+			return m_connection.get_reinit_upload();
+		} else {
+			static_assert(
+			    sizeof(connection_type) == 0, "Connection does not support get_reinit_upload!");
+		}
+	}
+
+	void reinit_enforce()
+	{
+		if constexpr (Check::template has_method_reinit_enforce<connection_type>::value) {
+			return m_connection.reinit_enforce();
+		} else {
+			static_assert(
+			    sizeof(connection_type) == 0, "Connection does not support reinit_enforce!");
+		}
 	}
 
 protected:

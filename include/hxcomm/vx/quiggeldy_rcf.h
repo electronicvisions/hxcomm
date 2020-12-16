@@ -12,7 +12,7 @@
 #include "hxcomm/vx/connection_parameter.h"
 #include "hxcomm/vx/quiggeldy_interface_types.h"
 
-#include "rcf-extensions/round-robin-scheduler.h"
+#include "rcf-extensions/round-robin-reinit-scheduler.h"
 #include "rcf-extensions/sf/optional.h"
 
 #include <optional>
@@ -36,14 +36,19 @@ inline void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::respon
 	translate_sf_cereal(ar, qcr);
 }
 
+// Note: Currently, hxcomm::vx::quiggeldy_interface_types::reinit_type is the
+// same as the request_type and thus no additional declaration of serialize()
+// is needed.
+
 } // namespace SF
 
 namespace hxcomm::vx {
 
-RR_GENERATE_INTERFACE_EXPLICIT_TYPES(
+RRWR_GENERATE_INTERFACE_EXPLICIT_TYPES(
     I_HXCommQuiggeldyVX,
     typename quiggeldy_interface_types::response_type,
-    typename quiggeldy_interface_types::request_type)
+    typename quiggeldy_interface_types::request_type,
+    typename quiggeldy_interface_types::reinit_type)
 RCF_METHOD_R1(std::string, get_unique_identifier, std::optional<std::string>)
 RCF_METHOD_R0(std::string, get_version_string)
 RCF_END(I_HXCommQuiggeldyVX)

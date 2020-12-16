@@ -12,6 +12,8 @@
 #include "logger.h"
 #include "logging_ctrl.h"
 
+#include <boost/uuid/uuid_generators.hpp>
+
 #include <chrono>
 #include <cstdlib>
 #include <functional>
@@ -215,9 +217,33 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 }
 
 template <typename Connection>
-std::optional<typename QuiggeldyWorker<Connection>::user_type>
+void QuiggeldyWorker<Connection>::perform_reinit(reinit_type const& reinit)
+{
+	if (m_mock_mode) {
+		HXCOMM_LOG_DEBUG(m_logger, "Running mock-reinit!");
+		return;
+	}
+
+	HXCOMM_LOG_TRACE(m_logger, "Performing reinit!");
+
+	try {
+		for (auto const& entry : reinit) {
+			execute_messages(*m_connection, entry);
+		}
+	} catch (const std::exception& e) {
+		// TODO: Implement proper exception handling
+		teardown();
+		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
+		throw;
+	}
+}
+
+template <typename Connection>
+std::optional<typename QuiggeldyWorker<Connection>::user_session_type>
 QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 {
+	boost::uuids::string_generator string_gen;
+	boost::uuids::uuid session_uuid;
 	std::size_t uid_like;
 
 	HXCOMM_LOG_TRACE(m_logger, "Verifying " << user_data);
@@ -260,13 +286,41 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 
 			return std::nullopt;
 		}
+		try {
+			session_uuid = string_gen(static_cast<char*>(buffer));
+			std::free(buffer);
+		} catch (const std::runtime_error&) {
+			HXCOMM_LOG_WARN(m_logger, "Invalid session id: " << buffer);
+			std::free(buffer);
+			return std::nullopt;
+		}
 	}
 #else
 	if (false) {
 	}
 #endif
 	else {
-		auto user_id = user_data;
+		// If we de not use munge, the client sends user-id and session-name separated by a colon.
+		std::string delimiter(":");
+		auto session_idx = user_data.find(delimiter);
+
+		if (session_idx == std::string::npos ||
+		    session_idx + delimiter.length() >= user_data.length()) {
+			HXCOMM_LOG_WARN(m_logger, "Invalid user data: " << user_data);
+			return std::nullopt;
+		}
+
+		auto user_id = user_data.substr(0, session_idx);
+		auto session_id = user_data.substr(
+		    session_idx + delimiter.length(),
+		    user_data.length() - delimiter.length() - session_idx);
+
+		try {
+			session_uuid = string_gen(session_id);
+		} catch (const std::runtime_error&) {
+			HXCOMM_LOG_WARN(m_logger, "Invalid session id in: " << user_data);
+			return std::nullopt;
+		}
 
 		// We hash in order to convert from string -> size_t in a reliable
 		// manner (same user data -> same hash).
@@ -278,7 +332,7 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 		uid_like = std::hash<std::string>{}(user_id);
 	}
 
-	return std::make_optional(uid_like);
+	return std::make_optional(std::make_pair(uid_like, session_uuid));
 }
 
 template <typename Connection>
