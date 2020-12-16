@@ -6,6 +6,10 @@
 
 #include "hxcomm/common/quiggeldy_interface_types.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_hash.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -31,8 +35,11 @@ public:
 
 	using request_type = typename interface_types::request_type;
 	using response_type = typename interface_types::response_type;
+	// reinit is just another set of FPGA words sent to the chip prior to resuming
+	using reinit_type = typename interface_types::reinit_type;
 
-	using user_type = std::size_t;
+	// pair encoding uid and UUID of the session to differentiate them (one per QuiggeldyConnection)
+	using user_session_type = std::pair<std::size_t, boost::uuids::uuid>;
 
 	/**
 	 * Set up the Quick Queue Server.
@@ -55,7 +62,7 @@ public:
 	 * @return If user is authenticated, return identifying hash with which
 	 * fair round-robin scheduling is ensured.
 	 */
-	std::optional<user_type> verify_user(std::string const& user_data);
+	std::optional<user_session_type> verify_user(std::string const& user_data);
 
 	/**
 	 * This function is called by the scheduler whenever there is work to
@@ -77,6 +84,13 @@ public:
 	 * @param req FPGA words to be sent to the chip for this job.
 	 */
 	response_type work(request_type const& req);
+
+	/**
+	 * This function is called whenever we had to relinquish control of our
+	 * hardware resource and the user specified a reinit-program to be loaded
+	 * prior to the next work-unit being executed.
+	 */
+	void perform_reinit(reinit_type const&);
 
 	/**
 	 * This function is run whenever the server releases control (and any

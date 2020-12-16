@@ -8,6 +8,8 @@
 #include "hxcomm/vx/arqconnection.h"
 #include "hxcomm/vx/simconnection.h"
 
+#include "rcf-extensions/round-robin-reinit-scheduler.h"
+
 namespace hxcomm::vx {
 
 /**
@@ -23,10 +25,10 @@ namespace hxcomm::vx {
  */
 inline std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env();
 
-RR_GENERATE_UTILITIES(
+RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<ARQConnection>, quiggeldy_arq, ::hxcomm::vx::I_HXCommQuiggeldyVX)
 
-RR_GENERATE_UTILITIES(
+RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<SimConnection>, quiggeldy_sim, ::hxcomm::vx::I_HXCommQuiggeldyVX)
 
 } // namespace hxcomm::vx

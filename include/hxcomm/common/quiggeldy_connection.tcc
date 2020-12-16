@@ -3,6 +3,9 @@
 #include <sstream>
 #include <thread>
 
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include "hxcomm/common/execute_messages.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/quiggeldy_common.h"
@@ -87,9 +90,13 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_connection_attempt_num_max(100),
     m_connection_attempt_wait_after(100ms),
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
-    m_use_munge(true),
-    m_sequence_num(0)
+    m_reinit_uploader{new reinit_uploader_type{get_create_client_function(),
+                                               &rcf_client_type::reinit_notify,
+                                               &rcf_client_type::reinit_upload}},
+    m_sequence_num(0),
+    m_reinit_stack{new reinit_stack_type{}}
 {
+	m_session_uuid = boost::uuids::random_generator()();
 #ifdef USE_MUNGE_AUTH
 	if (!is_munge_available()) {
 		HXCOMM_LOG_WARN(
@@ -109,11 +116,16 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_connection_attempt_wait_after(std::move(other.m_connection_attempt_wait_after)),
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
     m_use_munge(std::move(other.m_use_munge)),
-    m_sequence_num(std::move(other.m_sequence_num))
+    m_session_uuid(std::move(other.m_session_uuid)),
+    m_reinit_uploader(std::move(other.m_reinit_uploader)),
+    m_sequence_num(std::move(other.m_sequence_num)),
+    m_reinit_stack(std::move(other.m_reinit_stack))
 {
 	HXCOMM_LOG_TRACE(m_logger, "Moving QuiggeldyConnection!");
 	auto const lk = lock_time_info();
 	m_time_info = std::move(other.m_time_info);
+	// Update lambda to contain correct this pointer
+	m_reinit_uploader->update_function_create_client(get_create_client_function());
 }
 
 template <typename ConnectionParameter, typename RcfClient>
@@ -127,11 +139,16 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::operator=(
 		m_connection_attempt_wait_after = std::move(other.m_connection_attempt_wait_after);
 		m_logger = log4cxx::Logger::getLogger("QuiggeldyConnection");
 		m_use_munge = std::move(other.m_use_munge);
+		m_session_uuid = std::move(other.m_session_uuid);
+		m_reinit_uploader = std::move(other.m_reinit_uploader);
 		m_sequence_num = std::move(other.m_sequence_num);
+		m_reinit_stack = std::move(other.m_reinit_stack);
 		{
 			auto const lk = lock_time_info();
 			m_time_info = std::move(other.m_time_info);
 		}
+		// Update lambda to contain correct this pointer
+		m_reinit_uploader->update_function_create_client(get_create_client_function());
 	}
 	return *this;
 }
@@ -164,9 +181,16 @@ void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_user_data(
 		char* cred;
 		auto munge_ctx = munge_ctx_setup();
 
+		std::stringstream ss;
+		ss << m_session_uuid;
+
+		auto session_id = ss.str();
+		char const* session_id_c_str = session_id.c_str();
+
 		// string::length returns the number of characters in the string, but the c_str has an
 		// additional terminating \0-byte
-		munge_err_t err = munge_encode(&cred, munge_ctx, nullptr, 0);
+		munge_err_t err = munge_encode(
+		    &cred, munge_ctx, static_cast<void const*>(session_id_c_str), session_id.length() + 1);
 		if (err != EMUNGE_SUCCESS) {
 			HXCOMM_LOG_ERROR(
 			    m_logger, "Could not encode credentials via munge. Is munge running? ERROR: "
@@ -181,9 +205,29 @@ void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_user_data(
 #endif
 	{
 		std::stringstream ss;
-		ss << std::getenv("USER");
+		ss << std::getenv("USER") << ":" << m_session_uuid;
 		client->getClientStub().setRequestUserData(ss.str());
 	}
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+std::weak_ptr<typename QuiggeldyConnection<ConnectionParameter, RcfClient>::reinit_uploader_type>
+QuiggeldyConnection<ConnectionParameter, RcfClient>::get_reinit_upload() const
+{
+	return m_reinit_uploader;
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+std::weak_ptr<typename QuiggeldyConnection<ConnectionParameter, RcfClient>::reinit_stack_type>
+QuiggeldyConnection<ConnectionParameter, RcfClient>::get_reinit_stack() const
+{
+	return m_reinit_stack;
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+void QuiggeldyConnection<ConnectionParameter, RcfClient>::reinit_enforce()
+{
+	setup_client()->reinit_enforce();
 }
 
 template <typename ConnectionParameter, typename RcfClient>
@@ -239,7 +283,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 {
 	return submit([&request, this](auto& client, auto& sequence_num) {
 		typename interface_types::response_type response =
-		    client->submit_work(request, sequence_num);
+		    client->submit_work(request, sequence_num, m_reinit_uploader->holds_data());
 		accumulate_time_info(response.second);
 		return response;
 	});
@@ -264,7 +308,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_async(
 			    // track time
 			    accumulate_time_info(response.second);
 		    }),
-		    request, sequence_num);
+		    request, sequence_num, m_reinit_uploader->holds_data());
 		return future_type{std::move(client), std::move(rcf_future_ptr)};
 	});
 }
@@ -343,6 +387,18 @@ template <typename ConnectionParameter, typename RcfClient>
 void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_out_of_order()
 {
 	m_sequence_num = rcf_extensions::SequenceNumber::out_of_order();
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+typename QuiggeldyConnection<ConnectionParameter, RcfClient>::f_create_client_shared_ptr_t
+QuiggeldyConnection<ConnectionParameter, RcfClient>::get_create_client_function()
+{
+	return [this] {
+		HXCOMM_LOG_DEBUG(m_logger, "Creating client in uploader.");
+		std::shared_ptr<rcf_client_type> client{setup_client()};
+		client->getClientStub().setRemoteCallTimeoutMs(24 * 60 * 60 * 7); // have a week to timeout
+		return client;
+	};
 }
 
 namespace detail {

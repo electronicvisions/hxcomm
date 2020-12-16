@@ -9,6 +9,7 @@
 
 #include "pyhxcomm/vx/connection_handle_binding.h"
 #include "pyhxcomm/vx/quiggeldy_utility.h"
+#include "pyhxcomm/vx/reinit_stack_entry.h"
 
 #include "pyhxcomm/vx/connection_handle_binding.h"
 #include "pyhxcomm/vx/connection_time_info.h"
