@@ -22,7 +22,7 @@ struct AXIHandle
 	/** Create AXIHandle.
 	 * Opens /dev/mem and tries to mmap RX/TX addresses.
 	 */
-	inline AXIHandle();
+	inline AXIHandle(off_t register_addr, off_t data_addr);
 
 	/** Destructs AXIHandle.
 	 * Unmmaps memory regions and closes /dev/mem fd.
@@ -51,8 +51,8 @@ private:
 	void* m_mem_64b; // the I/O part
 
 	// base address of the fifos
-	off_t const m_base_addr     = 0xa0010000;
-	off_t const m_base_addr_64b = 0xa0020000;
+	off_t const m_base_addr;
+	off_t const m_base_addr_64b;
 
 	// offsets from base address (cf. AXI4-Steram FIFO v4.2 Table 2-4)
 	off_t static constexpr
@@ -121,8 +121,12 @@ private:
 	}
 };
 
-AXIHandle::AXIHandle() :
-	m_logger(log4cxx::Logger::getLogger("hxcomm.AXIHandle"))
+AXIHandle::AXIHandle(
+	off_t const register_addr = 0xa0010000,
+	off_t const data_addr = 0xa0020000) :
+	m_logger(log4cxx::Logger::getLogger("hxcomm.AXIHandle")),
+	m_base_addr(register_addr),
+	m_base_addr_64b(data_addr)
 {
 	m_fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (m_fd == -1) {
