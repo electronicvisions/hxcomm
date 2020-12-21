@@ -37,6 +37,10 @@ struct AXIHandle
 	 */
 	inline std::vector<word_type> receive();
 
+	/** Trigger release of program.
+	 */
+	inline void trigger_unhold();
+
 private:
 	log4cxx::Logger* m_logger;
 
@@ -78,6 +82,29 @@ private:
 		} bit;
 	};
 
+	TxStatus read_tx_status() {
+		TxStatus ret(*(volatile uint32_t*)((char*)m_mem_tx_regs + m_woff_tx_status));
+		return ret;
+	}
+
+	union TxControl {
+		uint32_t raw;
+		struct __attribute__((packed)) {
+			uint32_t push :  1; // push data
+			uint32_t hold :  1; // hold back playback
+			uint32_t      : 30; // padding
+		} bit;
+	};
+
+	void write_tx_control(TxControl const txc) {
+		*(volatile uint32_t*)((char*)m_mem_tx_regs + m_woff_tx_control) = txc.raw;
+	}
+
+	void write_tx_data(uint64_t const& value) {
+		*(volatile uint32_t*)((char*)m_mem_tx_data + m_woff_tx_data_lo) = static_cast<uint32_t>(value);
+		*(volatile uint32_t*)((char*)m_mem_tx_data + m_woff_tx_data_hi) = static_cast<uint32_t>(value >> 32);
+	}
+
 	union RxStatus {
 		uint32_t raw;
 		struct __attribute__((packed)) {
@@ -86,27 +113,21 @@ private:
 		} bit;
 	};
 
-	TxStatus read_tx_status() {
-		TxStatus ret(*(volatile uint32_t*)((char*)m_mem_tx_regs + m_woff_tx_status));
-		return ret;
-	}
-
-	void write_tx_control(uint32_t const value) {
-		*(volatile uint32_t*)((char*)m_mem_tx_regs + m_woff_tx_control) = value;
-	}
-
-	void write_tx_data(uint64_t const& value) {
-		*(volatile uint32_t*)((char*)m_mem_tx_data + m_woff_tx_data_lo) = static_cast<uint32_t>(value);
-		*(volatile uint32_t*)((char*)m_mem_tx_data + m_woff_tx_data_hi) = static_cast<uint32_t>(value >> 32);
-	}
-
 	RxStatus read_rx_status() {
 		RxStatus ret(*(volatile uint32_t*)((char*)m_mem_rx_regs + m_woff_rx_status));
 		return ret;
 	}
 
-	void write_rx_control(uint32_t const value) {
-		*(volatile uint32_t*)((char*)m_mem_rx_regs + m_woff_rx_control) = value;
+	union RxControl {
+		uint32_t raw;
+		struct __attribute__((packed)) {
+			uint32_t push :  1; // push data
+			uint32_t      : 31; // padding
+		} bit;
+	};
+
+	void write_rx_control(RxControl const rxc) {
+		*(volatile uint32_t*)((char*)m_mem_rx_regs + m_woff_rx_control) = rxc.raw;
 	}
 
 	uint64_t read_rx_data() {
@@ -220,8 +241,12 @@ void AXIHandle::send(std::queue<uint64_t>& q)
 		write_tx_data(q.front());
 		q.pop();
 
-		write_tx_control(1);
-		write_tx_control(0);
+		TxControl txc{0};
+		txc.bit.push = 1;
+		txc.bit.hold = 1;
+		write_tx_control(txc);
+		txc.bit.push = 0;
+		write_tx_control(txc);
 	}
 }
 
@@ -238,11 +263,19 @@ std::vector<AXIHandle::word_type> AXIHandle::receive()
 
 		ret.push_back(read_rx_data());
 
-		write_rx_control(1);
-		write_rx_control(0);
+		write_rx_control({1});
+		write_rx_control({0});
 	}
 
 	return ret;
+}
+	
+void AXIHandle::trigger_unhold()
+{
+	TxControl txc{0};
+	txc.bit.push = 0;
+	txc.bit.hold = 0;
+	write_tx_control(txc);
 }
 
 
@@ -429,6 +462,10 @@ void AXIConnection<ConnectionParameter>::run_until_halt()
 	if (!m_axi) {
 		throw std::runtime_error("Unexpected access to moved-from AXIConnection.");
 	}
+
+	// trigger "unhold" to start playback (if program was smaller than fifo depth)
+	m_axi->trigger_unhold();
+
 	SignalOverrideIntTerm signal_override;
 
 	auto wait_period = 1us;
