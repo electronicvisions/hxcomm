@@ -22,7 +22,7 @@ struct AXIHandle
 	/** Create AXIHandle.
 	 * Opens /dev/mem and tries to mmap RX/TX addresses.
 	 */
-	inline AXIHandle(off_t register_addr, off_t data_addr);
+	inline AXIHandle(off_t base_tx_data, off_t base_tx_regs, off_t base_rx_data, off_t base_rx_regs);
 
 	/** Destructs AXIHandle.
 	 * Unmmaps memory regions and closes /dev/mem fd.
@@ -46,87 +46,87 @@ private:
 	// page size (needed for mmap alignment purposes)
 	long m_map_size;
 
-	// mapped memory regions: use two to keep keep number of pages low
-	void* m_mem; // control registers
-	void* m_mem_64b; // the I/O part
+	void* m_mem_tx_data = nullptr;
+	off_t const m_base_tx_data; // 0xa001'0000
+	off_t static const m_woff_tx_data_lo = 0x0; // write-only
+	off_t static const m_woff_tx_data_hi = 0x8; // write-only
 
-	// base address of the fifos
-	off_t const m_base_addr;
-	off_t const m_base_addr_64b;
+	void* m_mem_tx_regs = nullptr;
+	off_t const m_base_tx_regs; // 0xa002'0000
+	off_t static const m_woff_tx_control = 0x0; // write-only
+	off_t static const m_woff_tx_status = 0x8; // read-only
+	off_t static const m_boff_tx_status_ready = 31; // FIFO ready
+	off_t static const m_mask_tx_status_count_mask = 0x7FFFFFFF; // write count
 
-	// offsets from base address (cf. AXI4-Steram FIFO v4.2 Table 2-4)
-	off_t static constexpr
-	    offset_ISR  = 0x0,  // Interrupt Status Register
-	    offset_IER  = 0x4,  // Interrupt Enable Register
-	    offset_TDFR = 0x8,  // Transmit Data FIFO Reset
-	    offset_TDFV = 0xc,  // Transmit Data FIFO Vacancy
-	    offset_TDFD = 0x10, // Transmit Data FIFO 32-bit Data Write Port
-	    offset_TLR  = 0x14, // Transmit Length Register
-	    offset_RDFR = 0x18, // Read Data FIFO Reset
-	    offset_RDFO = 0x1c, // Read Data FIFO Occupancy
-	    offset_RDFD = 0x20, // Read Data FIFO 32-bit Data Read Port
-	    offset_RLR  = 0x24, // Read Length Register
-	    offset_SRR  = 0x28, // AXI4-Stream Reset
-	    offset_TDR  = 0x2c, // Transmit Destination
-	    offset_RDR  = 0x30  // Read Destination Register
-	                        // Transmit ID Register
-	                        // Transmit USER Register
-	                        // Read ID Register
-	                        // Read USER Register
-	                        // Reserved
-	;
+	void* m_mem_rx_data = nullptr;
+	off_t const m_base_rx_data; // 0xa003'0000
+	off_t static const m_woff_rx_data_lo = 0x0;
+	off_t static const m_woff_rx_data_hi = 0x8;
 
-	// offsets from base address for write/read ports
-	off_t const m_offset_64b_write = 0x0;    // i.e. 0xa0020000
-	off_t const m_offset_64b_read  = 0x1000; // i.e. 0xa0021000
+	void* m_mem_rx_regs = nullptr;
+	off_t const m_base_rx_regs; // 0xa004'0000
+	off_t static const m_woff_rx_control = 0x0;
+	off_t static const m_woff_rx_status = 0x8;
+	off_t static const m_boff_rx_status_ready = 31; // FIFO valid
+	off_t static const m_mask_rx_status_count_mask = 0x7FFFFFFF; // read count
 
-	// 1 means interrupt pending
-	union register_ISR {
+	union TxStatus {
 		uint32_t raw;
 		struct __attribute__((packed)) {
-			uint32_t     : 24; // 24 bit padding
-			uint32_t TRC :  1; // bit 25: transmit reset complete
-			uint32_t     :  2; //  2 bit padding
-			uint32_t TC  :  1; // bit 28: transmit reset complete
-			uint32_t     :  4; //  4 bit padding
+			uint32_t count : 31; // write count
+			uint32_t ready :  1; // ready bit
 		} bit;
 	};
-	static_assert(sizeof(register_ISR::bit) == sizeof(register_ISR::raw));
-	static_assert(sizeof(register_ISR) == sizeof(register_ISR::bit));
 
-	// to mark first transaction after opening connection
-	bool m_first_transaction = true;
+	union RxStatus {
+		uint32_t raw;
+		struct __attribute__((packed)) {
+			uint32_t count : 31; // read count
+			uint32_t valid :  1; // valid bit
+		} bit;
+	};
 
-	// read 32-bit value from mapped memory for registers
-	uint32_t read_reg(off_t const& offset) {
-		uint32_t ret = *(volatile uint32_t*)((char*)m_mem + offset);
+	TxStatus read_tx_status() {
+		TxStatus ret(*(volatile uint32_t*)((char*)m_mem_tx_regs + m_woff_tx_status));
 		return ret;
 	}
 
-	// read 64-bit value from mapped memory for data
-	uint64_t read_data(off_t const& offset) {
-		// read data (64bit words) from 0xa0021000
-		uint64_t ret = *(volatile uint64_t*)((char*)m_mem_64b + offset);
+	void write_tx_control(uint32_t const value) {
+		*(volatile uint32_t*)((char*)m_mem_tx_regs + m_woff_tx_control) = value;
+	}
+
+	void write_tx_data(uint64_t const& value) {
+		*(volatile uint32_t*)((char*)m_mem_tx_data + m_woff_tx_data_lo) = static_cast<uint32_t>(value);
+		*(volatile uint32_t*)((char*)m_mem_tx_data + m_woff_tx_data_hi) = static_cast<uint32_t>(value >> 32);
+	}
+
+	RxStatus read_rx_status() {
+		RxStatus ret(*(volatile uint32_t*)((char*)m_mem_rx_regs + m_woff_rx_status));
 		return ret;
 	}
 
-	// write 32-bit register value to mapped memory for registers
-	void write_reg(off_t const& offset, uint32_t const& value) {
-		*(volatile uint32_t*)((char*)m_mem + offset) = value;
+	void write_rx_control(uint32_t const value) {
+		*(volatile uint32_t*)((char*)m_mem_rx_regs + m_woff_rx_control) = value;
 	}
 
-	// write 64-bit register value to mapped memory for data
-	void write_data(off_t const& offset, uint64_t const& value) {
-		*(volatile uint64_t*)((char*)m_mem_64b + offset) = value;
+	uint64_t read_rx_data() {
+		uint32_t lo = *(volatile uint32_t*)((char*)m_mem_rx_data + m_woff_rx_data_lo);
+		uint32_t hi = *(volatile uint32_t*)((char*)m_mem_rx_data + m_woff_rx_data_hi);
+		uint64_t ret = static_cast<uint64_t>(lo) | (static_cast<uint64_t>(hi) << 32);
+		return ret;
 	}
 };
 
 AXIHandle::AXIHandle(
-	off_t const register_addr = 0xa0010000,
-	off_t const data_addr = 0xa0020000) :
+	off_t base_tx_data = 0xa001'0000,
+	off_t base_tx_regs = 0xa002'0000,
+	off_t base_rx_data = 0xa003'0000,
+	off_t base_rx_regs = 0xa004'0000) :
 	m_logger(log4cxx::Logger::getLogger("hxcomm.AXIHandle")),
-	m_base_addr(register_addr),
-	m_base_addr_64b(data_addr)
+	m_base_tx_data(base_tx_data),
+	m_base_tx_regs(base_tx_regs),
+	m_base_rx_data(base_rx_data),
+	m_base_rx_regs(base_rx_regs)
 {
 	m_fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (m_fd == -1) {
@@ -136,7 +136,7 @@ AXIHandle::AXIHandle(
 	}
 
 	// need two pages due to base addresses being 4096 apart...
-	m_map_size = 2 * sysconf(_SC_PAGE_SIZE);
+	m_map_size = 1 * sysconf(_SC_PAGE_SIZE);
 	if (m_map_size == -1) {
 		std::stringstream ss;
 		ss << "Cannot acquire page size: " << std::strerror(errno);
@@ -145,49 +145,58 @@ AXIHandle::AXIHandle(
 	off_t const map_mask = m_map_size - 1;
 
 	// express some assumptions
-	assert((m_base_addr & ~map_mask) == m_base_addr); // alignment
-	assert(m_map_size == 2 * 4096); // size of pages
+	assert(m_map_size == 1 * 4096); // size of pages
 
 	// map in single pages
-	m_mem = mmap(0, m_map_size, (PROT_READ | PROT_WRITE), MAP_SHARED_VALIDATE, m_fd, m_base_addr & ~map_mask);
-	if (m_mem == MAP_FAILED) {
+	m_mem_tx_data = mmap(0, m_map_size,              PROT_WRITE , MAP_SHARED_VALIDATE, m_fd, m_base_tx_data & ~map_mask);
+	if (m_mem_tx_data == MAP_FAILED) {
 		std::stringstream ss;
 		ss << "Cannot mmap register region: " << std::strerror(errno);
 		throw std::runtime_error(ss.str());
 	}
-	m_mem_64b = mmap(0, m_map_size, (PROT_READ | PROT_WRITE), MAP_SHARED_VALIDATE, m_fd, m_base_addr_64b & ~map_mask);
-	if (m_mem_64b == MAP_FAILED) {
+	m_mem_tx_regs = mmap(0, m_map_size, (PROT_READ | PROT_WRITE), MAP_SHARED_VALIDATE, m_fd, m_base_tx_regs & ~map_mask);
+	if (m_mem_tx_regs == MAP_FAILED) {
 		std::stringstream ss;
-		ss << "Cannot mmap data region: " << std::strerror(errno);
+		ss << "Cannot mmap register region: " << std::strerror(errno);
 		throw std::runtime_error(ss.str());
 	}
-
-	// reset "reset registers"
-	write_reg(offset_TDFR, 0xa5);
-	write_reg(offset_RDFR, 0xa5);
-	write_reg(offset_ISR, 0xffffffff);
-	m_first_transaction = true;
-
-	// drop all receive data
-	auto drop_data = receive();
-	if (!drop_data.empty()) {
-		HXCOMM_LOG_WARN(m_logger, "AXIHandle(): Unexpected data in receive queue!");
+	m_mem_rx_data = mmap(0, m_map_size,  PROT_READ              , MAP_SHARED_VALIDATE, m_fd, m_base_rx_data & ~map_mask);
+	if (m_mem_rx_data == MAP_FAILED) {
+		std::stringstream ss;
+		ss << "Cannot mmap register region: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
 	}
-
-	assert((m_base_addr_64b + m_offset_64b_write) == 0xa0020000);
-	assert((m_base_addr_64b + m_offset_64b_read) == 0xa0021000);
+	m_mem_rx_regs = mmap(0, m_map_size, (PROT_READ | PROT_WRITE), MAP_SHARED_VALIDATE, m_fd, m_base_rx_regs & ~map_mask);
+	if (m_mem_rx_regs == MAP_FAILED) {
+		std::stringstream ss;
+		ss << "Cannot mmap register region: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
 }
 
 AXIHandle::~AXIHandle() noexcept(false)
 {
 	// exceptions trigger call to std::terminate
-	if (m_mem && munmap(m_mem, m_map_size) == -1) {
+
+	if (m_mem_tx_data && munmap(m_mem_tx_data, m_map_size) == -1) {
 		std::stringstream ss;
 		ss << "Cannot unmap memory: " << std::strerror(errno);
 		throw std::runtime_error(ss.str());
 	}
 
-	if (m_mem_64b && munmap(m_mem, m_map_size) == -1) {
+	if (m_mem_tx_regs && munmap(m_mem_tx_regs, m_map_size) == -1) {
+		std::stringstream ss;
+		ss << "Cannot unmap memory: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
+
+	if (m_mem_rx_data && munmap(m_mem_rx_data, m_map_size) == -1) {
+		std::stringstream ss;
+		ss << "Cannot unmap memory: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
+
+	if (m_mem_rx_regs && munmap(m_mem_rx_regs, m_map_size) == -1) {
 		std::stringstream ss;
 		ss << "Cannot unmap memory: " << std::strerror(errno);
 		throw std::runtime_error(ss.str());
@@ -203,59 +212,34 @@ AXIHandle::~AXIHandle() noexcept(false)
 void AXIHandle::send(std::queue<uint64_t>& q)
 {
 	while (!q.empty()) {
-		// block until ISR[TC] or ISR[TRC]
-		bool ready = m_first_transaction;
-		register_ISR isr;
-		while (!ready) {
-			isr.raw = read_reg(offset_ISR);
-			if (isr.bit.TRC && (!m_first_transaction)) {
-				throw std::runtime_error("Illegal ISR state");
-			}
-			ready = isr.bit.TRC ^ isr.bit.TC;
-		}
+		TxStatus status;
+		do {
+			status = read_tx_status();
+		} while (!status.bit.ready);
 
-		// enable TC and TRC in ISR
-		isr.bit.TRC = 1;
-		isr.bit.TC = 1;
-		write_reg(offset_ISR, isr.raw);
+		write_tx_data(q.front());
+		q.pop();
 
-		// might have have been first transaction => it's not anymore
-		m_first_transaction = false;
-
-		// read TDFV for number of empty slots in TX fifo
-		long int vacancies = read_reg(offset_TDFV);
-		if (vacancies > 1) {
-			// TODO: cf. issue #3810
-			vacancies = 1;
-		}
-
-		// write all data (64bit words)
-		int i = 0;
-		for (; (!q.empty()) && (i < vacancies); i++) {
-			write_data(m_offset_64b_write, q.front());
-			q.pop();
-		}
-
-		// write data length (in byte) to TLR
-		write_reg(offset_TLR, 8*i);
+		write_tx_control(1);
+		write_tx_control(0);
 	}
 }
 
 std::vector<AXIHandle::word_type> AXIHandle::receive()
 {
-	// read RLR (ignore MSB) [in bytes]; MSB indicates a partial packet
-	size_t N = read_reg(offset_RLR) & 0x7FFFFFFF;
-	if ((N % sizeof(AXIHandle::word_type)) != 0) {
-		// we don't use byte enables, i.e. word-sized only
-		throw std::runtime_error("unexpected number of bytes available");
-	}
-	N /= sizeof(AXIHandle::word_type);
-
 	std::vector<AXIHandle::word_type> ret;
-	ret.reserve(N);
 
-	for (size_t i = 0; i < N; i++) {
-		ret.push_back(read_data(m_offset_64b_read));
+	RxStatus status;
+	while (true) {
+		status = read_rx_status();
+		if (!status.bit.valid) {
+			return ret;
+		}
+
+		ret.push_back(read_rx_data());
+
+		write_rx_control(1);
+		write_rx_control(0);
 	}
 
 	return ret;

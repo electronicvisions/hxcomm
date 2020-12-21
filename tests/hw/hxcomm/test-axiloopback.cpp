@@ -11,7 +11,7 @@ TEST(TestAXIConnection, AXILoopback)
 	using namespace hxcomm::vx;
 	using namespace hxcomm::vx::instruction;
 
-	hxcomm::AXIHandle axi_handle;
+	hxcomm::AXIHandle axi_handle(0xa001'0000, 0xa002'0000, 0xa003'0000, 0xa004'0000);
 
 	std::queue<uint64_t> q;
 	q.push(0x1234);
