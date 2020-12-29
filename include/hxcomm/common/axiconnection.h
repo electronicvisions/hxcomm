@@ -187,4 +187,6 @@ private:
 
 } // namespace hxcomm
 
+#ifndef __GENPYBIND__
 #include "hxcomm/common/axiconnection.tcc"
+#endif
