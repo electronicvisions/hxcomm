@@ -94,36 +94,43 @@ void QuiggeldyWorker<Connection>::setup()
 		if (m_allocate_license) {
 			slurm_allocation_acquire();
 		}
-		HXCOMM_LOG_TRACE(m_logger, "Setting up local connection.");
-		// TODO: have the experiment control timeout (e.g. when the board is unresponsive)
-		std::size_t num_attempts = 0;
-		while (true) {
-			try {
-				auto new_connection =
-				    hate::memory::make_unique_from_tuple<Connection>(m_connection_init);
-				m_connection.swap(new_connection);
-				break;
-			} catch (std::exception& e) {
-				if (num_attempts < m_max_num_connection_attempts) {
-					++num_attempts;
-					HXCOMM_LOG_WARN(
-					    m_logger, "Could not establish connection: "
-					                  << e.what() << " Waiting "
-					                  << m_delay_after_connection_attempt.count()
-					                  << "ms.. [Attempt: " << num_attempts << "/"
-					                  << m_max_num_connection_attempts << "]");
-					std::this_thread::sleep_for(m_delay_after_connection_attempt);
-					continue;
-				} else {
-					HXCOMM_LOG_ERROR(m_logger, "Could not establish connection: " << e.what());
-					throw e;
-				}
-			}
-		}
+		setup_connection();
 	} else {
 		HXCOMM_LOG_DEBUG(m_logger, "Operating in mock-mode - no connection allocated.");
 	}
 	HXCOMM_LOG_TRACE(m_logger, "setup() completed!");
+}
+
+template <typename Connection>
+void QuiggeldyWorker<Connection>::setup_connection()
+{
+	HXCOMM_LOG_TRACE(m_logger, "Setting up local connection.");
+	// Release old connection first because otherwise we might block ourselves.
+	m_connection.reset();
+	// TODO: have the experiment control timeout (e.g. when the board is unresponsive)
+	std::size_t num_attempts = 0;
+	while (true) {
+		try {
+			auto new_connection =
+			    hate::memory::make_unique_from_tuple<Connection>(m_connection_init);
+			m_connection.swap(new_connection);
+			break;
+		} catch (std::exception& e) {
+			if (num_attempts < m_max_num_connection_attempts) {
+				++num_attempts;
+				HXCOMM_LOG_WARN(
+				    m_logger, "Could not establish connection: "
+				                  << e.what() << " Waiting "
+				                  << m_delay_after_connection_attempt.count() << "ms.. [Attempt: "
+				                  << num_attempts << "/" << m_max_num_connection_attempts << "]");
+				std::this_thread::sleep_for(m_delay_after_connection_attempt);
+				continue;
+			} else {
+				HXCOMM_LOG_ERROR(m_logger, "Could not establish connection: " << e.what());
+				throw e;
+			}
+		}
+	}
 }
 
 template <typename Connection>
@@ -367,6 +374,13 @@ template <typename Connection>
 std::string const& QuiggeldyWorker<Connection>::get_slurm_license() const
 {
 	return m_slurm_license;
+}
+
+template <typename Connection>
+void QuiggeldyWorker<Connection>::notify_user_change(user_type const&)
+{
+	// We ignore which user we switch to but reset the connection.
+	setup_connection();
 }
 
 } // namespace hxcomm

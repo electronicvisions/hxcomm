@@ -164,8 +164,21 @@ public:
 	 */
 	std::string const& get_slurm_license() const;
 
+	/**
+	 * Called by rcf_extensions::detail::round_robin_scheduler::WorkerThread to
+	 * notify us if the user changed
+	 *
+	 * @param Identifier of new user.
+	 */
+	void notify_user_change(user_type const& new_user);
+
 protected:
 	using connection_init_type = typename Connection::init_parameters_type;
+
+	/**
+	 * Create a new connection, closing the old one in the process.
+	 */
+	void setup_connection();
 
 	std::string get_slurm_jobname() const;
 
