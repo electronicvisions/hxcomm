@@ -13,6 +13,8 @@
 
 #include "RCF/RCF.hpp"
 
+#include <boost/uuid/uuid.hpp>
+
 #include <chrono>
 #include <string>
 #include <vector>
@@ -247,6 +249,7 @@ protected:
 	std::chrono::milliseconds m_connection_attempt_wait_after;
 	log4cxx::Logger* m_logger;
 	bool m_use_munge;
+	boost::uuids::uuid m_session_uuid;
 	std::mutex m_mutex_sequence_num;
 	rcf_extensions::SequenceNumber m_sequence_num;
 
