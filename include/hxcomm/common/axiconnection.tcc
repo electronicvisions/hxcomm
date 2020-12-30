@@ -22,7 +22,7 @@ struct AXIHandle
 	/** Create AXIHandle.
 	 * Opens /dev/mem and tries to mmap RX/TX addresses.
 	 */
-	inline AXIHandle(off_t base_tx_data, off_t base_tx_regs, off_t base_rx_data, off_t base_rx_regs);
+	inline AXIHandle(off_t base_reset, off_t base_tx_data, off_t base_tx_regs, off_t base_rx_data, off_t base_rx_regs);
 
 	/** Destructs AXIHandle.
 	 * Unmmaps memory regions and closes /dev/mem fd.
@@ -49,6 +49,9 @@ private:
 
 	// page size (needed for mmap alignment purposes)
 	long m_map_size;
+
+	void* m_mem_reset = nullptr;
+	off_t const m_base_reset; // 0xa000'0000
 
 	void* m_mem_tx_data = nullptr;
 	off_t const m_base_tx_data; // 0xa001'0000
@@ -139,11 +142,13 @@ private:
 };
 
 AXIHandle::AXIHandle(
+	off_t base_reset = 0xa000'0000,
 	off_t base_tx_data = 0xa001'0000,
 	off_t base_tx_regs = 0xa002'0000,
 	off_t base_rx_data = 0xa003'0000,
 	off_t base_rx_regs = 0xa004'0000) :
 	m_logger(log4cxx::Logger::getLogger("hxcomm.AXIHandle")),
+	m_base_reset(base_reset),
 	m_base_tx_data(base_tx_data),
 	m_base_tx_regs(base_tx_regs),
 	m_base_rx_data(base_rx_data),
@@ -169,6 +174,12 @@ AXIHandle::AXIHandle(
 	assert(m_map_size == 1 * 4096); // size of pages
 
 	// map in single pages
+	m_mem_reset = mmap(0, m_map_size,              PROT_WRITE , MAP_SHARED_VALIDATE, m_fd, m_base_reset & ~map_mask);
+	if (m_mem_reset == MAP_FAILED) {
+		std::stringstream ss;
+		ss << "Cannot mmap register region: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
 	m_mem_tx_data = mmap(0, m_map_size,              PROT_WRITE , MAP_SHARED_VALIDATE, m_fd, m_base_tx_data & ~map_mask);
 	if (m_mem_tx_data == MAP_FAILED) {
 		std::stringstream ss;
@@ -193,11 +204,21 @@ AXIHandle::AXIHandle(
 		ss << "Cannot mmap register region: " << std::strerror(errno);
 		throw std::runtime_error(ss.str());
 	}
+
+	// reset synplify wrapper
+	*(volatile uint32_t*)((char*)m_mem_reset) = 2;
+	*(volatile uint32_t*)((char*)m_mem_reset) = 0;
 }
 
 AXIHandle::~AXIHandle() noexcept(false)
 {
 	// exceptions trigger call to std::terminate
+
+	if (m_mem_reset && munmap(m_mem_reset, m_map_size) == -1) {
+		std::stringstream ss;
+		ss << "Cannot unmap memory: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
 
 	if (m_mem_tx_data && munmap(m_mem_tx_data, m_map_size) == -1) {
 		std::stringstream ss;
