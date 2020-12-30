@@ -188,6 +188,11 @@ public:
 protected:
 	using connection_init_type = typename Connection::init_parameters_type;
 
+	/**
+	 * Create a new connection, closing the old one in the process.
+	 */
+	void setup_connection();
+
 	std::string get_slurm_jobname() const;
 
 	/**
