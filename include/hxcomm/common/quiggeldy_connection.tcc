@@ -3,6 +3,9 @@
 #include <sstream>
 #include <thread>
 
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 #include "hxcomm/common/execute_messages.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/quiggeldy_common.h"
@@ -84,6 +87,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_use_munge(true),
     m_sequence_num(0)
 {
+	m_session_uuid = boost::uuids::random_generator()();
 #ifdef USE_MUNGE_AUTH
 	if (!is_munge_available()) {
 		HXCOMM_LOG_WARN(
@@ -103,6 +107,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_connection_attempt_wait_after(std::move(other.m_connection_attempt_wait_after)),
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
     m_use_munge(std::move(other.m_use_munge)),
+    m_session_uuid(std::move(other.m_session_uuid)),
     m_sequence_num(std::move(other.m_sequence_num))
 {}
 
@@ -152,6 +157,14 @@ void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_user_data(
 	{
 		std::stringstream ss;
 		ss << std::getenv("USER");
+		// 8< --- 8< --- 8< --- 8< --- 8< --- 8< --- 8< --- 8<
+		// HACK for AXI-Connection (poor man's session tracking):
+		// Backport session id tracking via uuids from upcoming reinit-based
+		// quiggeldy to ensure each client-side connection causes a new
+		// connection on the remote side.
+		// This only works if munge is disabled (which is the case for AXI)!
+		ss << ":" << m_session_uuid;
+		// 8< --- 8< --- 8< --- 8< --- 8< --- 8< --- 8< --- 8<
 		client->getClientStub().setRequestUserData(ss.str());
 	}
 }
