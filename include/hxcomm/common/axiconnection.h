@@ -185,6 +185,67 @@ private:
 	duration_type m_execution_duration{};
 };
 
+
+/**
+ * Hacky (FIXME!) class for accessing "extmem" directly on Ultradingens.
+ */
+class FrickelExtMem
+{
+public:
+	/** Constructor.
+	 *
+	 * @param offset Offset of external memory in Bytes (0x0 by default).
+	 * @param length Length of external memory in Bytes (512MiB by default).
+	 */
+	inline FrickelExtMem(off_t offset = 0x0, std::size_t length = 512*1024*1024);
+
+	/** Destructor. */
+	inline ~FrickelExtMem() noexcept(false);
+
+	/** Get iterator pair.
+	 */
+	template <typename T>
+	std::pair<T volatile*, T volatile*> get_iterators() {
+		static_assert(!std::is_pointer_v<T>);
+		auto begin = reinterpret_cast<T volatile*>(m_extmem);
+		auto end = reinterpret_cast<T volatile*>(m_extmem) + (m_length / sizeof(T));
+		assert(end == (uint32_t volatile*)((char volatile*)m_extmem + m_length));
+		return std::make_pair(begin, end);
+	}
+
+	/** Write to "external memory" (DRAM attached to the FPGA that is
+	 * reachable from the PPUs via the "extmem" addressing scheme).
+	 *
+	 * @param offset_address Byte address into "extmem".
+	 * @param data Data to write to extmem.
+	 * @tparam T Type of data (that is to be written to extmem); we require
+	 *           some container semantics.
+	 */
+	template <typename T>
+	void write(off_t offset_address, T const& data);
+
+	/** Read from "external memory" (DRAM attached to the FPGA that is
+	 * reachable from the PPUs via the "extmem" addressing scheme).
+	 *
+	 * @param offset_address Byte address into "extmem".
+	 * @param size Number of elements to read.
+	 * @tparam T Value type of data (that is to be read from extmem); we require
+	 *           some container semantics.
+	 */
+	template <typename T>
+	T read(off_t offset_address, std::size_t size);
+
+	/** Get some offset/length members */
+	std::size_t offset() const { return m_offset; }
+	std::size_t length() const { return m_length; }
+
+private:
+	off_t m_offset;
+	std::size_t m_length;
+	int m_fd;
+	void volatile* m_extmem;
+};
+
 } // namespace hxcomm
 
 #ifndef __GENPYBIND__

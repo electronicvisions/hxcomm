@@ -6,5 +6,6 @@
 namespace hxcomm::vx {
 
 using AXIConnection = hxcomm::AXIConnection<ConnectionParameter>;
+using FrickelExtMem = hxcomm::FrickelExtMem;
 
 } // namespace hxcomm::vx

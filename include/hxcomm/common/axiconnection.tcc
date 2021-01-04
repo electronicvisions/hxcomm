@@ -522,4 +522,71 @@ std::string AXIConnection<ConnectionParameter>::get_unique_identifier(
 	return "DummyData";
 }
 
+
+FrickelExtMem::FrickelExtMem(off_t offset, std::size_t length)
+	: m_offset(offset), m_length(length)
+{
+	m_fd = open("/dev/mem", O_RDWR | O_SYNC);
+	if (m_fd < 0) {
+		std::stringstream ss;
+		ss << "Cannot open /dev/mem: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
+
+	assert(m_offset % 4096 == 0); // FIXME
+	m_extmem = mmap(0, m_length, PROT_READ | PROT_WRITE, MAP_SHARED_VALIDATE | MAP_POPULATE, m_fd, m_offset);
+	if (m_extmem == MAP_FAILED) {
+		std::stringstream ss;
+		ss << "Cannot mmap: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
+}
+
+FrickelExtMem::~FrickelExtMem() noexcept(false)
+{
+	if (m_extmem && munmap(const_cast<void*>(m_extmem), m_length) == -1) {
+		std::stringstream ss;
+		ss << "Cannot unmap memory: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
+
+	if (close(m_fd) == -1) {
+		std::stringstream ss;
+		ss << "Cannot close file descriptor: " << std::strerror(errno);
+		throw std::runtime_error(ss.str());
+	}
+}
+
+template <typename T>
+void FrickelExtMem::write(off_t const offset_address, T const& data)
+{
+	// FIXME: we should check for container properties
+	if ((data.size() * sizeof(typename T::value_type) + offset_address) > m_length) {
+		std::runtime_error("Out of bounds access requested.");
+	}
+
+	// FIXME: only (volatile) uint32_t seems to work properly…
+	static_assert(std::is_same_v<typename T::value_type, uint32_t>);
+	std::copy(data.begin(), data.end(),
+		reinterpret_cast<typename T::value_type volatile*>((char*)m_extmem + offset_address));
+}
+
+template <typename T>
+T FrickelExtMem::read(off_t const offset_address, std::size_t const size)
+{
+	// FIXME: we should check for container properties
+	if ((size * sizeof(T) + offset_address) > m_length) {
+		std::runtime_error("Out of bounds access requested.");
+	}
+
+	// FIXME: only (volatile) uint32_t seems to work properly…
+	static_assert(std::is_same_v<typename T::value_type, uint32_t>);
+	T ret(size);
+	std::copy(
+		reinterpret_cast<typename T::value_type volatile*>((char*)m_extmem + offset_address),
+		reinterpret_cast<typename T::value_type volatile*>((char*)m_extmem + offset_address) + size,
+		ret.begin());
+	return ret;
+}
+
 } // namespace hxcomm
