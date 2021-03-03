@@ -196,6 +196,20 @@ public:
 	 */
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
+	/**
+	 * Set custom username.
+	 * Please note that this setting will only be used if munge authentication is disabled.
+	 *
+	 * @param custom_user Custom username to use.
+	 */
+	void set_custom_username(std::string custom_user);
+
+	/**
+	 * Get custom username to use remotely, if defined.
+	 * @return Custom username if defined. Otherwise: nullopt.
+	 */
+	std::optional<std::string> get_custom_username();
+
 protected:
 	// needs to be first so it is initialized first and RCF-functionality is set up
 	RCF::RcfInit m_rcf_init_deinit;
@@ -285,6 +299,7 @@ protected:
 	std::mutex m_mutex_sequence_num;
 	rcf_extensions::SequenceNumber m_sequence_num;
 	std::shared_ptr<reinit_stack_type> m_reinit_stack;
+	std::optional<std::string> m_custom_user;
 
 	mutable std::mutex m_mutex_time_info;
 	ConnectionTimeInfo m_time_info;
