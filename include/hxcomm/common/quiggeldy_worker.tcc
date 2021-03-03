@@ -373,6 +373,9 @@ template <typename Connection>
 std::string QuiggeldyWorker<Connection>::get_unique_identifier(
     std::optional<std::string> hwdb_path) const
 {
+	// TODO (#3964): Make get_unique_identifier static member function that
+	// can be called without active hardware connection maybe requiring changes
+	// to Connection/HWDB things.
 	if (m_connection) {
 		return m_connection->get_unique_identifier(hwdb_path);
 	} else {
