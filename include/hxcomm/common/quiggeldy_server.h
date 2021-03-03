@@ -43,7 +43,7 @@ public:
 
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path)
 	{
-		return parent_t::visit_worker_const(
+		return parent_t::visit_set_up_worker_const(
 		    [&hwdb_path](auto const& worker) { return worker.get_unique_identifier(hwdb_path); });
 	}
 
