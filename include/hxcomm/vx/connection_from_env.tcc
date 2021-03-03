@@ -75,7 +75,16 @@ inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::opt
 	std::vector<ConnectionVariant> list;
 	char const* env_quiggeldy_enabled = std::getenv(vision_quiggeldy_enabled_env_name);
 	if (env_quiggeldy_enabled != nullptr && atoi(env_quiggeldy_enabled)) {
-		list.emplace_back(ConnectionVariant{std::in_place_type<QuiggeldyConnection>});
+		QuiggeldyConnection conn{};
+
+		// Check if there is a custom user name to be used by quiggeldy -> disable munge
+		if (auto const custom_user_env = std::getenv(vision_quiggeldy_user_no_munge_env_name);
+		    custom_user_env != nullptr) {
+			conn.set_custom_username(std::string{custom_user_env});
+			conn.set_use_munge(false);
+		}
+
+		list.emplace_back(ConnectionVariant{std::move(conn)});
 	}
 	return list;
 }

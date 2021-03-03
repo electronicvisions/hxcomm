@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <sstream>
@@ -119,7 +120,8 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_session_uuid(std::move(other.m_session_uuid)),
     m_reinit_uploader(std::move(other.m_reinit_uploader)),
     m_sequence_num(std::move(other.m_sequence_num)),
-    m_reinit_stack(std::move(other.m_reinit_stack))
+    m_reinit_stack(std::move(other.m_reinit_stack)),
+    m_custom_user(std::move(other.m_custom_user))
 {
 	HXCOMM_LOG_TRACE(m_logger, "Moving QuiggeldyConnection!");
 	auto const lk = lock_time_info();
@@ -143,6 +145,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::operator=(
 		m_reinit_uploader = std::move(other.m_reinit_uploader);
 		m_sequence_num = std::move(other.m_sequence_num);
 		m_reinit_stack = std::move(other.m_reinit_stack);
+		m_custom_user = std::move(other.m_custom_user);
 		{
 			auto const lk = lock_time_info();
 			m_time_info = std::move(other.m_time_info);
@@ -178,6 +181,7 @@ void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_user_data(
 {
 #ifdef USE_MUNGE_AUTH
 	if (m_use_munge) {
+		HXCOMM_LOG_DEBUG(m_logger, "Encoding session id via munge.");
 		char* cred;
 		auto munge_ctx = munge_ctx_setup();
 
@@ -205,7 +209,17 @@ void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_user_data(
 #endif
 	{
 		std::stringstream ss;
-		ss << std::getenv("USER") << ":" << m_session_uuid;
+		// In non-munge case, check if the user provides a different username by which to
+		// authenticate.
+		if (m_custom_user) {
+			HXCOMM_LOG_DEBUG(m_logger, "Setting non-munge custom username: " << *m_custom_user);
+			ss << *m_custom_user;
+		} else {
+			auto const env_user = std::getenv("USER");
+			HXCOMM_LOG_DEBUG(m_logger, "Setting non-munge username: " << env_user);
+			ss << env_user;
+		}
+		ss << ":" << m_session_uuid;
 		client->getClientStub().setRequestUserData(ss.str());
 	}
 }
@@ -399,6 +413,23 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::get_create_client_function(
 		client->getClientStub().setRemoteCallTimeoutMs(24 * 60 * 60 * 7); // have a week to timeout
 		return client;
 	};
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_custom_username(
+    std::string custom_user)
+{
+	// We use colon as separator between user and session information -> replace it.
+	std::replace(custom_user.begin(), custom_user.end(), ':', '_');
+	m_custom_user = std::move(custom_user);
+	HXCOMM_LOG_DEBUG(m_logger, "Set custom user name to: " << *m_custom_user);
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+std::optional<std::string>
+QuiggeldyConnection<ConnectionParameter, RcfClient>::get_custom_username()
+{
+	return m_custom_user;
 }
 
 namespace detail {
