@@ -39,7 +39,7 @@ public:
 	using reinit_type = typename interface_types::reinit_type;
 
 	// pair encoding uid and UUID of the session to differentiate them (one per QuiggeldyConnection)
-	using user_session_type = std::pair<std::size_t, boost::uuids::uuid>;
+	using user_session_type = std::pair<std::string, boost::uuids::uuid>;
 
 	/**
 	 * Set up the Quick Queue Server.
