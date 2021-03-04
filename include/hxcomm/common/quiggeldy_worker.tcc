@@ -244,7 +244,7 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 {
 	boost::uuids::string_generator string_gen;
 	boost::uuids::uuid session_uuid;
-	std::size_t uid_like;
+	std::string uid_like;
 
 	HXCOMM_LOG_TRACE(m_logger, "Verifying " << user_data);
 #ifdef USE_MUNGE_AUTH
@@ -274,7 +274,8 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 			}
 		}
 
-		uid_like = uid;
+		// we might not have access to the user name -> simply convert uid to string
+		uid_like = std::to_string(uid);
 
 		munge_ctx_destroy(munge_ctx);
 
@@ -294,6 +295,7 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 			std::free(buffer);
 			return std::nullopt;
 		}
+		HXCOMM_LOG_DEBUG(m_logger, "Verified via munge: " << uid_like << "@" << session_uuid);
 	}
 #else
 	if (false) {
@@ -322,14 +324,8 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 			return std::nullopt;
 		}
 
-		// We hash in order to convert from string -> size_t in a reliable
-		// manner (same user data -> same hash).
-		// This way, even without munge, if every user faithfully sends his
-		// encoded user name we can still identify users and use that
-		// information in scheduling.
-		// No attempt to verify user data is made though, so one user could
-		// pretend to be several and execute more experiments comparatively.
-		uid_like = std::hash<std::string>{}(user_id);
+		uid_like = user_id;
+		HXCOMM_LOG_DEBUG(m_logger, "Verified WITHOUT munge: " << uid_like << "@" << session_uuid);
 	}
 
 	return std::make_optional(std::make_pair(uid_like, session_uuid));
