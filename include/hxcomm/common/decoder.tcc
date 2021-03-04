@@ -74,7 +74,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::operator()(
 	    std::is_base_of_v<std::input_iterator_tag, typename iterator_traits::iterator_category>);
 
 	for (auto it = begin; it != end; ++it) {
-		HXCOMM_LOG_DEBUG(
+		HXCOMM_LOG_TRACE(
 		    m_logger, "operator(): Got PHY word to decode: " << std::showbase << std::setfill('0')
 		                                                     << std::setw(sizeof(word_type) * 2)
 		                                                     << std::hex << *it);
@@ -160,7 +160,7 @@ void Decoder<UTMessageParameter, MessageQueueType, Listener...>::decode_message(
 	    ut_message_t;
 	ut_message_t message(typename ut_message_t::payload_type(
 	    m_buffer >> (m_buffer_filling_level - ut_message_t::word_width)));
-	HXCOMM_LOG_DEBUG(m_logger, "decode_message(): Decoded UT message: " << message);
+	HXCOMM_LOG_TRACE(m_logger, "decode_message(): Decoded UT message: " << message);
 	boost::fusion::for_each(m_listener, [message](auto& l) { l(message); });
 	if constexpr (detail::has_push<MessageQueueType>::value) {
 		m_message_queue.push(std::move(message));

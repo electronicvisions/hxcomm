@@ -26,7 +26,7 @@ template <class MessageType>
 typename std::enable_if<detail::IsUTMessage<MessageType>::value, void>::type
 Encoder<UTMessageParameter, WordQueueType>::operator()(MessageType const& message)
 {
-	HXCOMM_LOG_DEBUG(m_logger, "operator(): Got UT message: " << message);
+	HXCOMM_LOG_TRACE(m_logger, "operator(): Got UT message: " << message);
 
 	static_assert(
 	    hate::is_in_type_list<
