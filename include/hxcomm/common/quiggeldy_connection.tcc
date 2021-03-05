@@ -97,15 +97,34 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_sequence_num(0),
     m_reinit_stack{new reinit_stack_type{}}
 {
-	m_session_uuid = boost::uuids::random_generator()();
 #ifdef USE_MUNGE_AUTH
-	if (!is_munge_available()) {
-		HXCOMM_LOG_WARN(
-		    m_logger, "Munge socket does not appear to exist! Remote execution might fail!");
+	constexpr bool has_munge_support = true;
+#else
+	constexpr bool has_munge_support = false;
+#endif
+	m_session_uuid = boost::uuids::random_generator()();
+	try {
+		// Check if remote site has munge enabled.
+		m_use_munge = setup_client(false)->get_use_munge();
+	} catch (const RCF::Exception& e) {
+		HXCOMM_LOG_ERROR(m_logger, "Could not request munge status from remote site: " << e.what());
 		m_use_munge = false;
 	}
-#else
-	m_use_munge = false;
+
+	if (m_use_munge && !has_munge_support) {
+		std::string const msg{"Quiggeldy server expects client to use munge, but munge support was "
+		                      "not configured. Please re-configure with --with-munge."};
+		HXCOMM_LOG_ERROR(m_logger, msg);
+		throw std::runtime_error(msg);
+	}
+
+#ifdef USE_MUNGE_AUTH
+	if (m_use_munge && !is_munge_available()) {
+		std::string const msg{
+		    "Quiggeldy server expects client to use munge, but munge socket does not exist!"};
+		HXCOMM_LOG_ERROR(m_logger, msg);
+		throw std::runtime_error(msg);
+	}
 #endif
 }
 
@@ -157,7 +176,8 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::operator=(
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-std::unique_ptr<RcfClient> QuiggeldyConnection<ConnectionParameter, RcfClient>::setup_client() const
+std::unique_ptr<RcfClient> QuiggeldyConnection<ConnectionParameter, RcfClient>::setup_client(
+    bool with_user_data) const
 {
 	auto const ip = std::get<0>(m_connect_parameters);
 	auto const port = std::get<1>(m_connect_parameters);
@@ -170,7 +190,9 @@ std::unique_ptr<RcfClient> QuiggeldyConnection<ConnectionParameter, RcfClient>::
 	client->getClientStub().setRemoteCallTimeoutMs(
 	    std::chrono::milliseconds(program_runtime_max).count());
 
-	set_user_data(client);
+	if (with_user_data) {
+		set_user_data(client);
+	}
 
 	return client;
 }

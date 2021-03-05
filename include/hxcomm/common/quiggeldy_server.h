@@ -67,6 +67,19 @@ public:
 		m_version = std::move(version);
 	}
 
+	/**
+	 * Get if worker is configured to use munge.
+	 *
+	 * Convenience to automatically disable munge usage on the client.
+	 *
+	 * @return if worker is configured to use munge.
+	 */
+	bool get_use_munge() const
+	{
+		return parent_t::visit_worker_const(
+		    [](auto const& worker) -> decltype(auto) { return worker.get_use_munge(); });
+	}
+
 private:
 	std::string m_version;
 };

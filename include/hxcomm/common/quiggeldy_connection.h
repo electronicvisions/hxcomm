@@ -220,8 +220,11 @@ protected:
 	 * Set up the RCF-client, i.e., establish a connection to the server.
 	 *
 	 * Takes its parameters from `m_connect_parameters`.
+	 *
+	 * @param with_user_data whether or not to set user data in connection (for
+	 *        work submission user data needs to be set).
 	 */
-	std::unique_ptr<rcf_client_type> setup_client() const;
+	std::unique_ptr<rcf_client_type> setup_client(bool with_user_data = true) const;
 
 	/**
 	 * Send the given request to the server and block until response is ready.
