@@ -132,6 +132,13 @@ public:
 	void set_use_munge(bool use_munge);
 
 	/**
+	 * Get whether worker expects to decode user data via munge.
+	 *
+	 * @return Whether worker expects to decode user data via munge.
+	 */
+	bool get_use_munge() const;
+
+	/**
 	 * Get unique identifier from hwdb.
 	 * @param hwdb_path Optional path to hwdb
 	 * @return Unique identifier

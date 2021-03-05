@@ -370,6 +370,12 @@ void QuiggeldyWorker<Connection>::set_use_munge(bool use_munge)
 }
 
 template <typename Connection>
+bool QuiggeldyWorker<Connection>::get_use_munge() const
+{
+	return m_use_munge;
+}
+
+template <typename Connection>
 std::string QuiggeldyWorker<Connection>::get_unique_identifier(
     std::optional<std::string> hwdb_path) const
 {
