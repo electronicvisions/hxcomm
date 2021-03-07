@@ -41,7 +41,7 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(Args&&... args) :
     m_use_munge(true),
     m_max_num_connection_attempts{10},
     m_delay_after_connection_attempt{1s},
-    m_listener_timeout{new listener_timeout_type{}}
+    m_listener_timeout_thread{new listener_timeout_thread_type{}}
 {
 	if (m_logger->isEnabledFor(log4cxx::Level::getTrace())) {
 		std::stringstream ss;
@@ -138,24 +138,6 @@ void QuiggeldyWorker<Connection>::setup_connection()
 }
 
 template <typename Connection>
-void QuiggeldyWorker<Connection>::check_for_timeout(
-    typename QuiggeldyWorker<Connection>::response_type::first_type const& response)
-{
-	HXCOMM_LOG_DEBUG(m_logger, "Checking for timeout.");
-	m_listener_timeout->reset();
-	std::for_each(response.cbegin(), response.cend(), [this](auto const& msg) {
-		std::visit([this](auto const& m) { (*m_listener_timeout)(m); }, msg);
-	});
-	if (m_listener_timeout->get()) {
-		HXCOMM_LOG_WARN(
-		    m_logger,
-		    "Encountered timeout notifications in response stream -> resetting connection.");
-		setup_connection();
-	}
-	HXCOMM_LOG_DEBUG(m_logger, "Checked for timeout.");
-}
-
-template <typename Connection>
 void QuiggeldyWorker<Connection>::teardown()
 {
 	HXCOMM_LOG_DEBUG(m_logger, "teardown() started..");
@@ -234,10 +216,12 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 		return response_type{};
 	}
 
-	HXCOMM_LOG_TRACE(m_logger, "Executing program!");
+	check_timeout_notification();
+
 	try {
+		HXCOMM_LOG_DEBUG(m_logger, "Executing..");
 		auto retval = execute_messages(*m_connection, req);
-		check_for_timeout(std::get<0>(retval));
+		m_listener_timeout_thread->submit_check(std::get<0>(retval));
 		return retval;
 	} catch (const std::exception& e) {
 		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
@@ -253,11 +237,16 @@ void QuiggeldyWorker<Connection>::perform_reinit(reinit_type const& reinit)
 		return;
 	}
 
+	check_timeout_notification();
 	HXCOMM_LOG_TRACE(m_logger, "Performing reinit!");
 
+	[[maybe_unused]] std::size_t count = 0;
 	try {
 		for (auto const& entry : reinit) {
-			execute_messages(*m_connection, entry);
+			HXCOMM_LOG_DEBUG(m_logger, "Performing reinit step #" << count++);
+			// Make sure we also check for timeout notifications in reinit.
+			m_listener_timeout_thread->submit_check(
+			    std::get<0>(execute_messages(*m_connection, entry)));
 		}
 	} catch (const std::exception& e) {
 		// TODO: Implement proper exception handling
@@ -359,6 +348,21 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 
 	return std::make_optional(std::make_pair(uid_like, session_uuid));
 }
+
+template <typename Connection>
+void QuiggeldyWorker<Connection>::check_timeout_notification()
+{
+	// Check if previous iteration contained timeout notifications, and if so, reset connection.
+	if (m_listener_timeout_thread->get_check_result()) {
+		HXCOMM_LOG_WARN(
+		    m_logger, "Detected timeout notifications in last response, resetting connection!");
+		setup_connection();
+	} else {
+		HXCOMM_LOG_DEBUG(m_logger, "No timeout notifications detected.");
+	}
+	m_listener_timeout_thread->reset();
+}
+
 
 template <typename Connection>
 void QuiggeldyWorker<Connection>::set_enable_mock_mode(bool mode_enable)

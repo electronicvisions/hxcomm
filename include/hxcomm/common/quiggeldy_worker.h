@@ -4,7 +4,7 @@
 #include <munge.h>
 #endif
 
-#include "hxcomm/common/listener_seen.h"
+#include "hxcomm/common/listener_seen_thread.h"
 #include "hxcomm/common/quiggeldy_interface_types.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -36,6 +36,8 @@ public:
 
 	using request_type = typename interface_types::request_type;
 	using response_type = typename interface_types::response_type;
+	using response_data_type = typename response_type::first_type;
+
 	// reinit is just another set of FPGA words sent to the chip prior to resuming
 	using reinit_type = typename interface_types::reinit_type;
 
@@ -194,13 +196,6 @@ protected:
 	 */
 	void setup_connection();
 
-	/**
-	 * Check if response contains a timeout response, resetting the held connection if so.
-	 *
-	 * @param response to check for timeouts.
-	 */
-	void check_for_timeout(typename response_type::first_type const& response);
-
 	std::string get_slurm_jobname() const;
 
 	/**
@@ -208,6 +203,11 @@ protected:
 	 */
 	template <typename... Args>
 	void exec_slurm_binary(char const* binary_name, Args&&... args);
+
+	/**
+	 * Check if any timeout notification was detected and, if so, reset connection.
+	 */
+	void check_timeout_notification();
 
 	void slurm_allocation_acquire();
 	void slurm_allocation_release();
@@ -228,10 +228,11 @@ protected:
 
 	static constexpr char default_slurm_partition[]{"cube"};
 
-	using listener_timeout_type =
-	    ListenerSeen<typename Connection::message_types::connection_parameter_type::ReceiveTimeout>;
+	using listener_timeout_thread_type = ListenerSeenThread<
+	    typename Connection::message_types::connection_parameter_type::ReceiveTimeout,
+	    response_data_type>;
 	// Listener contains atomics and hence should not be moved -> pointer
-	std::unique_ptr<listener_timeout_type> m_listener_timeout;
+	std::unique_ptr<listener_timeout_thread_type> m_listener_timeout_thread;
 };
 
 } // namespace hxcomm
