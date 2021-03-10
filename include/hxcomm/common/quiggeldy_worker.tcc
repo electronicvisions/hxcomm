@@ -411,7 +411,9 @@ std::string QuiggeldyWorker<Connection>::get_unique_identifier(
 	// TODO: Make get_unique_identifier static member function that can be called without active
 	// connection.
 	if (m_connection) {
-		return m_connection->get_unique_identifier(hwdb_path);
+		auto unique_identifier = m_connection->get_unique_identifier(hwdb_path);
+		HXCOMM_LOG_DEBUG(m_logger, "Requested unique identifier: " << unique_identifier);
+		return unique_identifier;
 	} else {
 		throw std::runtime_error("Requested unique identifier of uninitialized connection.");
 	}
