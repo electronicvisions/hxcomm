@@ -304,6 +304,13 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 				HXCOMM_LOG_TRACE(m_logger, "Munge decode failed, retrying..");
 				std::this_thread::sleep_for(wait_attempt_delay);
 				continue;
+			} else if (err == EMUNGE_CRED_REPLAYED) {
+				// TODO: If all calls set user data anew, we could drop this.
+				//       lib-rcf supports this now -> TEST! See #3963.
+				HXCOMM_LOG_TRACE(
+				    m_logger,
+				    "Munge decoded replayed credentials, this is fine for reinit submission..");
+				break;
 			} else {
 				// any other error (or success) leads to direct abort
 				break;
