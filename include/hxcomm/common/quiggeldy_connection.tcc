@@ -91,9 +91,9 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_connection_attempt_num_max(100),
     m_connection_attempt_wait_after(100ms),
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
-    m_reinit_uploader{new reinit_uploader_type{get_create_client_function(),
-                                               &rcf_client_type::reinit_notify,
-                                               &rcf_client_type::reinit_upload}},
+    m_reinit_uploader{new reinit_uploader_type{
+        get_create_client_function(), &rcf_client_type::reinit_notify,
+        &rcf_client_type::reinit_pending, &rcf_client_type::reinit_upload}},
     m_sequence_num(0),
     m_reinit_stack{new reinit_stack_type{}}
 {
