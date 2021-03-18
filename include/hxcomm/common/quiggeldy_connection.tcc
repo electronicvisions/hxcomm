@@ -353,6 +353,9 @@ template <typename ConnectionParameter, typename RcfClient>
 template <typename Submitter>
 auto QuiggeldyConnection<ConnectionParameter, RcfClient>::submit(Submitter const& submitter)
 {
+	// ensure reinit script is present
+	m_reinit_uploader->refresh();
+
 	auto const cur_sequence_num = next_sequence_number();
 
 	auto client = setup_client();
