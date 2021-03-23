@@ -319,7 +319,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 {
 	return submit([&request, this](auto& client, auto& sequence_num) {
 		typename interface_types::response_type response =
-		    client->submit_work(request, sequence_num, m_reinit_uploader->holds_data());
+		    client->submit_work(request, sequence_num);
 		accumulate_time_info(response.second);
 		return response;
 	});
@@ -344,7 +344,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_async(
 			    // track time
 			    accumulate_time_info(response.second);
 		    }),
-		    request, sequence_num, m_reinit_uploader->holds_data());
+		    request, sequence_num);
 		return future_type{std::move(client), std::move(rcf_future_ptr)};
 	});
 }
