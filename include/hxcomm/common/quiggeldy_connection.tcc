@@ -7,12 +7,12 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include "RCF/RCF.hpp"
+#include "hate/timer.h"
 #include "hxcomm/common/execute_messages.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/quiggeldy_common.h"
 #include "hxcomm/common/quiggeldy_connection.h"
-
-#include "RCF/RCF.hpp"
 
 #include "logger.h"
 #include "logging_ctrl.h"
@@ -192,6 +192,13 @@ std::unique_ptr<RcfClient> QuiggeldyConnection<ConnectionParameter, RcfClient>::
 
 	if (with_user_data) {
 		set_user_data(client);
+	}
+
+	// ensure client is connected
+	if (!client->getClientStub().isConnected()) {
+		[[maybe_unused]] hate::Timer timer;
+		client->getClientStub().connect();
+		HXCOMM_LOG_DEBUG(m_logger, "setup_client(): Connecting client took " << timer.print());
 	}
 
 	return client;
