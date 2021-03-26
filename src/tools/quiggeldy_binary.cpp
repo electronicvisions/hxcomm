@@ -315,7 +315,13 @@ int main(int argc, const char* argv[])
 	    loglevel_from_env) {
 		cfg.log_level = *loglevel_from_env;
 	}
-	logger_default_config(Logger::log4cxx_level_v2(cfg.log_level));
+	logger_default_config(
+	    Logger::log4cxx_level_v2(cfg.log_level),
+	    /* logfile =*/"", // TODO: Add option to log to file.
+	    /* dual = */ false,
+	    /* print_location = */ false,
+	    /* use_color = */ true,
+	    /* date_format = */ "ISO8601");
 	auto log = log4cxx::Logger::getLogger("hxcomm.quiggeldy");
 
 	if (cfg.hxcomm_log_threshold_at_compile > cfg.log_level) {
