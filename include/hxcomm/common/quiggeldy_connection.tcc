@@ -194,6 +194,18 @@ std::unique_ptr<RcfClient> QuiggeldyConnection<ConnectionParameter, RcfClient>::
 		set_user_data(client);
 	}
 
+	// ensure client is connected
+	if (!client->getClientStub().isConnected()) {
+		[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
+		client->getClientStub().connect();
+		[[maybe_unused]] auto stop = std::chrono::high_resolution_clock::now();
+		HXCOMM_LOG_DEBUG(
+		    m_logger,
+		    "setup_client(): Connecting client took "
+		        << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count()
+		        << "us");
+	}
+
 	return client;
 }
 
