@@ -97,6 +97,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_sequence_num(0),
     m_reinit_stack{new reinit_stack_type{}}
 {
+	RCF::init();
 #ifdef USE_MUNGE_AUTH
 	constexpr bool has_munge_support = true;
 #else
@@ -142,11 +143,35 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_reinit_stack(std::move(other.m_reinit_stack)),
     m_custom_user(std::move(other.m_custom_user))
 {
+	RCF::init();
 	HXCOMM_LOG_TRACE(m_logger, "Moving QuiggeldyConnection!");
 	auto const lk = lock_time_info();
 	m_time_info = std::move(other.m_time_info);
 	// Update lambda to contain correct this pointer
 	m_reinit_uploader->update_function_create_client(get_create_client_function());
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+QuiggeldyConnection<ConnectionParameter, RcfClient>::~QuiggeldyConnection()
+{
+	if (m_reinit_uploader.use_count() > 1) {
+		RCF_LOG_ERROR(
+		    m_logger, "ReinitUploader is still used by " << m_reinit_uploader.use_count()
+		                                                 << ", but expected 1.");
+	}
+	m_reinit_uploader.reset();
+
+	if (m_reinit_stack.use_count() > 1) {
+		RCF_LOG_ERROR(
+		    m_logger,
+		    "ReinitStack is still used by " << m_reinit_stack.use_count() << ", but expected 1.");
+	}
+	m_reinit_stack.reset();
+	RCF_LOG_TRACE(m_logger, "RCF::getInitRefCount(): " << RCF::getInitRefCount());
+	// FIXME: Workaround for segfault in RCF::deinit..
+	if (RCF::getInitRefCount() > 1) {
+		RCF::deinit();
+	}
 }
 
 template <typename ConnectionParameter, typename RcfClient>

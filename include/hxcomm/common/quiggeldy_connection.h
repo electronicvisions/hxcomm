@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RCF/RCF.hpp"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/execute_messages.h"
@@ -9,17 +10,12 @@
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/stream_rc.h"
 #include "hxcomm/common/target.h"
-
 #include "rcf-extensions/on-demand-upload.h"
 #include "rcf-extensions/sequence-number.h"
-
-#include "RCF/RCF.hpp"
-
-#include <boost/uuid/uuid.hpp>
-
 #include <chrono>
 #include <string>
 #include <vector>
+#include <boost/uuid/uuid.hpp>
 
 #ifdef USE_MUNGE_AUTH
 #include <munge.h>
@@ -88,7 +84,7 @@ public:
 	/**
 	 * Destruct connection to FPGA joining all receive threads.
 	 */
-	~QuiggeldyConnection() = default;
+	~QuiggeldyConnection();
 
 	constexpr static auto supported_targets = {Target::hardware};
 
@@ -218,9 +214,6 @@ public:
 	std::string get_version_string() const;
 
 protected:
-	// needs to be first so it is initialized first and RCF-functionality is set up
-	RCF::RcfInit m_rcf_init_deinit;
-
 	friend StreamRC<QuiggeldyConnection>;
 
 	/**
@@ -306,7 +299,7 @@ protected:
 	bool m_use_munge;
 	boost::uuids::uuid m_session_uuid;
 	std::shared_ptr<reinit_uploader_type> m_reinit_uploader;
-	std::mutex m_mutex_sequence_num;
+	std::mutex mutable m_mutex_sequence_num;
 	rcf_extensions::SequenceNumber m_sequence_num;
 	std::shared_ptr<reinit_stack_type> m_reinit_stack;
 	std::optional<std::string> m_custom_user;
