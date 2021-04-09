@@ -1,13 +1,11 @@
 #pragma once
 
-#include <sstream>
-#include <string>
-
 #include "SF/Archive.hpp"
 #include "SF/string.hpp"
 #include "SF/vector.hpp"
-
-#include "cereal/archives/portable_binary.hpp"
+#include "cereal/archives/binary.hpp"
+#include <sstream>
+#include <string>
 
 // time statistics
 #include "hxcomm/common/logger.h"
@@ -22,11 +20,21 @@ template <class T>
 void translate_sf_cereal(Archive& ar, T& cerealizable)
 {
 	auto log = log4cxx::Logger::getLogger(__func__);
+	auto create_buffer = [] {
+		constexpr std::size_t bufsize = 32     /* MiB */
+		                                * 1024 /* KiB */
+		                                * 1024 /* Byte */
+		                                * 2 /* double to account for imperfect serialization */;
+		std::string buf;
+		buf.reserve(bufsize);
+		return buf;
+	};
 
 	if (ar.isWrite()) {
-		std::ostringstream os;
+		std::ostringstream os{create_buffer()};
+		// std::ostringstream os;
 		{
-			cereal::PortableBinaryOutputArchive cereal_archive(os);
+			cereal::BinaryOutputArchive cereal_archive(os);
 
 			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
 			cereal_archive(cerealizable);
@@ -52,7 +60,7 @@ void translate_sf_cereal(Archive& ar, T& cerealizable)
 		}
 
 	} else if (ar.isRead()) {
-		std::string buf;
+		auto buf = create_buffer();
 		{
 			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
 			// clang-format off
@@ -68,7 +76,7 @@ void translate_sf_cereal(Archive& ar, T& cerealizable)
 
 		std::istringstream is(buf);
 		{
-			cereal::PortableBinaryInputArchive cereal_archive(is);
+			cereal::BinaryInputArchive cereal_archive(is);
 
 			[[maybe_unused]] auto start = std::chrono::high_resolution_clock::now();
 			cereal_archive(cerealizable);
