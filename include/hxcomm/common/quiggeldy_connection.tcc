@@ -355,8 +355,26 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
     typename interface_types::request_type const& request)
 {
 	return submit([&request, this](auto& client, auto& sequence_num) {
-		typename interface_types::response_type response =
-		    client->submit_work(request, sequence_num);
+		// NOTE: This implementation assumes exchanging vectors and connection
+		// time info paired in return path.
+		// Current implementation only for evaluation.
+		RCF::ByteBuffer request_buffer(
+		    const_cast<char*>(reinterpret_cast<char const*>(request.data())),
+		    request.size() * sizeof(typename interface_types::request_type::value_type), 0, true);
+		RCF::ByteBuffer response_buffer = client->submit_work_raw(request_buffer, sequence_num);
+
+		using vector_type = typename interface_types::response_type::first_type;
+		using value_type = typename vector_type::value_type;
+		using timeinfo_type = typename interface_types::response_type::second_type;
+
+		std::size_t offset = response_buffer.getLength() - sizeof(timeinfo_type);
+
+		typename interface_types::response_type response = std::make_pair(
+		    vector_type(
+		        reinterpret_cast<value_type const*>(response_buffer.getPtr()),
+		        reinterpret_cast<value_type const*>(response_buffer.getPtr() + offset)),
+		    *(reinterpret_cast<timeinfo_type const*>(response_buffer.getPtr() + offset)));
+
 		accumulate_time_info(response.second);
 		return response;
 	});
