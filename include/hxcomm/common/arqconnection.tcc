@@ -106,7 +106,6 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
 	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
 	// create and start threads
 	m_worker_receive = std::thread(&ARQConnection<ConnectionParameter>::work_receive, this);
-	check_compatibility();
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
 }
 
