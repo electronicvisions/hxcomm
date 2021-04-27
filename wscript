@@ -203,6 +203,7 @@ def build(bld):
         test_main    = 'tests/common/src/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'hxcomm_zeromocktests_inc', 'BOOST4HXCOMMTOOLS'],
         uselib       = 'HXCOMM',
+        test_timeout = 180,
         test_environ = dict(HXCOMM_ENABLE_ZERO_MOCK='1'),
 )
 
