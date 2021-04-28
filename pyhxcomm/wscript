@@ -10,16 +10,19 @@ def depends(ctx):
 
 
 def options(opt):
-    opt.load('compiler_c')
     opt.load('compiler_cxx')
     opt.load('boost')
-    opt.load("test_base")
-    opt.load("gtest")
-    opt.load("doxygen")
+    opt.load('python')
+    opt.load('pytest')
+    opt.load('genpybind')
+    opt.load('pylint')
+    opt.load('pycodestyle')
+    opt.load('gtest')
 
 
 def configure(cfg):
     cfg.load('compiler_cxx')
+    cfg.load('boost')
     cfg.load('python')
     cfg.check_python_version()
     cfg.check_python_headers()
@@ -27,6 +30,7 @@ def configure(cfg):
     cfg.load('genpybind')
     cfg.load('pylint')
     cfg.load('pycodestyle')
+    cfg.load('gtest')
 
     cfg.check(
         compiler='cxx',
