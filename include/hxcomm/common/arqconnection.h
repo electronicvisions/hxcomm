@@ -1,4 +1,5 @@
 #pragma once
+#include "bss_hw_params/cube_ethernet/constants.h"
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
@@ -153,7 +154,8 @@ private:
 	 * Numbers to compare against bitfile protocol version
 	 */
 	static constexpr size_t oldest_supported_version = 0;
-	static constexpr size_t newest_supported_compatible_until = 0;
+	static constexpr size_t newest_supported_compatible_until =
+	    bss_hw_params::cube_ethernet::bitfile_compatible_until;
 
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;

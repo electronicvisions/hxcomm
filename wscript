@@ -14,6 +14,7 @@ def depends(dep):
     dep('logger')
     dep('visions-slurm', branch='production')
     dep('flange')
+    dep('bss-hw-params')
 
 
 def options(opt):
@@ -112,7 +113,8 @@ def build(bld):
         features     = 'use',
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
                         'flange', 'rant', 'hate_inc', 'logger_obj',
-                        'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP'],
+                        'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
+                        'bss-hw-params_inc'],
         install_path = '${PREFIX}/lib',
     )
 
