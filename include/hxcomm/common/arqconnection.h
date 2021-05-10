@@ -152,6 +152,25 @@ private:
 
 	/**
 	 * Numbers to compare against bitfile protocol version
+	 *
+	 * There are 5 scenarios (newer covers new changes as well as outdated partners)
+	 * 1: Software is newer than biftile and still compatible
+	 * 2: Software is newer than biftile but incompatible
+	 * 3: FPGA bitfile is newer than software and still compatible
+	 * 4: FPGA bitfile is newer than software but incompatible
+	 * 5: Both are head
+	 *
+	 * The FPGA returns two numbers
+	 * - version: Integer automatically incrementing with each change to the bitfile
+	 * - compatible_until: Integer manually incrementing when bitfile introduces breaking feature
+	 *
+	 * We can now cover all 5 cases by comparing these two numbers as follows
+	 * - oldest_supported_version: manually set to last known bitfile version with breaking change
+	 * - newest_supported_compatible_until: identical to current head bitfile compatible_until
+	 *
+	 * oldest_supported_version needs to be lesser or equal to version and
+	 * newest_supported_compatible_until needs to be greater or equal to compatible_until
+	 * Cases 1, 3 and 5 fulfill these conditions whereas 2 and 4 do not
 	 */
 	static constexpr size_t oldest_supported_version = 0;
 	static constexpr size_t newest_supported_compatible_until =
