@@ -210,13 +210,13 @@ def build(bld):
 )
 
     bld(
+        target = 'doxygen_hxcomm',
         features = 'doxygen',
-        name = 'hxcomm_documentation',
         doxyfile = bld.root.make_node(join(get_toplevel_path(), "code-format", "doxyfile")),
+        doxy_inputs = 'include/hxcomm',
         install_path = 'doc/hxcomm',
         pars = {
             "PROJECT_NAME": "\"HX Communication\"",
-            "INPUT": join(get_toplevel_path(), "hxcomm", "include"),
             "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_HXCOMM_VX=",
             "INCLUDE_PATH": join(get_toplevel_path(), "hxcomm", "include"),
             "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
