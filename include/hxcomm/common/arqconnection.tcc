@@ -338,7 +338,7 @@ void ARQConnection<ConnectionParameter>::check_compatibility() const
 		    "Software too old. Bitfile needs at least " + std::to_string(compat_until) +
 		    ". Software only supports " + std::to_string(newest_supported_compatible_until));
 	}
-	HXCOMM_LOG_DEBUG(
+	HXCOMM_LOG_INFO(
 	    m_logger, "check_compatibility():\n\tFPGA:\tversion: "
 	                  << version << "\t compat_until: " << compat_until
 	                  << "\tSW:\tversion: " << oldest_supported_version
