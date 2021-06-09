@@ -30,7 +30,7 @@ def options(opt):
     hopts = opt.add_option_group('hxcomm options')
     hopts.add_option("--hxcomm-loglevel",
                      choices=["trace", "debug", "info", "warning", "error", "fatal"],
-                     default="warning",
+                     default="info",
                      help="Maximal loglevel to compile in.")
 
     hopts.add_withoption('hxcomm-python-bindings', default=True,
