@@ -141,9 +141,9 @@ def build(bld):
         export_includes = 'include'
     )
 
-    bld(
+    bld.shlib(
         target       = 'hxcomm',
-        features     = 'use',
+        source       = bld.path.ant_glob('src/hxcomm/**/*.cpp'),
         use          = ['hxcomm_inc', 'arqstream_obj', 'BOOST4HXCOMM',
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',

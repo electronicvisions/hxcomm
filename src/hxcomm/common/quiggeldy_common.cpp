@@ -1,5 +1,6 @@
-#include "hxcomm/common/logger.h"
+#include "hxcomm/common/quiggeldy_common.h"
 
+#include "hxcomm/common/logger.h"
 #include <filesystem>
 
 namespace hxcomm {

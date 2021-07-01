@@ -1,5 +1,5 @@
 #pragma once
-
+#include "hate/visibility.h"
 #include "hxcomm/common/quiggeldy_utility.h"
 
 #include "hxcomm/vx/quiggeldy_server.h"
@@ -23,7 +23,7 @@ namespace hxcomm::vx {
  * @return Tuple of process ID and port of launched quiggeldy process and the
  * port it is listening on.
  */
-inline std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env();
+std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env() SYMBOL_VISIBLE;
 
 RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<ARQConnection>, quiggeldy_arq, ::hxcomm::vx::I_HXCommQuiggeldyVX)
@@ -32,7 +32,3 @@ RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<SimConnection>, quiggeldy_sim, ::hxcomm::vx::I_HXCommQuiggeldyVX)
 
 } // namespace hxcomm::vx
-
-#ifndef __GENPYBIND__
-#include "hxcomm/vx/quiggeldy_utility.tcc"
-#endif

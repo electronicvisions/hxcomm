@@ -1,6 +1,7 @@
+#include "hxcomm/vx/connection_from_env.h"
+
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/vx/arqconnection.h"
-#include "hxcomm/vx/connection_from_env.h"
 #include "hxcomm/vx/connection_variant.h"
 #include "hxcomm/vx/quiggeldy_connection.h"
 #include "hxcomm/vx/simconnection.h"
@@ -30,9 +31,9 @@ inline std::vector<ConnectionVariant> get_simconnection_list_from_env()
 
 	std::vector<ConnectionVariant> connection_list;
 	if (env_sim_port != nullptr) {
-		connection_list.emplace_back(ConnectionVariant{std::in_place_type<SimConnection>,
-		                                               env_sim_host,
-		                                               static_cast<uint16_t>(atoi(env_sim_port))});
+		connection_list.emplace_back(ConnectionVariant{
+		    std::in_place_type<SimConnection>, env_sim_host,
+		    static_cast<uint16_t>(atoi(env_sim_port))});
 	}
 	return connection_list;
 }

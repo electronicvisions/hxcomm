@@ -1,5 +1,5 @@
 #pragma once
-
+#include "hate/visibility.h"
 #include <optional>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -15,14 +15,14 @@ namespace hxcomm {
  *
  *  On error, throw runtime_error.
  */
-inline hxcomm::port_t get_unused_port();
+hxcomm::port_t get_unused_port() SYMBOL_VISIBLE;
 
 /**
  * Terminate given pid.
  *
  * @param pid The quiggeldy PID to terminate.
  */
-inline void terminate(pid_t pid);
+void terminate(pid_t pid) SYMBOL_VISIBLE;
 
 /**
  * Convenience function to setup quiggeldy under the given port with additional
@@ -46,7 +46,8 @@ pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args);
  * @param env_var Name of the environment variable from which to get the loglevel.
  * @return Integer representation of the loglevel in case it is defined and a valid level.
  */
-inline std::optional<std::size_t> get_loglevel_from_env(char const* env_var = "QUIGGELDY_LOGLEVEL");
+std::optional<std::size_t> get_loglevel_from_env(char const* env_var = "QUIGGELDY_LOGLEVEL")
+    SYMBOL_VISIBLE;
 
 namespace detail {
 

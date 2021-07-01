@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hate/visibility.h"
 #include "hxcomm/vx/connection_variant.h"
 
 #include <optional>
@@ -18,7 +19,7 @@ namespace hxcomm::vx {
  *
  * @return An already allocated connection object.
  */
-inline hxcomm::vx::ConnectionVariant get_connection_from_env();
+hxcomm::vx::ConnectionVariant get_connection_from_env() SYMBOL_VISIBLE;
 
 /**
  * Automatically determine from environment what connection type to use and
@@ -28,8 +29,8 @@ inline hxcomm::vx::ConnectionVariant get_connection_from_env();
  *
  * @return A list of already allocated connection objects.
  */
-inline std::vector<hxcomm::vx::ConnectionVariant> get_connection_list_from_env(
-    std::optional<size_t> limit = std::nullopt);
+std::vector<hxcomm::vx::ConnectionVariant> get_connection_list_from_env(
+    std::optional<size_t> limit = std::nullopt) SYMBOL_VISIBLE;
 
 /**
  * Get the connection from env and check if it supports the full stream interface.
@@ -39,11 +40,7 @@ inline std::vector<hxcomm::vx::ConnectionVariant> get_connection_list_from_env(
  * @return Optional wrapping the connection object with support for the full
  * stream interface, empty otherwise.
  */
-inline std::optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant>
-get_connection_full_stream_interface_from_env();
+std::optional<hxcomm::vx::ConnectionFullStreamInterfaceVariant>
+get_connection_full_stream_interface_from_env() SYMBOL_VISIBLE;
 
 } // namespace hxcomm::vx
-
-#ifndef __GENPYBIND__
-#include "connection_from_env.tcc"
-#endif

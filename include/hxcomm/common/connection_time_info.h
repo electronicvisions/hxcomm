@@ -1,7 +1,11 @@
 #pragma once
+#include "hate/visibility.h"
 #include <chrono>
-#include <mutex>
-#include <ostream>
+#include <iosfwd>
+
+namespace cereal {
+class access;
+} // namespace cereal
 
 namespace hxcomm {
 
@@ -32,17 +36,21 @@ struct ConnectionTimeInfo
 	 */
 	std::chrono::nanoseconds execution_duration{};
 
-	friend std::ostream& operator<<(std::ostream& os, ConnectionTimeInfo const& data);
+	friend std::ostream& operator<<(std::ostream& os, ConnectionTimeInfo const& data)
+	    SYMBOL_VISIBLE;
 
-	ConnectionTimeInfo& operator-=(ConnectionTimeInfo const& other);
-	ConnectionTimeInfo operator-(ConnectionTimeInfo const& other) const;
-	ConnectionTimeInfo& operator+=(ConnectionTimeInfo const& other);
-	ConnectionTimeInfo operator+(ConnectionTimeInfo const& other) const;
+	ConnectionTimeInfo& operator-=(ConnectionTimeInfo const& other) SYMBOL_VISIBLE;
+	ConnectionTimeInfo operator-(ConnectionTimeInfo const& other) const SYMBOL_VISIBLE;
+	ConnectionTimeInfo& operator+=(ConnectionTimeInfo const& other) SYMBOL_VISIBLE;
+	ConnectionTimeInfo operator+(ConnectionTimeInfo const& other) const SYMBOL_VISIBLE;
 
-	bool operator==(ConnectionTimeInfo const& other) const;
-	bool operator!=(ConnectionTimeInfo const& other) const;
+	bool operator==(ConnectionTimeInfo const& other) const SYMBOL_VISIBLE;
+	bool operator!=(ConnectionTimeInfo const& other) const SYMBOL_VISIBLE;
+
+private:
+	friend cereal::access;
+	template <typename Archive>
+	void serialize(Archive& ar, std::uint32_t version);
 };
 
 } // namespace hxcomm
-
-#include "hxcomm/common/connection_time_info.tcc"

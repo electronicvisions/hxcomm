@@ -1,5 +1,5 @@
-#include "hxcomm/common/cerealization_connection_time_info.h"
 #include "hxcomm/common/cerealization_utmessage.h"
+#include "hxcomm/common/connection_time_info.h"
 #include "test-to_testing_types.h"
 #include <fstream>
 #include <type_traits>

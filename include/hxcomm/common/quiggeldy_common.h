@@ -1,5 +1,5 @@
 #pragma once
-
+#include "hate/visibility.h"
 #ifdef USE_MUNGE_AUTH
 #include <munge.h>
 #endif
@@ -18,7 +18,7 @@ static constexpr size_t quiggeldy_max_message_length = 1280 * 1024 * 1024;
  * @return Path to munge socket to use. Either the default or the one specified
  * via environment.
  */
-inline char const* get_munge_socket();
+char const* get_munge_socket() SYMBOL_VISIBLE;
 
 /**
  * Check for availability of munge by checking if the default munge socket (or
@@ -29,16 +29,14 @@ inline char const* get_munge_socket();
  *
  * @return whether munge is available or not.
  */
-inline bool is_munge_available();
+bool is_munge_available() SYMBOL_VISIBLE;
 
 #ifdef USE_MUNGE_AUTH
 
 // Helper function to create a custom munge context that adjusts the socket
 // path.
-inline munge_ctx_t munge_ctx_setup();
+munge_ctx_t munge_ctx_setup() SYMBOL_VISIBLE;
 
 #endif // USE_MUNGE_AUTH
 
 } // namespace hxcomm
-
-#include "hxcomm/common/quiggeldy_common.tcc"
