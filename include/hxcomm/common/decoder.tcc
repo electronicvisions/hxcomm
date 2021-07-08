@@ -1,6 +1,7 @@
 #include "hxcomm/common/logger.h"
 #include <sstream>
 #include <type_traits>
+#include <boost/fusion/algorithm.hpp>
 
 namespace hxcomm {
 

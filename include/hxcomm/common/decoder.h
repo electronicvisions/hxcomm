@@ -2,8 +2,6 @@
 #include "hxcomm/common/utmessage.h"
 #include <climits>
 #include <boost/coroutine2/all.hpp>
-#include <boost/function.hpp>
-#include <boost/fusion/algorithm.hpp>
 #include <boost/fusion/tuple.hpp>
 
 namespace log4cxx {
