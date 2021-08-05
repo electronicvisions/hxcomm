@@ -209,19 +209,20 @@ def build(bld):
         test_environ = dict(HXCOMM_ENABLE_ZERO_MOCK='1'),
 )
 
-    bld(
-        target = 'doxygen_hxcomm',
-        features = 'doxygen',
-        doxyfile = bld.root.make_node(join(get_toplevel_path(), "code-format", "doxyfile")),
-        doxy_inputs = 'include/hxcomm',
-        install_path = 'doc/hxcomm',
-        pars = {
-            "PROJECT_NAME": "\"HX Communication\"",
-            "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_HXCOMM_VX=",
-            "INCLUDE_PATH": join(get_toplevel_path(), "hxcomm", "include"),
-            "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
-        },
-    )
+    if bld.env.DOXYGEN:
+        bld(
+            target = 'doxygen_hxcomm',
+            features = 'doxygen',
+            doxyfile = bld.root.make_node(join(get_toplevel_path(), "code-format", "doxyfile")),
+            doxy_inputs = 'include/hxcomm',
+            install_path = 'doc/hxcomm',
+            pars = {
+                "PROJECT_NAME": "\"HX Communication\"",
+                "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_HXCOMM_VX=",
+                "INCLUDE_PATH": join(get_toplevel_path(), "hxcomm", "include"),
+                "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
+            },
+        )
 
     if getattr(bld.options, 'with_hxcomm_python_bindings', True):
         bld.recurse('pyhxcomm')
