@@ -3,10 +3,8 @@
 #include "test-to_testing_types.h"
 #include <fstream>
 #include <type_traits>
-#include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <cereal/archives/portable_binary.hpp>
-#include <cereal/archives/xml.hpp>
 #include <gtest/gtest.h>
 
 using namespace hxcomm::vx;
@@ -67,9 +65,7 @@ TYPED_TEST(CommonSerializationTests, IsAssignable)
 		ASSERT_EQ(obj2, obj1);                                                                     \
 	}
 
-SERIALIZATION_TEST(BinaryOutputArchive, BinaryInputArchive)
 SERIALIZATION_TEST(PortableBinaryOutputArchive, PortableBinaryInputArchive)
 SERIALIZATION_TEST(JSONOutputArchive, JSONInputArchive)
-SERIALIZATION_TEST(XMLOutputArchive, XMLInputArchive)
 
 #undef SERIALIZATION_TEST
