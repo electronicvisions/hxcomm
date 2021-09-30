@@ -3,7 +3,8 @@
 Map<String, Object> pipelineOptions = [
 		projects: ["hxcomm"],
 		container: [app: "dls-core"],
-		notificationChannel: "#dls-software"
+		notificationChannel: "#dls-software",
+		configureInstallOptions: "--build-profile=ci"
 ]
 
 if (!isTriggeredByGerrit()) {
