@@ -47,15 +47,15 @@ def configure(conf):
     conf.load("gtest")
     conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
     conf.load("doxygen")
-    conf.define(
-        "HXCOMM_LOG_THRESHOLD",
-        {'trace':   0,
-         'debug':   1,
-         'info':    2,
-         'warning': 3,
-         'error':   4,
-         'fatal':   5}[conf.options.hxcomm_loglevel]
-    )
+    conf.env.DEFINES_HXCOMM = [
+        "HXCOMM_LOG_THRESHOLD=" +
+        {'trace':   '0',
+         'debug':   '1',
+         'info':    '2',
+         'warning': '3',
+         'error':   '4',
+         'fatal':   '5'}[conf.options.hxcomm_loglevel]
+    ]
     conf.env.CXXFLAGS_HXCOMM = [
         '-fvisibility=hidden',
         '-fvisibility-inlines-hidden',
