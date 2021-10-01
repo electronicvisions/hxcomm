@@ -1,13 +1,15 @@
 #include "hxcomm/common/quiggeldy_utility.h"
 
+#include <cassert>
+#include <csignal>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <tuple>
 
 #include <fcntl.h>
-#include <signal.h>
-#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -118,9 +120,10 @@ pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args)
 		if (log->isEnabledFor(log4cxx::Level::getDebug())) {
 			std::stringstream message;
 			message << "Executing: "
-			        << "quiggeldy "
+			        << "\"quiggeldy "
 			        << "-p " << port_ss.str();
 			((message << ' ' << std::forward<Args>(args)), ...);
+			message << "\"";
 
 			HXCOMM_LOG_DEBUG(log, message.str());
 		}
@@ -133,8 +136,14 @@ pid_t setup_quiggeldy(char const* binary_name, uint16_t port, Args... args)
 			dup2(fd, 2);
 		}
 
-		execlp(binary_name, binary_name, "-p", port_ss.str().c_str(), args..., NULL);
-		exit(0);
+		int ret = execlp(binary_name, binary_name, "-p", port_ss.str().c_str(), args..., NULL);
+		assert(ret < 0);
+		if (ret < 0) {
+			std::stringstream message;
+			message << "Executing quiggeldy failed:" << strerror(errno);
+			HXCOMM_LOG_ERROR(log, message.str());
+		}
+		exit(EXIT_FAILURE);
 	} else if (pid < 0) {
 		std::stringstream ss;
 		ss << "Could not launch quiggeldy. Error code: " << pid;
