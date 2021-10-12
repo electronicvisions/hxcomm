@@ -15,6 +15,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <tuple>
 #include <vector>
