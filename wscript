@@ -149,7 +149,9 @@ def build(bld):
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
                        ] + use_munge,
+        uselib       = 'HXCOMM',
         install_path = '${PREFIX}/lib',
+        export_defines="HXCOMM_LOG_THRESHOLD",
     )
 
     bld(
