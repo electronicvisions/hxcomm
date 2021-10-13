@@ -6,8 +6,10 @@
 #include "hxcomm/vx/quiggeldy_connection.h"
 #include "hxcomm/vx/reinit_stack_entry.h"
 
+#include <cerrno>
 #include <charconv>
 #include <chrono>
+#include <cstring>
 #include <thread>
 
 #include <sys/types.h>
@@ -130,10 +132,13 @@ TEST(Quiggeldy, SimpleMockModeReinit)
 	}
 
 	HXCOMM_LOG_TRACE(log, "Killing quiggeldy.");
-	kill(quiggeldy_pid, SIGTERM);
+	int ret = kill(quiggeldy_pid, SIGTERM);
+	ASSERT_EQ(ret, 0) << std::strerror(errno);
+
 	HXCOMM_LOG_TRACE(log, "Waiting for quiggeldy to terminate.");
 	int status;
-	waitpid(quiggeldy_pid, &status, 0); // wait for the child to exit
+	ret = waitpid(quiggeldy_pid, &status, 0); // wait for the child to exit
+	ASSERT_GT(ret, 0) << std::strerror(errno);
 	ASSERT_TRUE(WIFEXITED(status));
 	ASSERT_EQ(WEXITSTATUS(status), 0);
 }
