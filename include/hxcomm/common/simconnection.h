@@ -13,6 +13,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <stddef.h>
 #include <stdint.h>
