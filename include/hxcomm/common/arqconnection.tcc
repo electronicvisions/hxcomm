@@ -54,9 +54,10 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
-    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this)
+    m_worker_receive()
 {
 	check_compatibility();
+	m_worker_receive = std::thread(&ARQConnection<ConnectionParameter>::work_receive, this);
 }
 
 template <typename ConnectionParameter>
@@ -70,10 +71,11 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
-    m_worker_receive(&ARQConnection<ConnectionParameter>::work_receive, this)
+    m_worker_receive()
 {
 	HXCOMM_LOG_TRACE(m_logger, "ARQConnection(): ARQ connection startup initiated.");
 	check_compatibility();
+	m_worker_receive = std::thread(&ARQConnection<ConnectionParameter>::work_receive, this);
 }
 
 template <typename ConnectionParameter>
