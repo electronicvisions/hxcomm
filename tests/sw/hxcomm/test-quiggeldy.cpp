@@ -139,6 +139,9 @@ TEST(Quiggeldy, SimpleMockModeReinit)
 	int status;
 	ret = waitpid(quiggeldy_pid, &status, 0); // wait for the child to exit
 	ASSERT_GT(ret, 0) << std::strerror(errno);
-	ASSERT_TRUE(WIFEXITED(status));
+	EXPECT_TRUE(WIFEXITED(status));
+	if (!WIFEXITED(status)) {
+		HXCOMM_LOG_ERROR(log, "quiggeldy didn't terminate normally, status = " << status);
+	}
 	ASSERT_EQ(WEXITSTATUS(status), 0);
 }
