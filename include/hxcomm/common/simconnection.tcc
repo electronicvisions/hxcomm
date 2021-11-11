@@ -140,8 +140,8 @@ template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::~SimConnection()
 {
 	HXCOMM_LOG_TRACE(m_logger, "~SimConnection(): Stopping Sim connection.");
-	if (m_run_receive) {
-		m_run_receive = false;
+	m_run_receive = false;
+	if (m_worker_receive.joinable()) {
 		m_worker_receive.join();
 	}
 

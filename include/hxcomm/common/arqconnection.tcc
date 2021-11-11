@@ -154,8 +154,8 @@ template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::~ARQConnection()
 {
 	HXCOMM_LOG_TRACE(m_logger, "~ARQConnection(): Stopping ARQ connection.");
-	if (m_run_receive) {
-		m_run_receive = false;
+	m_run_receive = false;
+	if (m_worker_receive.joinable()) {
 		m_worker_receive.join();
 	}
 }
