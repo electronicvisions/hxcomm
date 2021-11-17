@@ -52,10 +52,9 @@ def build(bld):
         source='include/pyhxcomm/vx/python_bindings.h',
         genpybind_tags='hxcomm_vx',
         genpybind_num_files=10,
-        features='genpybind cxx cxxshlib pyext pyembed',
+        features='genpybind cxx cxxshlib pyext',
         use=['hxcomm', 'pyhxcomm_inc'],
         install_path='${PREFIX}/lib',
-        linkflags='-Wl,-z,defs',
     )
 
     bld(
