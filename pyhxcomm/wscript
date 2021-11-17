@@ -32,14 +32,6 @@ def configure(cfg):
     cfg.load('pycodestyle')
     cfg.load('gtest')
 
-    cfg.check(
-        compiler='cxx',
-        features='cxx pyembed',
-        uselib_store='PYBIND11HXCOMM',
-        mandatory=True,
-        header_name='pybind11/pybind11.h',
-    )
-
 
 def build(bld):
     bld.env.DLSvx_HARDWARE_AVAILABLE = "cube" == os.environ.get("SLURM_JOB_PARTITION")
@@ -61,7 +53,7 @@ def build(bld):
         genpybind_tags='hxcomm_vx',
         genpybind_num_files=10,
         features='genpybind cxx cxxshlib pyext pyembed',
-        use=['hxcomm', 'pyhxcomm_inc', 'PYBIND11HXCOMM'],
+        use=['hxcomm', 'pyhxcomm_inc'],
         install_path='${PREFIX}/lib',
         linkflags='-Wl,-z,defs',
     )
@@ -70,7 +62,7 @@ def build(bld):
         target       = 'pyhxcomm_swtests_vx_cxx',
         features     = 'gtest cxx cxxprogram pyext',
         source       = bld.path.ant_glob('tests/sw/test-*.cpp'),
-        use          = ['hxcomm', 'pyhxcomm_inc', 'BOOST4HXCOMMTOOLS', 'PYBIND11HXCOMM'],
+        use          = ['hxcomm', 'pyhxcomm_inc', 'BOOST4HXCOMMTOOLS'],
         defines      = pyhxcomm_defines,
         test_timeout = 120,
         uselib       = 'HXCOMM',
