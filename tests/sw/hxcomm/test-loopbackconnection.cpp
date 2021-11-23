@@ -29,6 +29,8 @@ typedef UTMessageParameter<HEADER_ALIGNMENT, SUBWORD_TYPE, PHYWORD_TYPE, ToFPGAD
 
 constexpr auto empty_sleep = std::chrono::microseconds(10000);
 
+static std::mt19937 rng{std::random_device{}()};
+
 /*
  * multiple nested macros needed to first unroll type and alignment defines to their value instead
  * of their name and afterwards concatenate the values to the complete name in order to get
@@ -43,7 +45,7 @@ constexpr auto empty_sleep = std::chrono::microseconds(10000);
 
 MYTEST(Name, OneMessage)
 {
-	auto message = random_ut_message<TestUTMessageParameter>();
+	auto message = random_ut_message<TestUTMessageParameter>(rng);
 
 	LoopbackConnection<TestUTMessageParameter> connection;
 	std::visit([&connection](auto m) { connection.add(m); }, message);
@@ -59,7 +61,7 @@ MYTEST(Name, OneMessage)
 
 MYTEST(Name, OneMessageAfterCommit)
 {
-	auto message = random_ut_message<TestUTMessageParameter>();
+	auto message = random_ut_message<TestUTMessageParameter>(rng);
 
 	LoopbackConnection<TestUTMessageParameter> connection;
 	connection.commit();
@@ -76,7 +78,7 @@ MYTEST(Name, OneMessageAfterCommit)
 
 MYTEST(Name, OneMessageMultiCommit)
 {
-	auto message = random_ut_message<TestUTMessageParameter>();
+	auto message = random_ut_message<TestUTMessageParameter>(rng);
 
 	LoopbackConnection<TestUTMessageParameter> connection;
 	std::visit([&connection](auto m) { connection.add(m); }, message);
@@ -98,7 +100,7 @@ MYTEST(Name, MultipleMessages)
 
 	std::vector<typename LoopbackConnection<TestUTMessageParameter>::send_message_type> messages;
 	for (size_t i = 0; i < message_count; ++i) {
-		auto message = random_ut_message<TestUTMessageParameter>();
+		auto message = random_ut_message<TestUTMessageParameter>(rng);
 		messages.push_back(message);
 	}
 

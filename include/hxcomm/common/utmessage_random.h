@@ -59,7 +59,7 @@ public:
  * @return Random UT message with random payload
  */
 template <typename UTMessageParameter>
-auto random_ut_message(std::mt19937 gen = std::mt19937(std::random_device{}())) ->
+auto random_ut_message(std::mt19937& gen) ->
     typename default_ut_message<UTMessageParameter>::message_type
 {
 	std::uniform_int_distribution<size_t> random_header(

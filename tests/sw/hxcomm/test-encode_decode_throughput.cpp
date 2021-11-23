@@ -59,8 +59,9 @@ std::pair<double, double> throughput_measurement(size_t num)
 
 	// generate random messages
 	std::vector<message_type> instructions;
+	std::mt19937 rng(std::random_device{}());
 	for (size_t i = 0; i < num; ++i) {
-		instructions.push_back(random_ut_message<UTMessageParameter>());
+		instructions.push_back(random_ut_message<UTMessageParameter>(rng));
 	}
 
 	// calculate number of bytes of encoded messages
