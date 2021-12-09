@@ -3,6 +3,7 @@
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/vx/arqconnection.h"
 #include "hxcomm/vx/connection_variant.h"
+#include "hxcomm/vx/extollconnection.h"
 #include "hxcomm/vx/quiggeldy_connection.h"
 #include "hxcomm/vx/simconnection.h"
 #include "hxcomm/vx/zeromockconnection.h"
@@ -89,12 +90,42 @@ inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::opt
 	}
 	return list;
 }
+
+inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
+    std::optional<size_t> limit = std::nullopt)
+{
+	std::vector<ConnectionVariant> connection_list;
+
+	char const* env_extoll = std::getenv("HXCOMM_USE_EXTOLL");
+	if (env_extoll != nullptr && atoi(env_extoll)) {
+		auto const nodes = nhtl_extoll::get_fpga_node_ids();
+
+		if (nodes.empty()) {
+			return {};
+		}
+
+		if (limit && (nodes.size() < *limit)) {
+			throw std::runtime_error(
+			    "Found FPGA Node amount (" + std::to_string(nodes.size()) +
+			    ") lower than specified limit (" + std::to_string(*limit) +
+			    ") in environment to connect to.");
+		}
+
+		for (size_t i = 0; i < (limit ? std::min(*limit, nodes.size()) : nodes.size()); i++) {
+			connection_list.emplace_back(
+			    ConnectionVariant{std::in_place_type<ExtollConnection>, nodes.at(i)});
+		}
+	}
+	return connection_list;
+}
 } // namespace detail
 
 std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t> limit)
 {
 	if (auto qgc = detail::get_quiggeldyclient_list_from_env(limit); !qgc.empty()) {
 		return qgc;
+	} else if (auto ext = detail::get_extollconnection_list_from_env(limit); !ext.empty()) {
+		return ext;
 	} else if (auto arq = detail::get_arqconnection_list_from_env(limit); !arq.empty()) {
 		return arq;
 	} else if (auto sim = detail::get_simconnection_list_from_env(); !sim.empty()) {

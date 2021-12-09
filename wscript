@@ -19,6 +19,7 @@ _dependencies = [
         {'project': 'flange'},
         {'project': 'lib-rcf'},
         {'project': 'bss-hw-params'},
+        {'project': 'nhtl-extoll'},
     ]
 
 
@@ -151,6 +152,7 @@ def build(bld):
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
+                        'nhtl_extoll',
                        ] + use_munge,
         uselib       = 'HXCOMM',
         install_path = '${PREFIX}/lib',

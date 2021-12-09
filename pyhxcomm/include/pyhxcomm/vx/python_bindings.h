@@ -3,6 +3,7 @@
 // connections need to go first, otherwise the bindings will not have the
 // alias-names
 #include "pyhxcomm/vx/arqconnection.h"
+#include "pyhxcomm/vx/extollconnection.h"
 #include "pyhxcomm/vx/quiggeldy_connection.h"
 #include "pyhxcomm/vx/simconnection.h"
 #include "pyhxcomm/vx/zeromockconnection.h"
