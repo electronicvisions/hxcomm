@@ -45,7 +45,7 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(Args&&... args) :
 		((ss << " " << args), ...);
 		HXCOMM_LOG_TRACE(m_logger, ss.str());
 	}
-	char const* env_partition = std::getenv(vision_quiggeldy_partition);
+	char const* env_partition = std::getenv(vision_quiggeldy_partition_env_name);
 	if (env_partition == nullptr) {
 		m_slurm_partition = default_slurm_partition;
 	} else {
