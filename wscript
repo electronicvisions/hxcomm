@@ -285,7 +285,7 @@ def build(bld):
             target = 'viggeldy',
             features = 'cxx cxxprogram',
             source = [
-                bld.path.find_node('src/tools/quiggely_query_version.cpp'),
+                bld.path.find_node('src/tools/quiggeldy_query_version.cpp'),
                 ],
             use = use_quiggeldy,
             uselib       = 'HXCOMM',
