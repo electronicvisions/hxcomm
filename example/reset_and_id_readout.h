@@ -1,3 +1,4 @@
+#pragma once
 #include "hxcomm/vx/utmessage.h"
 #include <iostream>
 
