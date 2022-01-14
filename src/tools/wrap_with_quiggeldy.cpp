@@ -1,6 +1,6 @@
 
-#include "hxcomm/common/ensure_local_quiggeldy.h"
 #include "hxcomm/common/quiggeldy_utility.h"
+#include "hxcomm/vx/ensure_local_quiggeldy.h"
 
 #include "logging_ctrl.h"
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 	logger_default_config(Logger::log4cxx_level_v2(loglevel));
 
 	{
-		[[maybe_unused]] hxcomm::EnsureLocalQuiggeldy quiggeldy{};
+		[[maybe_unused]] hxcomm::vx::EnsureLocalQuiggeldy quiggeldy{};
 
 		// perform execvp in fork because we need to destruct (i.e. kill
 		// quiggeldy-binary) after the given command exits

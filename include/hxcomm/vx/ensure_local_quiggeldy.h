@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <tuple>
 
-namespace hxcomm {
+namespace hxcomm::vx {
 
 /**
  * RAII-style helper to ensure a local quiggeldy instance is running.
@@ -20,8 +20,7 @@ public:
 	{
 		// If there is no remotely provided quiggeldy instance, we launch one ourselves
 		if (std::getenv(vision_quiggeldy_enabled_env_name) == nullptr) {
-			std::tie(m_quiggeldy_pid, m_quiggeldy_port) =
-			    hxcomm::vx::launch_quiggeldy_locally_from_env();
+			std::tie(m_quiggeldy_pid, m_quiggeldy_port) = launch_quiggeldy_locally_from_env();
 		}
 	}
 
@@ -37,4 +36,4 @@ private:
 	port_t m_quiggeldy_port;
 };
 
-} // namespace hxcomm
+} // namespace hxcomm::vx
