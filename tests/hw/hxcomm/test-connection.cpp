@@ -105,3 +105,15 @@ TEST(TestConnection, FromEnv)
 	// Just ensure that this compiles for now
 	[[maybe_unused]] auto connection = hxcomm::vx::get_connection_from_env();
 }
+
+TEST(TestConnection, Registry)
+{
+	{
+		auto connection = get_connection_from_env();
+		if (std::holds_alternative<hxcomm::vx::ARQConnection>(connection) ||
+		    std::holds_alternative<hxcomm::vx::SimConnection>(connection)) {
+			EXPECT_THROW(get_connection_from_env(), std::runtime_error);
+		}
+	}
+	EXPECT_NO_THROW(get_connection_from_env());
+}

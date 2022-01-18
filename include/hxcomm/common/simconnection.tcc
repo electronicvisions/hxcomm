@@ -1,11 +1,13 @@
 #include "hate/timer.h"
 #include "hxcomm/common/logger.h"
+#include "hxcomm/common/sim_parameters.h"
 
 namespace hxcomm {
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::SimConnection(
     ip_t ip, port_t port, bool enable_terminate_on_destruction) :
+    m_registry(std::make_unique<Registry>(std::tuple{ip, port})),
     m_sim(std::make_unique<flange::SimulatorClient>(ip, port)),
     m_send_queue(),
     m_encoder(m_send_queue),
@@ -30,7 +32,9 @@ SimConnection<ConnectionParameter>::SimConnection(
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destruction) :
-    m_sim(std::make_unique<flange::SimulatorClient>()),
+    m_registry(std::make_unique<Registry>(get_sim_parameters())),
+    m_sim(std::make_unique<flange::SimulatorClient>(
+        std::get<0>(m_registry->m_parameters), std::get<1>(m_registry->m_parameters))),
     m_send_queue(),
     m_encoder(m_send_queue),
     m_receive_queue_mutex(),
@@ -54,6 +58,7 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
 
 template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
+    m_registry(),
     m_sim(),
     m_send_queue(),
     m_encoder(other.m_encoder, m_send_queue),
@@ -74,6 +79,8 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 	m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
 	m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
 	m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
+	// move registry
+	m_registry = std::move(other.m_registry);
 	// move simulator client
 	m_sim = std::move(other.m_sim);
 	// move queues
@@ -115,6 +122,8 @@ SimConnection<ConnectionParameter>& SimConnection<ConnectionParameter>::operator
 		m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
 		m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
 		m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
+		// move registry
+		m_registry = std::move(other.m_registry);
 		// move simulation client
 		m_sim = std::move(other.m_sim);
 		// move queues

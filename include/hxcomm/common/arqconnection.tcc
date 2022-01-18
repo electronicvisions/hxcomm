@@ -45,7 +45,8 @@ void ARQConnection<ConnectionParameter>::SendQueue::flush()
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection() :
-    m_arq_stream(std::make_unique<arq_stream_type>(get_fpga_ip())),
+    m_registry(std::make_unique<Registry>(std::tuple{get_fpga_ip()})),
+    m_arq_stream(std::make_unique<arq_stream_type>(std::get<0>(m_registry->m_parameters))),
     m_send_queue(*m_arq_stream),
     m_encoder(m_send_queue),
     m_receive_queue_mutex(),
@@ -62,7 +63,8 @@ ARQConnection<ConnectionParameter>::ARQConnection() :
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
-    m_arq_stream(std::make_unique<arq_stream_type>(ip)),
+    m_registry(std::make_unique<Registry>(std::tuple{ip})),
+    m_arq_stream(std::make_unique<arq_stream_type>(std::get<0>(m_registry->m_parameters))),
     m_send_queue(*m_arq_stream),
     m_encoder(m_send_queue),
     m_receive_queue_mutex(),
@@ -80,6 +82,7 @@ ARQConnection<ConnectionParameter>::ARQConnection(ip_t const ip) :
 
 template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
+    m_registry(),
     m_arq_stream(),
     m_send_queue(other.m_send_queue),
     m_encoder(other.m_encoder, m_send_queue),
@@ -98,6 +101,8 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
 	m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
 	m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
 	m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
+	// move registry
+	m_registry = std::move(other.m_registry);
 	// move arq stream
 	m_arq_stream = std::move(other.m_arq_stream);
 	// move queues
@@ -131,6 +136,8 @@ ARQConnection<ConnectionParameter>& ARQConnection<ConnectionParameter>::operator
 		m_decode_duration = other.m_decode_duration.load(std::memory_order_relaxed);
 		m_commit_duration = other.m_commit_duration.load(std::memory_order_relaxed);
 		m_execution_duration = other.m_execution_duration.load(std::memory_order_relaxed);
+		// move registry
+		m_registry = std::move(other.m_registry);
 		// move arq stream
 		m_arq_stream = std::move(other.m_arq_stream);
 		// move queues

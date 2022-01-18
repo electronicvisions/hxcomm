@@ -2,6 +2,7 @@
 #include "bss_hw_params/cube_ethernet/constants.h"
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
+#include "hxcomm/common/connection_registry.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/encoder.h"
@@ -99,6 +100,12 @@ public:
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
 private:
+	/**
+	 * Registry of open ARQConnections.
+	 */
+	typedef ConnectionRegistry<ARQConnection> Registry;
+	std::unique_ptr<Registry> m_registry;
+
 	friend Stream<ARQConnection>;
 	/**
 	 * Add a single UT message to the send queue.

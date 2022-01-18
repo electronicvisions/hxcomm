@@ -2,6 +2,7 @@
 #include "flange/simulator_client.h"
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
+#include "hxcomm/common/connection_registry.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/decoder.h"
 #include "hxcomm/common/encoder.h"
@@ -121,6 +122,12 @@ public:
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
 private:
+	/**
+	 * Registry of open SimConnections.
+	 */
+	typedef ConnectionRegistry<SimConnection> Registry;
+	std::unique_ptr<Registry> m_registry;
+
 	friend class Stream<SimConnection>;
 
 	/**
