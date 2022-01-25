@@ -142,9 +142,16 @@ TEST(Quiggeldy, SimpleMockModeReinit)
 	int status;
 	ret = waitpid(quiggeldy_pid, &status, 0); // wait for the child to exit
 	ASSERT_GT(ret, 0) << std::strerror(errno);
-	EXPECT_TRUE(WIFEXITED(status));
+	EXPECT_TRUE(
+	    WIFEXITED(status) || WIFSIGNALED(status)); // allow for normal and signalled termination
 	if (!WIFEXITED(status)) {
-		HXCOMM_LOG_ERROR(log, "quiggeldy didn't terminate normally, status = " << status);
+		if (WIFSIGNALED(status)) {
+			HXCOMM_LOG_WARN(
+			    log, "quiggeldy didn't terminate normally, termsig was = " << WTERMSIG(status));
+		} else {
+			HXCOMM_LOG_ERROR(log, "quiggeldy didn't terminate, status is = " << status);
+		}
+	} else {
+		ASSERT_EQ(WEXITSTATUS(status), 0);
 	}
-	ASSERT_EQ(WEXITSTATUS(status), 0);
 }
