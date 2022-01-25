@@ -1,4 +1,4 @@
-# Low-level communication with HICANN-X via HostARQ
+# Low-level communication with HICANN-X
 
 ## How to build
 
