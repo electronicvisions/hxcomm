@@ -1,12 +1,7 @@
 #pragma once
-
-#include "hxcomm/vx/quiggeldy_connection.h"
-#include "hxcomm/vx/quiggeldy_utility.h"
-
-#include "slurm/vision_defines.h"
-
-#include <cstdlib>
-#include <tuple>
+#include "hate/visibility.h"
+#include "hxcomm/common/connect_to_remote_parameter_defs.h"
+#include <unistd.h>
 
 namespace hxcomm::vx {
 
@@ -16,20 +11,8 @@ namespace hxcomm::vx {
 class EnsureLocalQuiggeldy
 {
 public:
-	EnsureLocalQuiggeldy() : m_quiggeldy_pid{0}
-	{
-		// If there is no remotely provided quiggeldy instance, we launch one ourselves
-		if (std::getenv(vision_quiggeldy_enabled_env_name) == nullptr) {
-			std::tie(m_quiggeldy_pid, m_quiggeldy_port) = launch_quiggeldy_locally_from_env();
-		}
-	}
-
-	~EnsureLocalQuiggeldy()
-	{
-		if (m_quiggeldy_pid != 0) {
-			hxcomm::terminate(m_quiggeldy_pid);
-		}
-	}
+	EnsureLocalQuiggeldy() SYMBOL_VISIBLE;
+	~EnsureLocalQuiggeldy() SYMBOL_VISIBLE;
 
 private:
 	pid_t m_quiggeldy_pid;

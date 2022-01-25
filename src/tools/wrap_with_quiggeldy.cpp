@@ -2,6 +2,7 @@
 #include "hxcomm/common/quiggeldy_utility.h"
 #include "hxcomm/vx/ensure_local_quiggeldy.h"
 
+#include "logger.h"
 #include "logging_ctrl.h"
 
 #include <RCF/RCF.hpp>
