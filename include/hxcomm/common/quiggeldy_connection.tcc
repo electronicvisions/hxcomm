@@ -14,9 +14,6 @@
 #include "hxcomm/common/quiggeldy_common.h"
 #include "hxcomm/common/quiggeldy_connection.h"
 
-#include "logger.h"
-#include "logging_ctrl.h"
-
 #include "slurm/vision_defines.h"
 
 namespace hxcomm {

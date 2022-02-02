@@ -9,9 +9,6 @@
 
 #include "slurm/vision_defines.h"
 
-#include "logger.h"
-#include "logging_ctrl.h"
-
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <algorithm>
