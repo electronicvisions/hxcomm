@@ -151,7 +151,7 @@ def build(bld):
                        ] + use_munge,
         uselib       = 'HXCOMM',
         install_path = '${PREFIX}/lib',
-        export_defines="HXCOMM_LOG_THRESHOLD",
+        export_defines=bld.env.DEFINES_HXCOMM,
     )
 
     bld(
