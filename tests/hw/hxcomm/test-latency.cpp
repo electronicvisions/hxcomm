@@ -47,7 +47,7 @@ TEST(TestConnection, Latency)
 		HXCOMM_LOG_INFO(logger, "Average latency: " << mean << " us");
 		HXCOMM_LOG_INFO(logger, "Median latency: " << median << " us");
 
-		EXPECT_LE(minimum, 80); // typically below 60us, 25% error margin
+		EXPECT_LE(minimum, 120); // typically below 60us, 100% error margin
 		EXPECT_LE(mean, 200);
 		EXPECT_LE(median, 150);
 	};
