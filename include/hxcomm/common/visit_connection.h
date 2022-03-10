@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <stdexcept>
 #include <type_traits>
 #include <variant>
 #include <hate/type_traits.h> // for some gcc 8 hacks
@@ -45,6 +46,10 @@ struct VisitConnection<Visitor, std::shared_ptr<Connection>&>
 
 	return_type operator()(Visitor&& visitor, std::shared_ptr<Connection> const& connection)
 	{
+		if (!connection) {
+			throw std::invalid_argument(
+			    "VisitConnection called with invalid shared_ptr<Connection>.");
+		}
 		return visitor(*connection);
 	}
 };
