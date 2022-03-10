@@ -1,6 +1,7 @@
 #include "hate/timer.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/sim_parameters.h"
+#include <stdexcept>
 
 namespace hxcomm {
 
@@ -27,6 +28,7 @@ SimConnection<ConnectionParameter>::SimConnection(
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
 	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	assert(m_sim);
 	m_sim->issue_reset();
 }
 
@@ -53,6 +55,7 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
 	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	assert(m_sim);
 	m_sim->issue_reset();
 }
 
@@ -99,6 +102,9 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
 
 	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
+	if (!m_sim) {
+		throw std::invalid_argument("Unexpected access to moved-from object.");
+	}
 	m_sim->issue_reset();
 }
 
@@ -154,7 +160,7 @@ SimConnection<ConnectionParameter>::~SimConnection()
 		m_worker_receive.join();
 	}
 
-	if (m_terminate_on_destruction) {
+	if (m_terminate_on_destruction && m_sim) {
 		std::lock_guard<std::mutex> const lock(m_runnable_mutex);
 		m_sim->set_runnable(true);
 		m_sim->issue_terminate();
@@ -190,6 +196,9 @@ void SimConnection<ConnectionParameter>::commit()
 	hate::Timer timer;
 	m_encoder.flush();
 	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
+	if (!m_sim) {
+		throw std::runtime_error("Unexpected access to moved-from object.");
+	}
 	while (!m_send_queue.empty()) {
 		m_sim->send({m_send_queue.front()});
 		m_send_queue.pop();
@@ -232,6 +241,9 @@ void SimConnection<ConnectionParameter>::run_until_halt()
 {
 	ResetHaltListener reset(m_listener_halt);
 	hate::Timer timer;
+	if (!m_sim) {
+		throw std::runtime_error("Unexpected access to moved-from object.");
+	}
 	ScopedSimulationRun run(*m_sim, m_runnable_mutex);
 
 	constexpr size_t wait_period = 10000;
