@@ -261,7 +261,33 @@ void QuiggeldyWorker<Connection>::perform_reinit(reinit_type const& reinit)
 
 	try {
 		for (auto const& entry : reinit) {
-			execute_messages(*m_connection, entry);
+			execute_messages(*m_connection, entry.request);
+		}
+	} catch (const std::exception& e) {
+		// TODO: Implement proper exception handling
+		teardown();
+		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
+		throw;
+	}
+}
+
+template <typename Connection>
+void QuiggeldyWorker<Connection>::perform_reinit_snapshot(reinit_type& reinit)
+{
+	if (m_mock_mode) {
+		HXCOMM_LOG_DEBUG(m_logger, "Running mock-reinit-snapshot!");
+		return;
+	}
+
+	HXCOMM_LOG_TRACE(m_logger, "Performing reinit snapshot!");
+
+	try {
+		for (auto& entry : reinit) {
+			if (entry.snapshot) {
+				auto const [response, _] = execute_messages(*m_connection, *(entry.snapshot));
+				entry.request = typename std::decay_t<decltype(entry)>::transform_type{}(
+				    response, *(entry.snapshot));
+			}
 		}
 	} catch (const std::exception& e) {
 		// TODO: Implement proper exception handling

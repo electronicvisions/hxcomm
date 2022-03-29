@@ -29,8 +29,9 @@ void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::response_type
 	translate_sf_cereal(ar, qcr);
 }
 
-// Note: Currently, hxcomm::vx::quiggeldy_interface_types::reinit_type is the
-// same as the request_type and thus no additional declaration of serialize()
-// is needed.
+void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::reinit_entry_type& qcr)
+{
+	translate_sf_cereal(ar, qcr);
+}
 
 } // namespace SF

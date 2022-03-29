@@ -37,6 +37,8 @@ struct UTMessageParameter
  * @tparam ReceivePhywordType Type of PHY-word of receive UTMessage set
  * @tparam ReceiveDictionary Dictionary of instructions of received UTMessages
  * @tparam ReceiveHaltInstructionType Instruction type of Halt message in receive dictionary
+ * @tparam QuiggeldyScheduleOutToInTransformType Functor to transform a schedule-out result to
+ * schedule-in instructions in quiggeldy
  */
 template <
     size_t SendHeaderAlignment,
@@ -49,7 +51,8 @@ template <
     typename ReceivePhywordType,
     typename ReceiveDictionary,
     typename ReceiveHaltInstructionType,
-    typename ReceiveTimeoutInstructionType>
+    typename ReceiveTimeoutInstructionType,
+    typename QuiggeldyScheduleOutToInTransformType>
 struct ConnectionParameter
 {
 	typedef UTMessageParameter<
@@ -67,6 +70,7 @@ struct ConnectionParameter
 	    Receive;
 	typedef ReceiveHaltInstructionType ReceiveHalt;
 	typedef ReceiveTimeoutInstructionType ReceiveTimeout;
+	typedef QuiggeldyScheduleOutToInTransformType QuiggeldyScheduleOutToInTransform;
 };
 
 } // namespace hxcomm

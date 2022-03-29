@@ -1,5 +1,6 @@
 #pragma once
 #include "hxcomm/common/connection_parameter.h"
+#include "hxcomm/vx/quiggeldy_schedule_out_to_in_transform.h"
 #include "hxcomm/vx/utmessage.h"
 
 namespace hxcomm::vx {
@@ -15,7 +16,8 @@ typedef hxcomm::ConnectionParameter<
     ut_message_from_fpga_phyword_type,
     instruction::FromFPGADictionary,
     instruction::from_fpga_system::Loopback,
-    instruction::from_fpga_system::TimeoutNotification>
+    instruction::from_fpga_system::TimeoutNotification,
+    detail::QuiggeldyScheduleOutToInTransform>
     ConnectionParameter;
 
 } // namespace hxcomm::vx

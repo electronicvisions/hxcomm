@@ -35,7 +35,6 @@ public:
 
 	using request_type = typename interface_types::request_type;
 	using response_type = typename interface_types::response_type;
-	// reinit is just another set of FPGA words sent to the chip prior to resuming
 	using reinit_type = typename interface_types::reinit_type;
 
 	// pair encoding uid and UUID of the session to differentiate them (one per QuiggeldyConnection)
@@ -91,6 +90,13 @@ public:
 	 * prior to the next work-unit being executed.
 	 */
 	void perform_reinit(reinit_type const&);
+
+	/**
+	 * This function is called whenever we have to relinquish control of our
+	 * hardware resource and the user specified a reinit-program to be snapshotted
+	 * after the previous work-unit was executed.
+	 */
+	void perform_reinit_snapshot(reinit_type&);
 
 	/**
 	 * This function is run whenever the server releases control (and any

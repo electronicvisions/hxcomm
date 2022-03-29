@@ -5,6 +5,7 @@
 #include "cereal/types/vector.hpp"
 
 #include "hate/visibility.h"
+#include "hxcomm/common/cerealization_quiggeldy_interface_types.h"
 #include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
@@ -32,9 +33,8 @@ void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::request_type&
 void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::response_type& qcr)
     SYMBOL_VISIBLE;
 
-// Note: Currently, hxcomm::vx::quiggeldy_interface_types::reinit_type is the
-// same as the request_type and thus no additional declaration of serialize()
-// is needed.
+void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::reinit_entry_type& qcr)
+    SYMBOL_VISIBLE;
 
 } // namespace SF
 

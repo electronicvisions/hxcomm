@@ -60,6 +60,16 @@ struct Address
 			return os;
 		}
 
+		bool get_is_read() const
+		{
+			return m_is_read;
+		}
+
+		void set_is_read(bool value)
+		{
+			m_is_read = value;
+		}
+
 	private:
 		uint32_t m_address;
 		bool m_is_read;
