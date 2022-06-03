@@ -94,7 +94,6 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_sequence_num(0),
     m_reinit_stack{new reinit_stack_type{}}
 {
-	RCF::init();
 #ifdef USE_MUNGE_AUTH
 	constexpr bool has_munge_support = true;
 #else
@@ -165,10 +164,6 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::~QuiggeldyConnection()
 	}
 	m_reinit_stack.reset();
 	RCF_LOG_TRACE(m_logger, "RCF::getInitRefCount(): " << RCF::getInitRefCount());
-	// FIXME: Workaround for segfault in RCF::deinit..
-	if (RCF::getInitRefCount() > 1) {
-		RCF::deinit();
-	}
 }
 
 template <typename ConnectionParameter, typename RcfClient>

@@ -215,6 +215,8 @@ public:
 	std::string get_version_string() const;
 
 protected:
+	RCF::RcfInit m_rcf;
+
 	friend StreamRC<QuiggeldyConnection>;
 
 	/**
