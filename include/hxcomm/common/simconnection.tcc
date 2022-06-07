@@ -286,4 +286,10 @@ std::string SimConnection<ConnectionParameter>::get_unique_identifier(
 	return "simulation";
 }
 
+template <typename ConnectionParameter>
+std::string SimConnection<ConnectionParameter>::get_bitfile_info() const
+{
+	return "simulation";
+}
+
 } // namespace hxcomm

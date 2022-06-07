@@ -146,6 +146,12 @@ public:
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
 	/**
+	 * Get bitfile information.
+	 * @return Bitfile info
+	 */
+	std::string get_bitfile_info() const;
+
+	/**
 	 * Set the amount of time to wait, if connecting to the "real" backend fails.
 	 */
 	void set_delay_after_connection_attempt(std::chrono::milliseconds delay);

@@ -323,6 +323,15 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 }
 
 template <typename ConnectionParameter>
+std::string ARQConnection<ConnectionParameter>::get_bitfile_info() const
+{
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to empty instance.");
+	}
+	return m_arq_stream->get_response().bitfile_info;
+}
+
+template <typename ConnectionParameter>
 void ARQConnection<ConnectionParameter>::check_compatibility() const
 {
 	auto const yaml = m_arq_stream->get_response().bitfile_info;

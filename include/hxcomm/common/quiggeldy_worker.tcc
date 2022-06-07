@@ -428,6 +428,18 @@ std::string QuiggeldyWorker<Connection>::get_unique_identifier(
 }
 
 template <typename Connection>
+std::string QuiggeldyWorker<Connection>::get_bitfile_info() const
+{
+	if (m_connection) {
+		auto bitfile_info = m_connection->get_bitfile_info();
+		HXCOMM_LOG_DEBUG(m_logger, "Requested bitfile info: " << bitfile_info);
+		return bitfile_info;
+	} else {
+		throw std::runtime_error("Requested bitfile info of uninitialized connection.");
+	}
+}
+
+template <typename Connection>
 void QuiggeldyWorker<Connection>::set_delay_after_connection_attempt(
     std::chrono::milliseconds delay)
 {

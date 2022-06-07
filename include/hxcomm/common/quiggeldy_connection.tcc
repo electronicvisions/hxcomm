@@ -447,6 +447,13 @@ std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_iden
 }
 
 template <typename ConnectionParameter, typename RcfClient>
+std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_bitfile_info() const
+{
+	auto client = setup_client();
+	return client->get_bitfile_info();
+}
+
+template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_version_string() const
 {
 	auto client = setup_client();

@@ -70,6 +70,13 @@ public:
 	 */
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
+	/**
+	 * Get bitfile information.
+	 * Returns "zeromock" for ZeroMockConnection
+	 * @return Bitfile info
+	 */
+	std::string get_bitfile_info() const;
+
 private:
 	friend Stream<ZeroMockConnection>;
 	/**

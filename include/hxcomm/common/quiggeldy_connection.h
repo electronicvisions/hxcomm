@@ -194,6 +194,12 @@ public:
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
 	/**
+	 * Get bitfile information.
+	 * @return Bitfile info
+	 */
+	std::string get_bitfile_info() const;
+
+	/**
 	 * Set custom username.
 	 * Please note that this setting will only be used if munge authentication is disabled.
 	 *

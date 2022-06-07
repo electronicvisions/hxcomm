@@ -99,6 +99,12 @@ public:
 	 */
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
 
+	/**
+	 * Get bitfile information.
+	 * @return Bitfile info
+	 */
+	std::string get_bitfile_info() const;
+
 private:
 	/**
 	 * Registry of open ARQConnections.

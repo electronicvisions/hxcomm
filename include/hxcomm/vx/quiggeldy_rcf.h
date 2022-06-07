@@ -46,6 +46,7 @@ RRWR_GENERATE_INTERFACE_EXPLICIT_TYPES(
     typename quiggeldy_interface_types::request_type,
     typename quiggeldy_interface_types::reinit_type)
 RCF_METHOD_R1(std::string, get_unique_identifier, std::optional<std::string>)
+RCF_METHOD_R0(std::string, get_bitfile_info)
 RCF_METHOD_R0(std::string, get_version_string)
 RCF_METHOD_R0(bool, get_use_munge)
 RCF_END(I_HXCommQuiggeldyVX)

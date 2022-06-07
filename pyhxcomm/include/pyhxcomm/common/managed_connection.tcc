@@ -193,6 +193,8 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
 {
 	handle.def_property_readonly(
 	    "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
+	handle.def_property_readonly(
+	    "bitfile_info", [](handle_type const& h) { return h.get().get_bitfile_info(); });
 	handle.def(
 	    "get_unique_identifier",
 	    [](handle_type const& h, std::optional<std::string> hwdb_path) {

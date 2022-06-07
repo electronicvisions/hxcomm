@@ -47,6 +47,12 @@ public:
 		    [&hwdb_path](auto const& worker) { return worker.get_unique_identifier(hwdb_path); });
 	}
 
+	std::string get_bitfile_info()
+	{
+		return parent_t::visit_set_up_worker_const(
+		    [](auto const& worker) { return worker.get_bitfile_info(); });
+	}
+
 	/**
 	 * Retrieve version information in human readable string-form.
 	 *
