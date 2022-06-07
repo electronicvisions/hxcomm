@@ -6,6 +6,7 @@ from os.path import join
 from socket import gethostname
 from waflib.extras.test_base import summary
 from waflib.extras.symwaf2ic import get_toplevel_path
+from waflib.extras.symwaf2ic import describe_project
 
 _dependencies = [
         {'project': 'sctrltp'},
@@ -70,7 +71,10 @@ def configure(conf):
          'info':    '2',
          'warning': '3',
          'error':   '4',
-         'fatal':   '5'}[conf.options.hxcomm_loglevel]
+         'fatal':   '5'}[conf.options.hxcomm_loglevel],
+        "HXCOMM_REPO_STATE=" + "\n".join([
+            '"' + describe_project(conf, dep['project']) + '"' for dep in _dependencies] +
+            ['"' + describe_project(conf, 'hxcomm') + '"'])
     ]
     conf.env.CXXFLAGS_HXCOMM = [
         '-fvisibility=hidden',

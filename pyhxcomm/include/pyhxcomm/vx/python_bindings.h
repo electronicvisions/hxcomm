@@ -13,3 +13,4 @@
 
 #include "pyhxcomm/vx/connection_handle_binding.h"
 #include "pyhxcomm/vx/connection_time_info.h"
+#include "pyhxcomm/vx/get_repo_state.h"
