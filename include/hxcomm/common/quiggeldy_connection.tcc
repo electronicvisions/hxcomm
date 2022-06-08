@@ -454,6 +454,13 @@ std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_bitfile_inf
 }
 
 template <typename ConnectionParameter, typename RcfClient>
+std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_remote_repo_state() const
+{
+	auto client = setup_client();
+	return client->get_remote_repo_state();
+}
+
+template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_version_string() const
 {
 	auto client = setup_client();

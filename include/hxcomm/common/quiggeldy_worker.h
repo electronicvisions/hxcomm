@@ -158,6 +158,12 @@ public:
 	std::string get_bitfile_info() const;
 
 	/**
+	 * Get repository state info of quiggeldy server side build.
+	 * @return Repository state info
+	 */
+	std::string get_remote_repo_state() const;
+
+	/**
 	 * Set the amount of time to wait, if connecting to the "real" backend fails.
 	 */
 	void set_delay_after_connection_attempt(std::chrono::milliseconds delay);

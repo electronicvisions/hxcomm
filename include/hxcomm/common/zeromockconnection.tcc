@@ -69,6 +69,12 @@ std::string ZeroMockConnection<ConnectionParameter>::get_bitfile_info() const
 }
 
 template <typename ConnectionParameter>
+std::string ZeroMockConnection<ConnectionParameter>::get_remote_repo_state() const
+{
+	return "";
+}
+
+template <typename ConnectionParameter>
 void ZeroMockConnection<ConnectionParameter>::add(send_message_type const& message)
 {
 	hate::Timer timer;

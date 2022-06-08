@@ -286,4 +286,10 @@ std::string SimConnection<ConnectionParameter>::get_bitfile_info() const
 	return "simulation";
 }
 
+template <typename ConnectionParameter>
+std::string SimConnection<ConnectionParameter>::get_remote_repo_state() const
+{
+	return "";
+}
+
 } // namespace hxcomm

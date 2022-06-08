@@ -128,6 +128,13 @@ public:
 	 */
 	std::string get_bitfile_info() const;
 
+	/**
+	 * Get server-side remote repository state information.
+	 * Only non-empty for QuiggeldyConnection.
+	 * @return Repository state
+	 */
+	std::string get_remote_repo_state() const;
+
 private:
 	/**
 	 * Registry of open SimConnections.

@@ -1,6 +1,7 @@
 #include "hxcomm/common/quiggeldy_worker.h"
 
 #include "hxcomm/common/execute_messages.h"
+#include "hxcomm/common/get_repo_state.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/quiggeldy_common.h"
 #include "hxcomm/common/quiggeldy_utility.h"
@@ -463,6 +464,14 @@ std::string QuiggeldyWorker<Connection>::get_bitfile_info() const
 	} else {
 		throw std::runtime_error("Requested bitfile info of uninitialized connection.");
 	}
+}
+
+template <typename Connection>
+std::string QuiggeldyWorker<Connection>::get_remote_repo_state() const
+{
+	auto const repo_state = get_remote_repo_state();
+	HXCOMM_LOG_DEBUG(m_logger, "Requested remote repo state: " << repo_state);
+	return repo_state;
 }
 
 template <typename Connection>

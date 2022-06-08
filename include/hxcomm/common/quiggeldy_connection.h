@@ -200,6 +200,12 @@ public:
 	std::string get_bitfile_info() const;
 
 	/**
+	 * Get quiggeldy server repository state info.
+	 * @return Repository state info
+	 */
+	std::string get_remote_repo_state() const;
+
+	/**
 	 * Set custom username.
 	 * Please note that this setting will only be used if munge authentication is disabled.
 	 *

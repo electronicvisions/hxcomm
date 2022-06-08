@@ -53,6 +53,12 @@ public:
 		    [](auto const& worker) { return worker.get_bitfile_info(); });
 	}
 
+	std::string get_remote_repo_state()
+	{
+		return parent_t::visit_set_up_worker_const(
+		    [](auto const& worker) { return worker.get_remote_repo_state(); });
+	}
+
 	/**
 	 * Retrieve version information in human readable string-form.
 	 *
