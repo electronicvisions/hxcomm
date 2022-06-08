@@ -1,5 +1,6 @@
 #pragma once
 #include "hate/visibility.h"
+#include <cstddef>
 #ifdef USE_MUNGE_AUTH
 #include <munge.h>
 #endif
