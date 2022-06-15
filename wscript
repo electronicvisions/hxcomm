@@ -43,7 +43,7 @@ def options(opt):
                      default="info",
                      help="Maximal loglevel to compile in.")
 
-    hopts.add_withoption('munge', default=True,
+    hopts.add_withoption('munge', default=False,
                        help='Toggle build of quiggeldy with munge-based '
                             'authentification support')
 
