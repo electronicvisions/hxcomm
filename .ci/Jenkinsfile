@@ -1,7 +1,8 @@
-@Library("jenlib") _
+@Library("jenlib@ebrains-2.0") _
 
 Map<String, Object> pipelineOptions = [
 		projects: ["hxcomm"],
+		setupOptions: "--release-branch=ebrains-2.0",
 		container: [app: "dls-core", singularityArgs: "-B /run/munge"],
 		notificationChannel: "#dls-software",
 		configureInstallOptions: "--build-profile=ci"
