@@ -100,12 +100,6 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 	});
 
 	HXCOMM_LOG_TRACE(m_logger, "SimConnection(): Sim connection started.");
-
-	// reset synplify wrapper to align behavior to ARQ FPGA reset of ARQConnection.
-	if (!m_sim) {
-		throw std::invalid_argument("Unexpected access to moved-from object.");
-	}
-	m_sim->issue_reset();
 }
 
 template <typename ConnectionParameter>
