@@ -92,7 +92,7 @@ public:
 	void pop();
 
 private:
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 	bool m_connection_supports_reinit;
 	std::weak_ptr<reinit_uploader_type> m_reinit_uploader;
 	std::weak_ptr<reinit_stack_type> m_reinit_stack;

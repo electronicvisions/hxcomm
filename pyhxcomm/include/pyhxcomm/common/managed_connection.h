@@ -14,6 +14,8 @@ namespace log4cxx {
 
 class Logger;
 
+typedef std::shared_ptr<Logger> LoggerPtr;
+
 } // namespace log4cxx
 
 namespace pyhxcomm {
@@ -106,7 +108,7 @@ private:
 
 	void setup_logger();
 
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 };
 
 namespace detail {
@@ -181,7 +183,7 @@ private:
 
 	void setup_logger();
 
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 };
 
 /**

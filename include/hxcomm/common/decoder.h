@@ -1,10 +1,12 @@
 #pragma once
 #include "hxcomm/common/utmessage.h"
 #include <climits>
+#include <memory>
 #include <boost/fusion/tuple.hpp>
 
 namespace log4cxx {
 class Logger;
+typedef std::shared_ptr<Logger> LoggerPtr;
 } // namespace log4cxx
 
 namespace hxcomm {
@@ -139,7 +141,7 @@ private:
 	template <size_t... Header>
 	void decode_message_table_generator(size_t header, std::index_sequence<Header...>);
 
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 
 	enum class State
 	{

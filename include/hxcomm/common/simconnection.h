@@ -26,6 +26,7 @@
 
 namespace log4cxx {
 class Logger;
+typedef std::shared_ptr<Logger> LoggerPtr;
 } // namespace log4cxx
 
 namespace hxcomm {
@@ -237,7 +238,7 @@ private:
 	duration_type m_execution_duration{};
 
 	bool m_terminate_on_destruction;
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 
 	struct ResetHaltListener
 	{

@@ -1,10 +1,12 @@
 #pragma once
 #include "hxcomm/common/utmessage.h"
 #include <climits>
+#include <memory>
 #include <stdint.h>
 
 namespace log4cxx {
 class Logger;
+typedef std::shared_ptr<Logger> LoggerPtr;
 } // namespace log4cxx
 
 namespace hxcomm {
@@ -107,7 +109,7 @@ private:
 
 	word_queue_type& m_word_queue;
 
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 };
 
 } // namespace hxcomm

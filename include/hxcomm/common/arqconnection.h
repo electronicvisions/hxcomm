@@ -23,6 +23,7 @@
 
 namespace log4cxx {
 class Logger;
+typedef std::shared_ptr<Logger> LoggerPtr;
 } // namespace log4cxx
 
 namespace hxcomm {
@@ -248,7 +249,7 @@ private:
 
 	std::atomic<bool> m_run_receive;
 
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 
 	void work_receive();
 	std::thread m_worker_receive;

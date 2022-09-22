@@ -18,6 +18,7 @@
 namespace log4cxx {
 
 class Logger;
+typedef std::shared_ptr<Logger> LoggerPtr;
 
 } // namespace log4cxx
 
@@ -238,7 +239,7 @@ protected:
 	bool m_allocate_license;
 	bool m_mock_mode;
 	std::unique_ptr<Connection> m_connection; /// Wrapped connection object.
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 	bool m_use_munge;
 	std::size_t m_max_num_connection_attempts;
 	std::chrono::milliseconds m_delay_after_connection_attempt;

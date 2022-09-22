@@ -77,7 +77,7 @@ detail::execute_messages_return_t<Connection> execute_messages(
     Connection& connection, detail::execute_messages_argument_t<Connection> const& messages)
 {
 	auto const [res, time] = detail::ExecutorMessages<Connection>()(connection, messages);
-	[[maybe_unused]] log4cxx::Logger* log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
+	[[maybe_unused]] log4cxx::LoggerPtr log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
 	HXCOMM_LOG_INFO(
 	    log, "Executed messages(" << messages.size() << ") and got responses(" << res.size()
 	                              << ") with time expenditure: " << std::endl

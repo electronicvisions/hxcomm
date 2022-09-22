@@ -14,6 +14,7 @@
 
 #include "RCF/RCF.hpp"
 #include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
 #include <boost/uuid/uuid.hpp>
@@ -24,7 +25,7 @@
 
 namespace log4cxx {
 class Logger;
-
+typedef std::shared_ptr<Logger> LoggerPtr;
 } // namespace log4cxx
 
 namespace hxcomm {
@@ -310,7 +311,7 @@ protected:
 	connect_parameters_type m_connect_parameters;
 	size_t m_connection_attempt_num_max;
 	std::chrono::milliseconds m_connection_attempt_wait_after;
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 	bool m_use_munge;
 	boost::uuids::uuid m_session_uuid;
 	std::shared_ptr<reinit_uploader_type> m_reinit_uploader;

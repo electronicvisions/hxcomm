@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hxcomm/common/quiggeldy_interface_types.h"
+#include <memory>
 #include <thread>
 
 namespace hxcomm {
@@ -78,7 +79,7 @@ public:
 	void upload(UploaderT&) const;
 
 private:
-	log4cxx::Logger* m_logger;
+	log4cxx::LoggerPtr m_logger;
 
 	mutable std::mutex m_mutex;
 	reinit_type m_stack;
