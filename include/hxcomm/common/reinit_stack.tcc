@@ -26,7 +26,7 @@ void ReinitStack<CP>::pop_entry(std::size_t idx)
 		std::stringstream ss;
 		ss << "Trying to pop reinit entry #" << idx << " from reinit stack but #" << topmost
 		   << " is on top. Aborting..";
-		auto const msg = ss.str().c_str();
+		auto const msg = ss.str();
 		HXCOMM_LOG_ERROR(m_logger, msg);
 		throw std::runtime_error(msg);
 	} else {

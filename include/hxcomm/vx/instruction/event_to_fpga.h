@@ -10,7 +10,7 @@
 namespace hxcomm::vx::instruction::event_to_fpga {
 
 template <size_t num_spikes>
-class SpikePack;
+struct SpikePack;
 
 
 /** Payload of a SpikePack instruction. */

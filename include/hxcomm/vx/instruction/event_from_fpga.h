@@ -68,7 +68,7 @@ private:
 
 
 template <size_t num_samples>
-class MADCSamplePack;
+struct MADCSamplePack;
 
 
 /** Payload of a madc_sample_pack instruction. */
@@ -195,7 +195,7 @@ private:
 
 
 template <size_t num_spikes>
-class SpikePack;
+struct SpikePack;
 
 
 /** Payload of a spike_pack instruction. */

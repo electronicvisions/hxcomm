@@ -4,7 +4,7 @@
 #include <iosfwd>
 
 namespace cereal {
-class access;
+struct access;
 } // namespace cereal
 
 namespace hxcomm {
