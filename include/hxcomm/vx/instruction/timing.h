@@ -31,11 +31,12 @@ struct SystimeInit
 /** Block further execution until specified set of communication channels is idle. */
 struct Barrier
 {
-	constexpr static size_t size = 3;
+	constexpr static size_t size = 4;
 	typedef hxcomm::instruction::detail::payload::Bitset<Barrier, size> Payload;
-	constexpr static Payload omnibus{0b001};
-	constexpr static Payload jtag{0b010};
-	constexpr static Payload systime{0b100};
+	constexpr static Payload omnibus{0b0001};
+	constexpr static Payload jtag{0b0010};
+	constexpr static Payload systime{0b0100};
+	constexpr static Payload multi_fpga{0b1000};
 };
 
 /**

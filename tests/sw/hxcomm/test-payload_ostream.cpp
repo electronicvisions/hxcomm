@@ -19,7 +19,7 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(timing::Setup), "hxcomm::vx::instruction::timing::Setup()"},
     {typeid(timing::WaitUntil), "hxcomm::vx::instruction::timing::WaitUntil(0)"},
     {typeid(timing::SystimeInit), "hxcomm::vx::instruction::timing::SystimeInit(0)"},
-    {typeid(timing::Barrier), "hxcomm::vx::instruction::timing::Barrier(000)"},
+    {typeid(timing::Barrier), "hxcomm::vx::instruction::timing::Barrier(0000)"},
     {typeid(timing::PollingOmnibusBlock),
      "hxcomm::vx::instruction::timing::PollingOmnibusBlock(0)"},
     {typeid(system::Loopback), "hxcomm::vx::instruction::system::Loopback(0)"},

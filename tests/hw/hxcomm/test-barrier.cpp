@@ -27,6 +27,9 @@ TEST(TestConnection, Barrier)
 
 		// block until Omnibus and JTAG are idle
 		run(UTMessageToFPGA<timing::Barrier>(timing::Barrier::omnibus | timing::Barrier::jtag));
+
+		// block until Multi_FPGA is idle
+		run(UTMessageToFPGA<timing::Barrier>(timing::Barrier::multi_fpga));
 	};
 
 	auto connection = get_connection_full_stream_interface_from_env();
