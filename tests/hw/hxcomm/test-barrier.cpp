@@ -30,6 +30,9 @@ TEST(TestConnection, Barrier)
 
 		// block until Multi_FPGA is idle
 		run(UTMessageToFPGA<timing::Barrier>(timing::Barrier::multi_fpga));
+
+		// block until Systime Correction is idle
+		run(UTMessageToFPGA<timing::Barrier>(timing::Barrier::systime_correction));
 	};
 
 	auto connection = get_connection_full_stream_interface_from_env();
