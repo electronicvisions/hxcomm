@@ -214,9 +214,12 @@ private:
 
 		void flush();
 
+		size_t cum_size();
+
 	private:
 		nhtl_extoll::Endpoint& m_connection;
 		size_t m_packets;
+		size_t m_cum_packets;
 	};
 
 	typedef SendQueue send_queue_type;

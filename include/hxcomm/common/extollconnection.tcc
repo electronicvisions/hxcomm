@@ -16,13 +16,14 @@ namespace hxcomm {
 
 template <typename ConnectionParameter>
 ExtollConnection<ConnectionParameter>::SendQueue::SendQueue(nhtl_extoll::Endpoint& connection) :
-	m_connection(connection), m_packets() {}
+	m_connection(connection), m_packets(), m_cum_packets() {}
 
 template <typename ConnectionParameter>
 void ExtollConnection<ConnectionParameter>::SendQueue::push(subpacket_type const& subpacket)
 {
 	m_connection.buffer.write_send(m_packets, subpacket);
 	m_packets++;
+	m_cum_packets++;
 	if (m_packets == m_connection.buffer.send_buffer_size_qw()) {
 		m_connection.rma_send(m_packets);
 		m_packets = 0;
@@ -36,6 +37,13 @@ void ExtollConnection<ConnectionParameter>::SendQueue::flush()
 		m_connection.rma_send(m_packets);
 		m_packets = 0;
 	}
+	m_cum_packets = 0;
+}
+
+template <typename ConnectionParameter>
+size_t ExtollConnection<ConnectionParameter>::SendQueue::cum_size()
+{
+	return m_cum_packets;
 }
 
 template <typename ConnectionParameter>
@@ -200,7 +208,7 @@ void ExtollConnection<ConnectionParameter>::commit()
 		throw std::runtime_error("Unexpected access to moved-from ExtollConnection.");
 	}
 	m_encoder.flush();
-	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << m_send_queue.size() << " word(s).");
+	HXCOMM_LOG_DEBUG(m_logger, "commit(): Commiting " << m_send_queue.cum_size() << " word(s).");
 	m_send_queue.flush();
 	auto const duration = timer.get_ns();
 	m_encode_duration.fetch_add(duration, std::memory_order_relaxed);
