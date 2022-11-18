@@ -59,7 +59,7 @@ def build(bld):
 
     bld(
         target       = 'pyhxcomm_swtests_vx_cxx',
-        features     = 'gtest cxx cxxprogram pyext',
+        features     = 'gtest cxx cxxprogram pyembed',
         source       = bld.path.ant_glob('tests/sw/test-*.cpp'),
         use          = ['hxcomm', 'pyhxcomm_inc', 'BOOST4HXCOMMTOOLS'],
         defines      = pyhxcomm_defines,
