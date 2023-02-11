@@ -60,8 +60,12 @@ ExtollConnection<ConnectionParameter>::ExtollConnection() :
     m_logger(log4cxx::Logger::getLogger("hxcomm.ExtollConnection")),
     m_worker_receive(&ExtollConnection<ConnectionParameter>::work_receive, this)
 {
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection(): establishing Extoll connection to node "
+	                          + std::to_string(nhtl_extoll::get_fpga_node_id()) + ".");
 	check_compatibility();
 	nhtl_extoll::configure_fpga(*m_connection);
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection(): Extoll connection established to node "
+	                          + std::to_string(nhtl_extoll::get_fpga_node_id()) + ".");
 }
 
 template <typename ConnectionParameter>
@@ -78,8 +82,12 @@ ExtollConnection<ConnectionParameter>::ExtollConnection(RMA2_Nodeid node_id) :
     m_logger(log4cxx::Logger::getLogger("hxcomm.ExtollConnection")),
     m_worker_receive(&ExtollConnection<ConnectionParameter>::work_receive, this)
 {
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection(): establishing Extoll connection to node with id "
+	                          + std::to_string(node_id) + ".");
 	check_compatibility();
 	nhtl_extoll::configure_fpga(*m_connection);
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection(): Extoll connection established to node with id "
+	                          + std::to_string(node_id) + ".");
 }
 
 template <typename ConnectionParameter>
@@ -96,6 +104,8 @@ ExtollConnection<ConnectionParameter>::ExtollConnection(ExtollConnection&& other
     m_logger(log4cxx::Logger::getLogger("hxcomm.ExtollConnection")),
     m_worker_receive()
 {
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection() [move]: start moving conn to "
+	                          + std::to_string(std::get<0>(other.m_registry->m_parameters)) + ".");
 	// shutdown other threads
 	other.m_run_receive = false;
 	other.m_worker_receive.join();
@@ -115,7 +125,8 @@ ExtollConnection<ConnectionParameter>::ExtollConnection(ExtollConnection&& other
 	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
 	// create and start threads
 	m_worker_receive = std::thread(&ExtollConnection<ConnectionParameter>::work_receive, this);
-	HXCOMM_LOG_TRACE(m_logger, "ExtollConnection(): Extoll connection startup initiated.");
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection() [move]: finished moving conn to "
+	                          + std::to_string(std::get<0>(other.m_registry->m_parameters)) + ".");
 }
 
 template <typename ConnectionParameter>
@@ -123,6 +134,7 @@ ExtollConnection<ConnectionParameter>& ExtollConnection<ConnectionParameter>::op
     ExtollConnection&& other)
 {
 	if (&other != this) {
+		HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection::operator=() [move]: start.");
 		// shutdown own threads
 		if (m_run_receive) {
 			m_run_receive = false;
@@ -155,6 +167,7 @@ ExtollConnection<ConnectionParameter>& ExtollConnection<ConnectionParameter>::op
 		new (&m_encoder) encoder_type(other.m_encoder, m_send_queue);
 		// create and start thread
 		m_worker_receive = std::thread(&ExtollConnection<ConnectionParameter>::work_receive, this);
+		HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection::operator=() [move]: Extoll connection startup initiated.");
 	}
 	return *this;
 }
@@ -162,11 +175,12 @@ ExtollConnection<ConnectionParameter>& ExtollConnection<ConnectionParameter>::op
 template <typename ConnectionParameter>
 ExtollConnection<ConnectionParameter>::~ExtollConnection()
 {
-	HXCOMM_LOG_TRACE(m_logger, "~ExtollConnection(): Stopping Extoll connection.");
+	HXCOMM_LOG_DEBUG(m_logger, "~ExtollConnection(): Stopping Extoll connection.");
 	m_run_receive = false;
 	if (m_worker_receive.joinable()) {
 		m_worker_receive.join();
 	}
+	HXCOMM_LOG_DEBUG(m_logger, "~ExtollConnection(): Extoll connection stopped.");
 }
 
 template <typename ConnectionParameter>
@@ -203,6 +217,8 @@ void ExtollConnection<ConnectionParameter>::add(InputIterator const& begin, Inpu
 template <typename ConnectionParameter>
 void ExtollConnection<ConnectionParameter>::commit()
 {
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection::run_until_halt() on node_id " + std::to_string(m_connection->get_node()));
+
 	hate::Timer timer;
 	if (!m_connection) {
 		throw std::runtime_error("Unexpected access to moved-from ExtollConnection.");
@@ -228,7 +244,7 @@ ExtollConnection<ConnectionParameter>::receive_all()
 template <typename ConnectionParameter>
 void ExtollConnection<ConnectionParameter>::work_receive()
 {
-	HXCOMM_LOG_INFO(m_logger, "Pinning receiving thread to same CPU as polling thread.");
+	HXCOMM_LOG_DEBUG(m_logger, "Pinning receiving thread to same CPU as polling thread.");
 	sched_setaffinity(0, sizeof(cpu_set_t), &(m_connection->poller.cpu));
 
 	using namespace std::literals::chrono_literals;
@@ -270,6 +286,8 @@ bool ExtollConnection<ConnectionParameter>::receive_empty() const
 template <typename ConnectionParameter>
 void ExtollConnection<ConnectionParameter>::run_until_halt()
 {
+	HXCOMM_LOG_DEBUG(m_logger, "ExtollConnection::run_until_halt() on node_id " + std::to_string(m_connection->get_node()));
+
 	using namespace std::literals::chrono_literals;
 	hate::Timer timer;
 	if (!m_connection) {
