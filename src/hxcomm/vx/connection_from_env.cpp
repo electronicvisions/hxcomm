@@ -32,9 +32,9 @@ inline std::vector<ConnectionVariant> get_simconnection_list_from_env()
 
 	std::vector<ConnectionVariant> connection_list;
 	if (env_sim_port != nullptr) {
-		connection_list.emplace_back(ConnectionVariant{
+		connection_list.emplace_back(
 		    std::in_place_type<SimConnection>, env_sim_host,
-		    static_cast<uint16_t>(atoi(env_sim_port))});
+		    static_cast<uint16_t>(atoi(env_sim_port)));
 	}
 	return connection_list;
 }
@@ -56,7 +56,7 @@ inline std::vector<ConnectionVariant> get_arqconnection_list_from_env(
 
 	std::vector<ConnectionVariant> connection_list;
 	for (auto const& fpga_ip : fpga_ip_list) {
-		connection_list.emplace_back(ConnectionVariant{std::in_place_type<ARQConnection>, fpga_ip});
+		connection_list.emplace_back(std::in_place_type<ARQConnection>, fpga_ip);
 	}
 	return connection_list;
 }
@@ -67,7 +67,7 @@ inline std::vector<ConnectionVariant> get_zeromockconnection_list_from_env()
 
 	std::vector<ConnectionVariant> connection_list;
 	if (env_zero_mock != nullptr && atoi(env_zero_mock)) {
-		connection_list.emplace_back(ConnectionVariant{std::in_place_type<ZeroMockConnection>});
+		connection_list.emplace_back(std::in_place_type<ZeroMockConnection>);
 	}
 	return connection_list;
 }
@@ -86,7 +86,7 @@ inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::opt
 			conn.set_use_munge(false);
 		}
 
-		list.emplace_back(ConnectionVariant{std::move(conn)});
+		list.emplace_back(std::move(conn));
 	}
 	return list;
 }
@@ -111,9 +111,12 @@ inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
 			    ") in environment to connect to.");
 		}
 
-		for (size_t i = 0; i < (limit ? std::min(*limit, nodes.size()) : nodes.size()); i++) {
-			connection_list.emplace_back(
-			    ConnectionVariant{std::in_place_type<ExtollConnection>, nodes.at(i)});
+		auto num_nodes = (limit ? *limit : nodes.size());
+
+		connection_list.reserve(num_nodes);
+
+		for (size_t i = 0; i < num_nodes; i++) {
+			connection_list.emplace_back(std::in_place_type<ExtollConnection>, nodes.at(i));
 		}
 	}
 	return connection_list;
