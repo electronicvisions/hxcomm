@@ -355,9 +355,20 @@ std::string ExtollConnection<ConnectionParameter>::get_bitfile_info() const
         throw std::runtime_error("Unexpected access to empty instance.");
     }
 	std::vector<uint64_t> bitfile_info_binary;
-	for (int i = 0; i < 512; i++) {
-		bitfile_info_binary.push_back(m_connection->rra_read(0x0 + i * 0x8));
+	uint64_t current_bin; int i;
+
+	for (i = 0; i < 512; i++) {
+		current_bin = m_connection->rra_read(0x0 + i * 0x8);
+		bitfile_info_binary.push_back(current_bin);
+		// stop in case of reading a 0x0 QW to prevent reading beyond the memory size !
+		// reading beyond the memory is an access to unknown address
+		// access to unknown addresses leads to an error-bit set in the RMA-packet header
+		// this error-bit leads to an error-notification interrupt in the kernel-driver
+		if (current_bin == 0)
+			break;
 	}
+	HXCOMM_LOG_DEBUG(m_logger, "get_bitfile_info(): read " << i << " QW of non-zero binary data." );
+
 	std::vector<char> info_c_str;
 	for (size_t i = 0; i < bitfile_info_binary.size(); i++) {
 		for (size_t j = 0; j < sizeof(uint64_t); j++) {
