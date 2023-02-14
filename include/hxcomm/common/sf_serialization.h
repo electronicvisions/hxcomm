@@ -21,7 +21,7 @@ namespace SF {
 template <class T>
 void translate_sf_cereal(Archive& ar, T& cerealizable)
 {
-	static auto log = log4cxx::Logger::getLogger(__func__);
+	auto log = log4cxx::Logger::getLogger(__func__);
 
 	if (ar.isWrite()) {
 		std::ostringstream os;
