@@ -204,6 +204,14 @@ public:
 	 */
 	std::string const& get_slurm_license() const;
 
+	/**
+	 * Check if response contains a timeout response.
+	 *
+	 * @param response to check for timeouts.
+	 * @return True if timeout was encountered, false otherwise.
+	 */
+	bool check_for_timeout(typename response_type::first_type const& response);
+
 protected:
 	using connection_init_type = typename Connection::init_parameters_type;
 
@@ -211,13 +219,6 @@ protected:
 	 * Create a new connection, closing the old one in the process.
 	 */
 	void setup_connection();
-
-	/**
-	 * Check if response contains a timeout response, resetting the held connection if so.
-	 *
-	 * @param response to check for timeouts.
-	 */
-	void check_for_timeout(typename response_type::first_type const& response);
 
 	std::string get_slurm_jobname() const;
 

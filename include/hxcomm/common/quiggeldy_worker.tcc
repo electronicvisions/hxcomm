@@ -135,10 +135,12 @@ void QuiggeldyWorker<Connection>::setup_connection()
 }
 
 template <typename Connection>
-void QuiggeldyWorker<Connection>::check_for_timeout(
+bool QuiggeldyWorker<Connection>::check_for_timeout(
     typename QuiggeldyWorker<Connection>::response_type::first_type const& response)
 {
 	HXCOMM_LOG_DEBUG(m_logger, "Checking for timeout.");
+
+	bool timeout = false;
 
 	// if any msg is a receive timeout trigger a reconnection
 	if (std::any_of(response.cbegin(), response.cend(), [this](auto const& m) {
@@ -151,13 +153,10 @@ void QuiggeldyWorker<Connection>::check_for_timeout(
 		        },
 		        m);
 	    })) {
-		HXCOMM_LOG_WARN(
-		    m_logger,
-		    "Encountered timeout notifications in response stream -> resetting connection.");
-		setup_connection();
+		timeout = true;
 	}
-
 	HXCOMM_LOG_DEBUG(m_logger, "Checked for timeout.");
+	return timeout;
 }
 
 template <typename Connection>
@@ -242,7 +241,12 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 	HXCOMM_LOG_TRACE(m_logger, "Executing program!");
 	try {
 		auto retval = execute_messages(*m_connection, req);
-		check_for_timeout(std::get<0>(retval));
+		if (check_for_timeout(std::get<0>(retval))) {
+			HXCOMM_LOG_WARN(
+				m_logger,
+				"Encountered timeout notifications in response stream -> resetting connection.");
+			setup_connection();
+		}
 		return retval;
 	} catch (const std::exception& e) {
 		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
