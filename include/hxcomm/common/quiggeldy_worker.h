@@ -89,8 +89,11 @@ public:
 	 * This function is called whenever we had to relinquish control of our
 	 * hardware resource and the user specified a reinit-program to be loaded
 	 * prior to the next work-unit being executed.
+	 *
+	 * @param reinit_type reinit stack to be executed
+	 * @param enforce execute all reinit stack entries
 	 */
-	void perform_reinit(reinit_type const&);
+	void perform_reinit(reinit_type& reinit_type, bool enforce);
 
 	/**
 	 * This function is called whenever we have to relinquish control of our

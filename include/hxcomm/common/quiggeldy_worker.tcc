@@ -255,7 +255,7 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 }
 
 template <typename Connection>
-void QuiggeldyWorker<Connection>::perform_reinit(reinit_type const& reinit)
+void QuiggeldyWorker<Connection>::perform_reinit(reinit_type& reinit, bool force)
 {
 	if (m_mock_mode) {
 		HXCOMM_LOG_DEBUG(m_logger, "Running mock-reinit!");
@@ -265,8 +265,11 @@ void QuiggeldyWorker<Connection>::perform_reinit(reinit_type const& reinit)
 	HXCOMM_LOG_TRACE(m_logger, "Performing reinit!");
 
 	try {
-		for (auto const& entry : reinit) {
-			execute_messages(*m_connection, entry.request);
+		for (auto& entry : reinit) {
+			if (entry.reinit_pending || force) {
+				execute_messages(*m_connection, entry.request);
+				entry.reinit_pending = false;
+			}
 		}
 	} catch (const std::exception& e) {
 		// TODO: Implement proper exception handling

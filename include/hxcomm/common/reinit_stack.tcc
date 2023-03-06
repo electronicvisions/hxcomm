@@ -85,4 +85,13 @@ void ReinitStack<CP>::upload(UploaderT& uploader) const
 	uploader.upload(cref);
 }
 
+template <typename CP>
+void ReinitStack<CP>::set_all_done()
+{
+	std::lock_guard lk{m_mutex};
+	for (auto& entry : m_stack) {
+		entry.reinit_pending = false;
+	}
+}
+
 } // namespace hxcomm

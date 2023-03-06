@@ -63,10 +63,10 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::pop()
 
 template <typename QuiggeldyConnection, typename ConnectionVariant>
 void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(
-    reinit_entry_type&& entry, bool enforce_reinit)
+    reinit_entry_type&& entry)
 {
 	if (!m_connection_supports_reinit) {
-		handle_unsupported_connection(entry, enforce_reinit);
+		handle_unsupported_connection(entry);
 	} else if (!m_idx_in_stack) {
 		throw std::runtime_error("Trying to update an already popped reinit stack entry value.");
 	} else if (auto uploader = m_reinit_uploader.lock()) {
@@ -79,9 +79,6 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(
 #else
 		std::ignore = entry;
 #endif
-		if (enforce_reinit) {
-			enforce();
-		}
 	} else {
 		// Runtime check because ReinitStackEntry is exposed via Python bindings
 		// and has to be valid for all connections.
@@ -92,12 +89,12 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(
 
 template <typename QuiggeldyConnection, typename ConnectionVariant>
 void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(
-    reinit_entry_type const& entry, bool enforce_reinit)
+    reinit_entry_type const& entry)
 {
 	// Runtime check because ReinitStackEntry is exposed via Python bindings
 	// and has to be valid for all connections.
 	if (!m_connection_supports_reinit) {
-		handle_unsupported_connection(entry, enforce_reinit);
+		handle_unsupported_connection(entry);
 	} else if (auto uploader = m_reinit_uploader.lock()) {
 		auto stack = m_reinit_stack.lock();
 		if (!stack->update_at(*m_idx_in_stack, entry)) {
@@ -108,9 +105,6 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(
 #else
 		std::ignore = entry;
 #endif
-		if (enforce_reinit) {
-			enforce();
-		}
 	} else {
 		HXCOMM_LOG_ERROR(m_logger, "Cannot register new reinit program: Uploader deleted.");
 		throw std::runtime_error("Cannot register new reinit program: Uploader deleted.");
@@ -143,9 +137,9 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::setup(Connection&
 
 template <typename QuiggeldyConnection, typename ConnectionVariant>
 void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::handle_unsupported_connection(
-    reinit_entry_type const& entry, bool enforce)
+    reinit_entry_type const& entry)
 {
-	if (enforce) {
+	if (entry.reinit_pending) {
 		HXCOMM_LOG_TRACE(
 		    m_logger, "Connection does not support upload of reinit program, treating enforced "
 		              "reinit-like regular program to execute.");

@@ -67,9 +67,8 @@ public:
 	 * Takes ownership of the program.
 	 *
 	 * @param entry What to upload.
-	 * @param enforce Whether to force usage of reinit.
 	 */
-	void set(reinit_entry_type&& entry, bool enforce = true);
+	void set(reinit_entry_type&& entry);
 
 	/**
 	 * Register a reinit program to be used on the remote site.
@@ -77,9 +76,8 @@ public:
 	 * Copies the program.
 	 *
 	 * @param entry What to upload.
-	 * @param enforce Whether to force usage of reinit.
 	 */
-	void set(reinit_entry_type const& entry, bool enforce = true);
+	void set(reinit_entry_type const& entry);
 
 	/**
 	 * Enforce reinit program to be used on the remote site.
@@ -108,7 +106,7 @@ private:
 	template <typename Connection>
 	void setup(Connection& connection);
 
-	void handle_unsupported_connection(reinit_entry_type const&, bool);
+	void handle_unsupported_connection(reinit_entry_type const&);
 };
 
 } // namespace hxcomm

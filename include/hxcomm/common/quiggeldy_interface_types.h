@@ -18,8 +18,11 @@ struct ReinitEntryType
 	using request_type = detail::execute_messages_argument_t<ConnectionParameter>;
 
 	request_type request;
-
 	std::optional<request_type> snapshot;
+	// State flag if reinit needs to be executed. Set to false if reinit entry should only be
+	// executed on session switch.
+	bool reinit_pending = true;
+
 	typedef typename ConnectionParameter::QuiggeldyScheduleOutToInTransform transform_type;
 };
 

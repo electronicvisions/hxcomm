@@ -115,7 +115,7 @@ TEST(Quiggeldy, SimpleMockModeReinit)
 	StreamRC<decltype(client2)> stream2_rc{client2};
 
 	hxcomm::vx::ReinitStackEntry reinit{client1};
-	reinit.set(typename decltype(client1)::interface_types::reinit_entry_type{}, false);
+	reinit.set(typename decltype(client1)::interface_types::reinit_entry_type{});
 	/* no reinit for stream 2 because no reinit program should also work */
 
 	// asynchronous calls

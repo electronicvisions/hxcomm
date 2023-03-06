@@ -11,6 +11,7 @@ void CEREAL_SERIALIZE_FUNCTION_NAME(
 {
 	ar(CEREAL_NVP(reinit_entry.request));
 	ar(CEREAL_NVP(reinit_entry.snapshot));
+	ar(CEREAL_NVP(reinit_entry.reinit_pending));
 }
 
 } // namespace cereal

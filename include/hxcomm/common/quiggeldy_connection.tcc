@@ -345,6 +345,9 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 		typename interface_types::response_type response =
 		    client->submit_work(request, sequence_num);
 		accumulate_time_info(response.second);
+
+		// quiggeldy server done with execution, current reinit stack can be set to done
+		this->m_reinit_stack->set_all_done();
 		return response;
 	});
 }

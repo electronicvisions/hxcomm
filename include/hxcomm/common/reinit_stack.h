@@ -78,6 +78,11 @@ public:
 	template <typename UploaderT>
 	void upload(UploaderT&) const;
 
+	/**
+	 * Set all reinit stack entries as done
+	 */
+	void set_all_done();
+
 private:
 	log4cxx::LoggerPtr m_logger;
 

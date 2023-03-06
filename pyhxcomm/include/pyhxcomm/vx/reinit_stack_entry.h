@@ -55,11 +55,10 @@ GENPYBIND_MANUAL({
 	using reinit_stack_entry_t = typename wrapped_t::type;
 	using reinit_entry_type = typename reinit_stack_entry_t::reinit_entry_type;
 
-	void (reinit_stack_entry_t::*call_ref)(reinit_entry_type const&, bool) =
-	    &reinit_stack_entry_t::set;
+	void (reinit_stack_entry_t::*call_ref)(reinit_entry_type const&) = &reinit_stack_entry_t::set;
 
 	wrapped.def("pop", &::hxcomm::vx::ReinitStackEntry::pop);
-	wrapped.def("set", call_ref, pybind11::arg("entry"), pybind11::arg("enforce") = true);
+	wrapped.def("set", call_ref, pybind11::arg("entry"));
 })
 
 } // namespace pyhxcomm::vxGENPYBIND_TAG_HXCOMM_VX
