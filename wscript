@@ -73,9 +73,9 @@ def configure(conf):
          'warning': '3',
          'error':   '4',
          'fatal':   '5'}[conf.options.hxcomm_loglevel],
-        "HXCOMM_REPO_STATE=" + "\n".join([
-            '"' + describe_project(conf, dep['project']) + '"' for dep in _dependencies] +
-            ['"' + describe_project(conf, 'hxcomm') + '"'])
+        'HXCOMM_REPO_STATE="' + "; ".join([
+            describe_project(conf, dep['project']).replace('"', '\\"') for dep in _dependencies] +
+            [describe_project(conf, 'hxcomm').replace('"', '\\"') + '"'])
     ]
     conf.env.CXXFLAGS_HXCOMM = [
         '-fvisibility=hidden',
