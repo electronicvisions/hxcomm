@@ -125,7 +125,9 @@ inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
 
 std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t> limit)
 {
-	if (auto qgc = detail::get_quiggeldyclient_list_from_env(limit); !qgc.empty()) {
+	if (auto zeromock = detail::get_zeromockconnection_list_from_env(); !zeromock.empty()) {
+		return zeromock;
+	} else if (auto qgc = detail::get_quiggeldyclient_list_from_env(limit); !qgc.empty()) {
 		return qgc;
 	} else if (auto ext = detail::get_extollconnection_list_from_env(limit); !ext.empty()) {
 		return ext;
@@ -133,8 +135,6 @@ std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t
 		return arq;
 	} else if (auto sim = detail::get_simconnection_list_from_env(); !sim.empty()) {
 		return sim;
-	} else if (auto zeromock = detail::get_zeromockconnection_list_from_env(); !zeromock.empty()) {
-		return zeromock;
 	} else {
 		throw std::runtime_error("No executor backend found to connect to.");
 	}

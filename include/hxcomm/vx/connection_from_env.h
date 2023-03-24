@@ -12,8 +12,8 @@ namespace hxcomm::vx {
  * Automatically determine from environment what connection type to use and
  * return the corresponding variant.
  *
- * Order of precedence is QuiggeldyConnection > Extoll-connected hardware > HostARQ-connected
- * hardware > CoSim right now if several are available.
+ * Order of precedence is ZeroMockConnection > QuiggeldyConnection > Extoll-connected hardware >
+ * HostARQ-connected hardware > CoSim right now if several are available.
  *
  * On the Python-side it is wrapped via ManagedConnection.
  *
