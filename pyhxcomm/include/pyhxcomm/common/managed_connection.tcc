@@ -160,7 +160,7 @@ struct has_init_parameters_type : std::false_type
 {};
 
 template <typename C>
-struct has_init_parameters_type<C, std::void_t<typename C::init_parameter_type>> : std::true_type
+struct has_init_parameters_type<C, std::void_t<typename C::init_parameters_type>> : std::true_type
 {};
 
 } // namespace detail
