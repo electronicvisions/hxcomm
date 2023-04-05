@@ -8,24 +8,31 @@ from waflib.extras.test_base import summary
 from waflib.extras.symwaf2ic import get_toplevel_path
 from waflib.extras.symwaf2ic import describe_project
 
-_dependencies = [
-        {'project': 'sctrltp'},
-        {'project': 'rant'},
-        {'project': 'hate'},
-        {'project': 'hwdb'},
-        {'project': 'code-format'},
-        {'project': 'logger'},
-        {'project': 'visions-slurm', 'branch': 'production'},
-        {'project': 'flange'},
-        {'project': 'lib-rcf'},
-        {'project': 'bss-hw-params'},
-        {'project': 'nhtl-extoll'},
-    ]
-
 
 def depends(dep):
-    for dependency in _dependencies:
-        dep(**dependency)
+    dep('sctrltp')
+    dep('rant')
+    dep('hate')
+    dep('hwdb')
+    dep('code-format')
+    dep('logger')
+    dep('visions-slurm', branch='production')
+    dep('flange')
+    dep('lib-rcf')
+    dep('bss-hw-params')
+    dep('nhtl-extoll')
+
+    def recurse(deps, name, alldeps):
+        for subname in deps[name]:
+            if subname not in alldeps:
+                alldeps.add(subname)
+                recurse(deps, subname, alldeps)
+    alldeps = set()
+    recurse(dep.dependencies, dep.path.abspath(), alldeps)
+
+    global _dependencies
+    _dependencies = set(
+        ctx.replace(dep.toplevel.abspath() + "/", "").split("/")[0] for ctx  in alldeps)
 
 
 def options(opt):
@@ -74,7 +81,7 @@ def configure(conf):
          'error':   '4',
          'fatal':   '5'}[conf.options.hxcomm_loglevel],
         'HXCOMM_REPO_STATE="' + "; ".join([
-            describe_project(conf, dep['project']).replace('"', '\\"') for dep in _dependencies] +
+            describe_project(conf, dep).replace('"', '\\"') for dep in _dependencies] +
             [describe_project(conf, 'hxcomm').replace('"', '\\"') + '"'])
     ]
     conf.env.CXXFLAGS_HXCOMM = [
@@ -262,7 +269,7 @@ def build(bld):
     if bld.env.build_with_quiggeldy:
         use_quiggeldy = ["hxcomm", "BOOST4QUIGGELDY", "PTHREAD"] + use_munge
 
-        project_states = "\\n".join(sorted(map(lambda d: "* " + bld.describe_project(d["project"]), _dependencies)))
+        project_states = "\\n".join(sorted(map(lambda d: "* " + bld.describe_project(d), _dependencies)))
         quiggeldy_version_string = "* {}\\n{}".format(
             bld.describe_project("hxcomm"), project_states)
 
