@@ -10,6 +10,7 @@
 
 #include "slurm/vision_defines.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <optional>
 #include <utility>
@@ -94,29 +95,39 @@ inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::opt
 inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
     std::optional<size_t> limit = std::nullopt)
 {
-	std::vector<ConnectionVariant> connection_list;
+	auto fpga_ip_list = hxcomm::get_fpga_ip_list();
 
+
+	std::vector<ConnectionVariant> connection_list;
 	char const* env_extoll = std::getenv("HXCOMM_USE_EXTOLL");
 	if (env_extoll != nullptr && atoi(env_extoll)) {
-		auto const nodes = nhtl_extoll::get_fpga_node_ids();
-
-		if (nodes.empty()) {
-			return {};
+		if (fpga_ip_list.empty()) {
+			throw std::runtime_error("Found no FPGA Node licences in env!");
 		}
-
-		if (limit && (nodes.size() < *limit)) {
+		if (limit && (fpga_ip_list.size() < *limit)) {
 			throw std::runtime_error(
-			    "Found FPGA Node amount (" + std::to_string(nodes.size()) +
+			    "Found FPGA Node amount (" + std::to_string(fpga_ip_list.size()) +
 			    ") lower than specified limit (" + std::to_string(*limit) +
 			    ") in environment to connect to.");
 		}
 
-		auto num_nodes = (limit ? *limit : nodes.size());
+		auto const available_nodes = nhtl_extoll::get_fpga_node_ids();
+
+		auto const nodes = hxcomm::convert_ips_to_extollids(fpga_ip_list);
+
+		auto const num_nodes = (limit ? *limit : nodes.size());
 
 		connection_list.reserve(num_nodes);
 
 		for (size_t i = 0; i < num_nodes; i++) {
-			connection_list.emplace_back(std::in_place_type<ExtollConnection>, nodes.at(i));
+			if (std::find(available_nodes.begin(), available_nodes.end(), nodes.at(i)) !=
+			    available_nodes.end()) {
+				connection_list.emplace_back(std::in_place_type<ExtollConnection>, nodes.at(i));
+			} else {
+				throw std::runtime_error(
+				    "The node requested by the licence " + std::to_string(nodes.at(i)) +
+				    " is not present in the network!");
+			}
 		}
 	}
 	return connection_list;

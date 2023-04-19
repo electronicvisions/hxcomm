@@ -1,4 +1,6 @@
 #include "hxcomm/common/fpga_ip_list.h"
+#include "halco/common/misc_types.h"
+#include "hwdb4cpp/hwdb4cpp.h"
 
 #include "slurm/vision_defines.h"
 #include <sstream>
@@ -19,7 +21,6 @@ std::vector<std::string> get_fpga_ip_list()
 	return ip_list;
 }
 
-
 std::string get_fpga_ip()
 {
 	auto const ip_list = get_fpga_ip_list();
@@ -29,6 +30,42 @@ std::string get_fpga_ip()
 		throw std::runtime_error("More than one FPGA IP found in environment (SLURM_FPGA_IPS).");
 	}
 	return ip_list.at(0);
+}
+
+std::optional<RMA2_Nodeid> convert_ip_to_extollid(std::string ip)
+{
+	std::optional<RMA2_Nodeid> id = std::nullopt;
+
+	hwdb4cpp::database hwdb;
+	hwdb.load(hwdb4cpp::database::get_default_path());
+	auto const hxcube_ids = hwdb.get_hxcube_ids();
+	for (auto const cube_id : hxcube_ids) {
+		auto const& entry = hwdb.get_hxcube_setup_entry(cube_id);
+		for (auto const& [f, e] : entry.fpgas) {
+			if (e.ip.to_string() == ip) {
+				id = e.extoll_node_id;
+				break;
+			}
+		}
+	}
+
+	return id;
+}
+
+std::vector<RMA2_Nodeid> convert_ips_to_extollids(std::vector<std::string> ips)
+{
+	std::vector<RMA2_Nodeid> ids;
+
+	for (auto ip : ips) {
+		auto id = convert_ip_to_extollid(ip);
+		if (id) {
+			ids.push_back(convert_ip_to_extollid(ip).value());
+		}
+	}
+	if (ids.size() != ips.size()) {
+		throw std::runtime_error("Not all FPGA IPs have an associated Extoll-Node-ID");
+	}
+	return ids;
 }
 
 } // namespace hxcomm
