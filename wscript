@@ -10,7 +10,9 @@ from waflib.extras.symwaf2ic import describe_project
 
 
 def depends(dep):
-    dep('sctrltp')
+    if getattr(dep.options, 'with_hostarq', True):
+        dep('sctrltp')
+
     dep('rant')
     dep('hate')
     dep('hwdb')
@@ -62,6 +64,9 @@ def options(opt):
     hopts.add_withoption('hxcomm-python-bindings', default=True,
                         help='Toggle the generation and build of hxcomm python bindings')
 
+    hopts.add_withoption('hostarq', default=True,
+                       help='Toggle support for HostARQ-based connections')
+
 
 def configure(conf):
     conf.load('compiler_c')
@@ -72,6 +77,9 @@ def configure(conf):
     conf.load("gtest")
     conf.check_cxx(mandatory=True, header_name='cereal/cereal.hpp')
     conf.load("doxygen")
+
+    conf.env.build_with_hostarq = conf.options.with_hostarq
+
     conf.env.DEFINES_HXCOMM = [
         "HXCOMM_LOG_THRESHOLD=" +
         {'trace':   '0',
@@ -84,6 +92,9 @@ def configure(conf):
             describe_project(conf, dep).replace('"', '\\"') for dep in _dependencies] +
             [describe_project(conf, 'hxcomm').replace('"', '\\"') + '"'])
     ]
+    if conf.env.build_with_hostarq:
+        conf.env.DEFINES_HXCOMM.append('WITH_HOSTARQ')
+
     conf.env.CXXFLAGS_HXCOMM = [
         '-fvisibility=hidden',
         '-fvisibility-inlines-hidden',
@@ -147,33 +158,39 @@ def build(bld):
     bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
 
     use_munge = ["MUNGE"] if bld.env.build_with_munge else []
+    use_hostarq = ["arqstream_obj"] if bld.env.build_with_hostarq else []
 
     bld(target          = 'hxcomm_inc',
         export_includes = 'include'
     )
 
+    hxcomm_excludes =  []
+    if not bld.env.build_with_hostarq:
+        hxcomm_excludes.append('src/hxcomm/**/arqconnection.cpp')
+
     bld.shlib(
         target       = 'hxcomm',
-        source       = bld.path.ant_glob('src/hxcomm/**/*.cpp'),
-        use          = ['hxcomm_inc', 'arqstream_obj',
+        source       = bld.path.ant_glob('src/hxcomm/**/*.cpp', excl=hxcomm_excludes),
+        use          = ['hxcomm_inc',
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
                         'nhtl_extoll',
-                       ] + use_munge,
+                       ] + use_munge + use_hostarq,
         uselib       = 'HXCOMM',
         install_path = '${PREFIX}/lib',
         export_defines=bld.env.DEFINES_HXCOMM,
     )
 
-    bld(
-        target       = 'hxcomm_example_arq',
-        features     = 'cxx cxxprogram',
-        source       = ['example/hxcomm_arq.cpp'],
-        use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
-        install_path = '${PREFIX}/bin',
-        uselib       = 'HXCOMM',
-    )
+    if use_hostarq:
+        bld(
+            target       = 'hxcomm_example_arq',
+            features     = 'cxx cxxprogram',
+            source       = ['example/hxcomm_arq.cpp'],
+            use          = ['hxcomm', 'BOOST4HXCOMMTOOLS'],
+            install_path = '${PREFIX}/bin',
+            uselib       = 'HXCOMM',
+        )
 
     bld(
         target       = 'hxcomm_example_sim',
