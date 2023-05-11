@@ -5,7 +5,9 @@
 #include "hxcomm/vx/quiggeldy_server.h"
 #include "hxcomm/vx/quiggeldy_worker.h"
 
+#ifdef WITH_HXCOMM_HOSTARQ
 #include "hxcomm/vx/arqconnection.h"
+#endif
 #include "hxcomm/vx/simconnection.h"
 
 #include "rcf-extensions/round-robin-reinit-scheduler.h"
@@ -25,8 +27,10 @@ namespace hxcomm::vx {
  */
 std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env() SYMBOL_VISIBLE;
 
+#ifdef WITH_HXCOMM_HOSTARQ
 RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<ARQConnection>, quiggeldy_arq, ::hxcomm::vx::I_HXCommQuiggeldyVX)
+#endif
 
 RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<SimConnection>, quiggeldy_sim, ::hxcomm::vx::I_HXCommQuiggeldyVX)
