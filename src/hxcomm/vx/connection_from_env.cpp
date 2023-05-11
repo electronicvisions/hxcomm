@@ -1,7 +1,9 @@
 #include "hxcomm/vx/connection_from_env.h"
 
 #include "hxcomm/common/fpga_ip_list.h"
+#ifdef WITH_HXCOMM_HOSTARQ
 #include "hxcomm/vx/arqconnection.h"
+#endif
 #include "hxcomm/vx/connection_variant.h"
 #include "hxcomm/vx/extollconnection.h"
 #include "hxcomm/vx/quiggeldy_connection.h"
@@ -39,6 +41,7 @@ inline std::vector<ConnectionVariant> get_simconnection_list_from_env()
 	return connection_list;
 }
 
+#ifdef WITH_HXCOMM_HOSTARQ
 inline std::vector<ConnectionVariant> get_arqconnection_list_from_env(
     std::optional<size_t> limit = std::nullopt)
 {
@@ -60,6 +63,7 @@ inline std::vector<ConnectionVariant> get_arqconnection_list_from_env(
 	}
 	return connection_list;
 }
+#endif
 
 inline std::vector<ConnectionVariant> get_zeromockconnection_list_from_env()
 {
@@ -126,8 +130,10 @@ std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t
 		return qgc;
 	} else if (auto ext = detail::get_extollconnection_list_from_env(limit); !ext.empty()) {
 		return ext;
+#ifdef WITH_HXCOMM_HOSTARQ
 	} else if (auto arq = detail::get_arqconnection_list_from_env(limit); !arq.empty()) {
 		return arq;
+#endif
 	} else if (auto sim = detail::get_simconnection_list_from_env(); !sim.empty()) {
 		return sim;
 	} else if (auto zeromock = detail::get_zeromockconnection_list_from_env(); !zeromock.empty()) {

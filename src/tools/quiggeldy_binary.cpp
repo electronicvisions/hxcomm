@@ -17,7 +17,9 @@
 #include "hxcomm/common/cerealization_utmessage.h"
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/quiggeldy_utility.h"
+#ifdef WITH_HXCOMM_HOSTARQ
 #include "hxcomm/vx/arqconnection.h"
+#endif
 #include "hxcomm/vx/simconnection.h"
 
 #include "hxcomm/common/logger.h"
@@ -196,13 +198,19 @@ void allocate(std::unique_ptr<VariantT>& server, WorkerT&& worker, Config& cfg)
 
 namespace po = boost::program_options;
 
+#ifdef WITH_HXCOMM_HOSTARQ
 using QuiggeldyWorkerARQ = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::ARQConnection>;
-using QuiggeldyWorkerSim = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::SimConnection>;
-
 using QuiggeldyServerARQ = hxcomm::vx::QuiggeldyServer<hxcomm::vx::ARQConnection>;
+#endif
+
+using QuiggeldyWorkerSim = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::SimConnection>;
 using QuiggeldyServerSim = hxcomm::vx::QuiggeldyServer<hxcomm::vx::SimConnection>;
 
-using quiggeldy_server_t = std::variant<QuiggeldyServerARQ, QuiggeldyServerSim>;
+using quiggeldy_server_t = std::variant<
+#ifdef WITH_HXCOMM_HOSTARQ
+    QuiggeldyServerARQ,
+#endif
+    QuiggeldyServerSim>;
 
 int main(int argc, const char* argv[])
 {
@@ -334,7 +342,7 @@ int main(int argc, const char* argv[])
 
 	if (cfg.architecture != "vx") {
 		HXCOMM_LOG_ERROR(log, "Currently, only vx-architecture is supported!");
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	if (!cfg.ignore_parent_death) {
@@ -362,6 +370,10 @@ int main(int argc, const char* argv[])
 	}
 
 	if (cfg.backend_arq) {
+#ifndef WITH_HXCOMM_HOSTARQ
+		HXCOMM_LOG_ERROR(log, "Support for HostARQ was disabled!");
+		return EXIT_FAILURE;
+#else
 		if (!cfg.mock_mode && cfg.connect_ip.length() == 0) {
 			try {
 				cfg.connect_ip = hxcomm::get_fpga_ip();
@@ -370,13 +382,14 @@ int main(int argc, const char* argv[])
 				    log,
 				    e.what() << "--connect-ip required for non-mock operation if SLURM_FPGA_IPS "
 				                "not defined!");
-				return 1;
+				return EXIT_FAILURE;
 			}
 		}
 		HXCOMM_LOG_DEBUG(log, "Setting up ARQ-based worker to connect to: " << cfg.connect_ip);
 		auto worker = QuiggeldyWorkerARQ(cfg.connect_ip);
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerARQ>(server, std::move(worker), cfg);
+#endif
 
 	} else if (cfg.backend_sim) {
 		HXCOMM_LOG_DEBUG(
@@ -393,7 +406,7 @@ int main(int argc, const char* argv[])
 		auto log = log4cxx::Logger::getLogger("hxcomm.quiggeldy.signal_handler");
 		if (!server) {
 			HXCOMM_LOG_TRACE(log, "Server already terminated, exiting signal handler..");
-			return 1;
+			return EXIT_FAILURE;
 		}
 
 		HXCOMM_LOG_DEBUG(log, "Received signal: " << sig << " (" << strsignal(sig) << ").");
@@ -407,7 +420,7 @@ int main(int argc, const char* argv[])
 			case SIGCONT: // continue signal with which we indicate a reset of the idle timeout
 				HXCOMM_LOG_DEBUG(log, "Resetting idle timeout!");
 				std::visit([](auto&& srv) { srv.reset_idle_timeout(); }, *server);
-				return 0;
+				return EXIT_SUCCESS;
 			case SIGABRT: // abnormal termination condition, as is e.g. initiated by std::abort()
 			case SIGFPE:  // erroneous arithmetic operation such as divide by zero
 			case SIGILL:  // invalid program image, such as invalid instruction
@@ -417,10 +430,10 @@ int main(int argc, const char* argv[])
 			case SIGUSR2: // shutdown-signal also used in sctrltp
 			case SIGHUP:  // controlling terminal lost
 				shutdown();
-				return 1;
+				return EXIT_FAILURE;
 			default:
 				HXCOMM_LOG_DEBUG(log, "Ignoring singal..");
-				return 0;
+				return EXIT_SUCCESS;
 		}
 	};
 
@@ -453,8 +466,8 @@ int main(int argc, const char* argv[])
 	RCF::deinit();
 	if (work_left_at_shutdown) {
 		HXCOMM_LOG_ERROR(log, "There was work left on scheduler shutdown.");
-		return 1;
+		return EXIT_FAILURE;
 	} else {
-		return 0;
+		return EXIT_SUCCESS;
 	}
 }

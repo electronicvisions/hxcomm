@@ -110,8 +110,11 @@ TEST(TestConnection, Registry)
 {
 	{
 		auto connection = get_connection_from_env();
-		if (std::holds_alternative<hxcomm::vx::ARQConnection>(connection) ||
-		    std::holds_alternative<hxcomm::vx::SimConnection>(connection)) {
+		if (std::holds_alternative<hxcomm::vx::SimConnection>(connection)
+#ifdef WITH_HXCOMM_HOSTARQ
+		    || std::holds_alternative<hxcomm::vx::ARQConnection>(connection)
+#endif
+		) {
 			EXPECT_THROW(get_connection_from_env(), std::runtime_error);
 		}
 	}
