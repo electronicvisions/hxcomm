@@ -1,6 +1,8 @@
 #pragma once
 #include "hate/visibility.h"
+#ifdef WITH_EXTOLL
 #include "rma2.h"
+#endif
 #include <optional>
 #include <string>
 #include <vector>
@@ -21,6 +23,7 @@ std::vector<std::string> get_fpga_ip_list() SYMBOL_VISIBLE;
 std::string get_fpga_ip() SYMBOL_VISIBLE;
 
 
+#ifdef WITH_EXTOLL
 /**
  * Convert FPGA IP to Extoll Node ID
  * @return RMA2_Nodeid
@@ -33,5 +36,6 @@ std::optional<RMA2_Nodeid> convert_ip_to_extollid(std::string) SYMBOL_VISIBLE;
  * @return Vector of RMA2_Nodeid
  */
 std::vector<RMA2_Nodeid> convert_ips_to_extollids(std::vector<std::string>) SYMBOL_VISIBLE;
+#endif // WITH_EXTOLL
 
 } // namespace hxcomm

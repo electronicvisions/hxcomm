@@ -5,7 +5,9 @@
 #include "hxcomm/vx/arqconnection.h"
 #endif
 #include "hxcomm/vx/connection_variant.h"
+#ifdef WITH_EXTOLL
 #include "hxcomm/vx/extollconnection.h"
+#endif
 #include "hxcomm/vx/quiggeldy_connection.h"
 #include "hxcomm/vx/simconnection.h"
 #include "hxcomm/vx/zeromockconnection.h"
@@ -64,7 +66,7 @@ inline std::vector<ConnectionVariant> get_arqconnection_list_from_env(
 	}
 	return connection_list;
 }
-#endif
+#endif // WITH_HOSTARQ
 
 inline std::vector<ConnectionVariant> get_zeromockconnection_list_from_env()
 {
@@ -96,6 +98,7 @@ inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::opt
 	return list;
 }
 
+#ifdef WITH_EXTOLL
 inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
     std::optional<size_t> limit = std::nullopt)
 {
@@ -136,6 +139,7 @@ inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
 	}
 	return connection_list;
 }
+#endif // WITH_EXTOLL
 } // namespace detail
 
 std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t> limit)
@@ -144,8 +148,10 @@ std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t
 		return zeromock;
 	} else if (auto qgc = detail::get_quiggeldyclient_list_from_env(limit); !qgc.empty()) {
 		return qgc;
+#ifdef WITH_EXTOLL
 	} else if (auto ext = detail::get_extollconnection_list_from_env(limit); !ext.empty()) {
 		return ext;
+#endif
 #ifdef WITH_HOSTARQ
 	} else if (auto arq = detail::get_arqconnection_list_from_env(limit); !arq.empty()) {
 		return arq;

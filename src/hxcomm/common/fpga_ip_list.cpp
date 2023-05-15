@@ -32,6 +32,7 @@ std::string get_fpga_ip()
 	return ip_list.at(0);
 }
 
+#ifdef WITH_EXTOLL
 std::optional<RMA2_Nodeid> convert_ip_to_extollid(std::string ip)
 {
 	std::optional<RMA2_Nodeid> id = std::nullopt;
@@ -67,5 +68,6 @@ std::vector<RMA2_Nodeid> convert_ips_to_extollids(std::vector<std::string> ips)
 	}
 	return ids;
 }
+#endif // WITH_EXTOLL
 
 } // namespace hxcomm
