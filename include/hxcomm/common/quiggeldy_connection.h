@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hate/visibility.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
 #include "hxcomm/common/execute_messages.h"
@@ -48,25 +49,25 @@ public:
 	/**
 	 * Connects to server while getting IP and port from environment.
 	 */
-	QuiggeldyConnection();
+	QuiggeldyConnection() SYMBOL_VISIBLE;
 
 	/**
 	 * Connects to server with explicit ip/port.
 	 * @param ip Target ip address.
 	 * @param port Target port.
 	 */
-	QuiggeldyConnection(std::string ip, uint16_t port);
+	QuiggeldyConnection(std::string ip, uint16_t port) SYMBOL_VISIBLE;
 
 	using connect_parameters_type = std::tuple<std::string, uint16_t>;
 	/**
 	 * Connect via tuple of ip/port.
 	 */
-	QuiggeldyConnection(connect_parameters_type const& params);
+	QuiggeldyConnection(connect_parameters_type const& params) SYMBOL_VISIBLE;
 
 	/**
 	 * Move constructor.
 	 */
-	QuiggeldyConnection(QuiggeldyConnection&&);
+	QuiggeldyConnection(QuiggeldyConnection&&) SYMBOL_VISIBLE;
 
 	/**
 	 * No copies allowed.
@@ -81,12 +82,12 @@ public:
 	/**
 	 * Assignment operator.
 	 */
-	QuiggeldyConnection& operator=(QuiggeldyConnection&&);
+	QuiggeldyConnection& operator=(QuiggeldyConnection&&) SYMBOL_VISIBLE;
 
 	/**
 	 * Destruct connection to FPGA joining all receive threads.
 	 */
-	~QuiggeldyConnection();
+	~QuiggeldyConnection() SYMBOL_VISIBLE;
 
 	constexpr static auto supported_targets = {Target::hardware};
 
@@ -108,25 +109,25 @@ public:
 	 * Set maximum number of connection attempts.
 	 * @param num Number of connection attempts.
 	 */
-	void set_connection_attempts_max(size_t num);
+	void set_connection_attempts_max(size_t num) SYMBOL_VISIBLE;
 
 	/**
 	 * Get maximum number of connection attempts.
 	 * @return Number of connection attempts.
 	 */
-	size_t get_connection_attempts_max() const;
+	size_t get_connection_attempts_max() const SYMBOL_VISIBLE;
 
 	/**
 	 * Set wait duration after every connection attempt number of connection attempts.
 	 * @param ms Wait duration after every connection attempt.
 	 */
-	void set_connection_attempt_wait_after(std::chrono::milliseconds ms);
+	void set_connection_attempt_wait_after(std::chrono::milliseconds ms) SYMBOL_VISIBLE;
 
 	/**
 	 * Get wait duration after every connection attempt number of connection attempts.
 	 * @return Wait duration after every connection attempt.
 	 */
-	std::chrono::milliseconds get_connection_attempt_wait_after() const;
+	std::chrono::milliseconds get_connection_attempt_wait_after() const SYMBOL_VISIBLE;
 
 	/**
 	 * Set whether or not to encode user information using munge.
@@ -139,7 +140,7 @@ public:
 	 *
 	 * @param value If munge should be used (true) or not (false).
 	 */
-	void set_use_munge(bool value);
+	void set_use_munge(bool value) SYMBOL_VISIBLE;
 
 	/**
 	 * Get whether or not to encode user information using munge.
@@ -152,7 +153,7 @@ public:
 	 *
 	 * @return Whether munge should be used (true) or not (false).
 	 */
-	bool get_use_munge() const;
+	bool get_use_munge() const SYMBOL_VISIBLE;
 
 	/**
 	 * When running experiments over quiggeldy - if running blocking - RCF
@@ -172,39 +173,40 @@ public:
 	 * Note: In case of out-of-order execution, single submitted work packages
 	 * should correspond to a full program.
 	 */
-	bool is_out_of_order() const;
+	bool is_out_of_order() const SYMBOL_VISIBLE;
 
 	/**
 	 * Set the QuiggeldyConnection to set out-of-order work units. This can speed
 	 * up execution times if each playback-program does not depend on other
 	 * playback programs. Plus, it might make learning more robust.
 	 */
-	void set_out_of_order();
+	void set_out_of_order() SYMBOL_VISIBLE;
 
 	/**
 	 * Get time information.
 	 * @return Time information
 	 */
-	ConnectionTimeInfo get_time_info() const;
+	ConnectionTimeInfo get_time_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get unique identifier from hwdb.
 	 * @param hwdb_path Optional path to hwdb
 	 * @return Unique identifier
 	 */
-	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
+	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const
+	    SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.
 	 * @return Bitfile info
 	 */
-	std::string get_bitfile_info() const;
+	std::string get_bitfile_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get quiggeldy server repository state info.
 	 * @return Repository state info
 	 */
-	std::string get_remote_repo_state() const;
+	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
 
 	/**
 	 * Set custom username.
@@ -212,20 +214,20 @@ public:
 	 *
 	 * @param custom_user Custom username to use.
 	 */
-	void set_custom_username(std::string custom_user);
+	void set_custom_username(std::string custom_user) SYMBOL_VISIBLE;
 
 	/**
 	 * Get custom username to use remotely, if defined.
 	 * @return Custom username if defined. Otherwise: nullopt.
 	 */
-	std::optional<std::string> get_custom_username();
+	std::optional<std::string> get_custom_username() SYMBOL_VISIBLE;
 
 	/**
 	 * Get compile time version information in human-readable form from server side.
 	 *
 	 * @return Human-readable form of version information.
 	 */
-	std::string get_version_string() const;
+	std::string get_version_string() const SYMBOL_VISIBLE;
 
 protected:
 	RCF::RcfInit m_rcf;
@@ -240,7 +242,7 @@ protected:
 	 * @param with_user_data whether or not to set user data in connection (for
 	 *        work submission user data needs to be set).
 	 */
-	std::unique_ptr<rcf_client_type> setup_client(bool with_user_data = true) const;
+	std::unique_ptr<rcf_client_type> setup_client(bool with_user_data = true) const SYMBOL_VISIBLE;
 
 	/**
 	 * Send the given request to the server and block until response is ready.
@@ -251,14 +253,14 @@ protected:
 	 * @return Response containing FPGA words from the connection.
 	 */
 	typename interface_types::response_type submit_blocking(
-	    typename interface_types::request_type const& req);
+	    typename interface_types::request_type const& req) SYMBOL_VISIBLE;
 
 	/**
 	 * Send the given request to the server and block until response is ready.
 	 * @param req Request which is sent to the server.
 	 * @return Response containing FPGA words from the connection.
 	 */
-	future_type submit_async(typename interface_types::request_type const& req);
+	future_type submit_async(typename interface_types::request_type const& req) SYMBOL_VISIBLE;
 
 	/**
 	 * Prepare user data in connection to authenticate request on the server
@@ -266,39 +268,39 @@ protected:
 	 *
 	 * Sets up potential munge authentication.
 	 */
-	void set_user_data(std::unique_ptr<rcf_client_type>&) const;
+	void set_user_data(std::unique_ptr<rcf_client_type>&) const SYMBOL_VISIBLE;
 
 	/**
 	 * Get a reference to the uploader instance so that a possible reinit
 	 * program can be registered elsewhere.
 	 */
-	std::weak_ptr<reinit_uploader_type> get_reinit_upload() const;
+	std::weak_ptr<reinit_uploader_type> get_reinit_upload() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get a reference to the reinit stack. This is only used by ReinitStackEntry
 	 * to support nested reinit programs and is not really useful otherwise.
 	 */
-	std::weak_ptr<reinit_stack_type> get_reinit_stack() const;
+	std::weak_ptr<reinit_stack_type> get_reinit_stack() const SYMBOL_VISIBLE;
 
 	/**
 	 * Enforce reinit program to be used on the remote site prior to executing
 	 * result-producing FPGA word streams.
 	 */
-	void reinit_enforce();
+	void reinit_enforce() SYMBOL_VISIBLE;
 
 	/**
 	 * Get next sequence number for a new request.
 	 */
-	rcf_extensions::SequenceNumber next_sequence_number();
+	rcf_extensions::SequenceNumber next_sequence_number() SYMBOL_VISIBLE;
 
-	static connect_parameters_type get_connect_params_from_env();
+	static connect_parameters_type get_connect_params_from_env() SYMBOL_VISIBLE;
 
 	/**
 	 * Lock guard for time info.
 	 */
-	std::lock_guard<std::mutex> lock_time_info() const;
+	std::lock_guard<std::mutex> lock_time_info() const SYMBOL_VISIBLE;
 
-	void accumulate_time_info(ConnectionTimeInfo const& delta);
+	void accumulate_time_info(ConnectionTimeInfo const& delta) SYMBOL_VISIBLE;
 
 	template <typename Submitter>
 	auto submit(Submitter const&);

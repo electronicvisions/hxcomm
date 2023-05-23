@@ -1,5 +1,6 @@
 #pragma once
 #include "flange/simulator_client.h"
+#include "hate/visibility.h"
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_registry.h"
@@ -56,7 +57,8 @@ public:
 	 * @param enable_terminate_on_destruction Whether or not to terminate the
 	 * remote simulation upon destruction of the SimConnection.
 	 */
-	SimConnection(ip_t ip, port_t port, bool enable_terminate_on_destruction = false);
+	SimConnection(ip_t ip, port_t port, bool enable_terminate_on_destruction = false)
+	    SYMBOL_VISIBLE;
 
 	/**
 	 * Create and start connection to simulation server.
@@ -66,7 +68,7 @@ public:
 	 * remote simulation upon destruction of the SimConnection.
 	 * @throws std::runtime_error On no port to simulator found in environment
 	 */
-	SimConnection(bool enable_terminate_on_destruction = false);
+	SimConnection(bool enable_terminate_on_destruction = false) SYMBOL_VISIBLE;
 
 	/**
 	 * Copy constructor (deleted because no two instances with the same simulator allocation can
@@ -83,29 +85,29 @@ public:
 	/**
 	 * Move constructor.
 	 */
-	SimConnection(SimConnection&&);
+	SimConnection(SimConnection&&) SYMBOL_VISIBLE;
 
 	/**
 	 * Assignment operator.
 	 */
-	SimConnection& operator=(SimConnection&&);
+	SimConnection& operator=(SimConnection&&) SYMBOL_VISIBLE;
 
 	/**
 	 * Destruct simulation connection joining all receive threads.
 	 */
-	~SimConnection();
+	~SimConnection() SYMBOL_VISIBLE;
 
 	/**
 	 * Set enable value to terminate simulator on destruction of connection.
 	 * @param value Boolean value
 	 */
-	void set_enable_terminate_on_destruction(bool const value);
+	void set_enable_terminate_on_destruction(bool const value) SYMBOL_VISIBLE;
 
 	/**
 	 * Get enable value to terminate simulator on destruction of connection.
 	 * @return Boolean value
 	 */
-	bool get_enable_terminate_on_destruction() const;
+	bool get_enable_terminate_on_destruction() const SYMBOL_VISIBLE;
 
 	constexpr static auto supported_targets = {Target::simulation};
 
@@ -113,28 +115,29 @@ public:
 	 * Get time information.
 	 * @return Time information
 	 */
-	ConnectionTimeInfo get_time_info() const;
+	ConnectionTimeInfo get_time_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get unique identifier from hwdb.
 	 * @param hwdb_path Optional path to hwdb
 	 * @return Unique identifier
 	 */
-	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
+	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const
+	    SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.
 	 * Returns "simulation" for SimConnection.
 	 * @return Bitfile info
 	 */
-	std::string get_bitfile_info() const;
+	std::string get_bitfile_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get server-side remote repository state information.
 	 * Only non-empty for QuiggeldyConnection.
 	 * @return Repository state
 	 */
-	std::string get_remote_repo_state() const;
+	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
 
 private:
 	/**
@@ -149,7 +152,7 @@ private:
 	 * Add a single UT message to the send queue.
 	 * @param message Message to add
 	 */
-	void add(send_message_type const& message);
+	void add(send_message_type const& message) SYMBOL_VISIBLE;
 
 	/**
 	 * Add multiple UT messages to the send queue.
@@ -163,31 +166,31 @@ private:
 	/**
 	 * Send messages in send queue.
 	 */
-	void commit();
+	void commit() SYMBOL_VISIBLE;
 
 	/**
 	 * Receive all UT messages currently in the receive queue.
 	 * @return Received messages
 	 */
-	receive_queue_type receive_all();
+	receive_queue_type receive_all() SYMBOL_VISIBLE;
 
 	/**
 	 * Get whether the connection has no UT messages available to receive.
 	 * @return Boolean value
 	 */
-	bool receive_empty() const;
+	bool receive_empty() const SYMBOL_VISIBLE;
 
 	/**
 	 * Start simulation and wait until halt instruction is received from simulation.
 	 * @throws std::runtime_error Simulation already running
 	 */
-	void run_until_halt();
+	void run_until_halt() SYMBOL_VISIBLE;
 
 	/**
 	 * Get internal mutex to use for mutual exclusion.
 	 * @return Mutable reference to mutex
 	 */
-	std::mutex& get_mutex();
+	std::mutex& get_mutex() SYMBOL_VISIBLE;
 
 	std::unique_ptr<flange::SimulatorClient> m_sim;
 

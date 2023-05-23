@@ -11,6 +11,7 @@ using SimConnection = hxcomm::SimConnection<ConnectionParameter>;
 
 namespace hxcomm {
 
+extern template class SYMBOL_VISIBLE SimConnection<hxcomm::vx::ConnectionParameter>;
 extern template struct SYMBOL_VISIBLE ConnectionRegistry<hxcomm::vx::SimConnection>;
 
 } // namespace hxcomm

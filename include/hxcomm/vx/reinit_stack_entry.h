@@ -10,3 +10,10 @@ using ReinitStackEntry =
     hxcomm::ReinitStackEntry<hxcomm::vx::QuiggeldyConnection, hxcomm::vx::ConnectionVariant>;
 
 } // namespace hxcomm::vx
+
+namespace hxcomm {
+
+extern template class SYMBOL_VISIBLE
+    ReinitStackEntry<hxcomm::vx::QuiggeldyConnection, hxcomm::vx::ConnectionVariant>;
+
+} // namespace hxcomm

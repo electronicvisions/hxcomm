@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hate/type_list.h"
+#include "hate/visibility.h"
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/quiggeldy_interface_types.h"
 #include "hxcomm/common/stream_rc.h"
@@ -56,10 +57,10 @@ public:
 	ReinitStackEntry() = delete;
 	template <typename Connection>
 	ReinitStackEntry(Connection&);
-	ReinitStackEntry(ConnectionVariant&);
+	ReinitStackEntry(ConnectionVariant&) SYMBOL_VISIBLE;
 	ReinitStackEntry(ReinitStackEntry const&) = default;
 	ReinitStackEntry(ReinitStackEntry&&) = default;
-	~ReinitStackEntry();
+	~ReinitStackEntry() SYMBOL_VISIBLE;
 
 	/**
 	 * Register a reinit program to be used on the remote site.
@@ -68,7 +69,7 @@ public:
 	 *
 	 * @param entry What to upload.
 	 */
-	void set(reinit_entry_type&& entry);
+	void set(reinit_entry_type&& entry) SYMBOL_VISIBLE;
 
 	/**
 	 * Register a reinit program to be used on the remote site.
@@ -77,17 +78,17 @@ public:
 	 *
 	 * @param entry What to upload.
 	 */
-	void set(reinit_entry_type const& entry);
+	void set(reinit_entry_type const& entry) SYMBOL_VISIBLE;
 
 	/**
 	 * Enforce reinit program to be used on the remote site.
 	 */
-	void enforce();
+	void enforce() SYMBOL_VISIBLE;
 
 	/**
 	 * Pop this entry from the stack.
 	 */
-	void pop();
+	void pop() SYMBOL_VISIBLE;
 
 private:
 	log4cxx::LoggerPtr m_logger;

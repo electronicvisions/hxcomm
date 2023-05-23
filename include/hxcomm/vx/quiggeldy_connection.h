@@ -9,3 +9,10 @@ using QuiggeldyConnection = hxcomm::
     QuiggeldyConnection<hxcomm::vx::ConnectionParameter, hxcomm::vx::detail::rcf_client_type>;
 
 } // namespace hxcomm::vx
+
+namespace hxcomm {
+
+extern template class SYMBOL_VISIBLE
+    QuiggeldyConnection<hxcomm::vx::ConnectionParameter, hxcomm::vx::detail::rcf_client_type>;
+
+} // namespace hxcomm

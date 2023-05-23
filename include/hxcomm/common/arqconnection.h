@@ -1,5 +1,6 @@
 #pragma once
 #include "bss_hw_params/cube_ethernet/constants.h"
+#include "hate/visibility.h"
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_registry.h"
@@ -50,13 +51,13 @@ public:
 	 * Create connection to FPGA with IP address found in environment.
 	 * @throws std::runtime_error On no or more than one FPGA IP address available in environment
 	 */
-	ARQConnection();
+	ARQConnection() SYMBOL_VISIBLE;
 
 	/**
 	 * Create connection to FPGA.
 	 * @param ip IP-address of FPGA
 	 */
-	ARQConnection(ip_t ip);
+	ARQConnection(ip_t ip) SYMBOL_VISIBLE;
 
 	/**
 	 * Copy constructor (deleted because no two instances with the same hardware
@@ -73,12 +74,12 @@ public:
 	/**
 	 * Move constructor.
 	 */
-	ARQConnection(ARQConnection&& other);
+	ARQConnection(ARQConnection&& other) SYMBOL_VISIBLE;
 
 	/**
 	 * Assignment operator.
 	 */
-	ARQConnection& operator=(ARQConnection&& other);
+	ARQConnection& operator=(ARQConnection&& other) SYMBOL_VISIBLE;
 
 	/**
 	 * Destruct connection to FPGA joining all receive threads.
@@ -91,27 +92,28 @@ public:
 	 * Get time information.
 	 * @return Time information
 	 */
-	ConnectionTimeInfo get_time_info() const;
+	ConnectionTimeInfo get_time_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get unique identifier from hwdb.
 	 * @param hwdb_path Optional path to hwdb
 	 * @return Unique identifier
 	 */
-	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
+	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const
+	    SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.
 	 * @return Bitfile info
 	 */
-	std::string get_bitfile_info() const;
+	std::string get_bitfile_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get server-side remote repository state information.
 	 * Only non-empty for QuiggeldyConnection.
 	 * @return Repository state
 	 */
-	std::string get_remote_repo_state() const;
+	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
 
 private:
 	/**
@@ -126,7 +128,7 @@ private:
 	 * Messages may be sent to the hardware as part of this call if the send queue is full.
 	 * @param message Message to add
 	 */
-	void add(send_message_type const& message);
+	void add(send_message_type const& message) SYMBOL_VISIBLE;
 
 	/**
 	 * Add multiple UT messages to the send queue.
@@ -142,30 +144,30 @@ private:
 	 * Send messages in send queue.
 	 * All messages in the send queue are guaranteed to be transfered.
 	 */
-	void commit();
+	void commit() SYMBOL_VISIBLE;
 
 	/**
 	 * Receive all UT messages currently in the receive queue.
 	 * @return Received messages
 	 */
-	receive_queue_type receive_all();
+	receive_queue_type receive_all() SYMBOL_VISIBLE;
 
 	/**
 	 * Get whether the connection has no UT messages available to receive.
 	 * @return Boolean value
 	 */
-	bool receive_empty() const;
+	bool receive_empty() const SYMBOL_VISIBLE;
 
 	/**
 	 * Start execution and wait until halt instruction is received from FPGA.
 	 */
-	void run_until_halt();
+	void run_until_halt() SYMBOL_VISIBLE;
 
 	/**
 	 * Get internal mutex to use for mutual exclusion.
 	 * @return Mutable reference to mutex
 	 */
-	std::mutex& get_mutex();
+	std::mutex& get_mutex() SYMBOL_VISIBLE;
 
 	/**
 	 * Check for bitfile version compatibility.

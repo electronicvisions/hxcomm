@@ -12,6 +12,7 @@ using ARQConnection = hxcomm::ARQConnection<ConnectionParameter>;
 
 namespace hxcomm {
 
+extern template class SYMBOL_VISIBLE ARQConnection<hxcomm::vx::ConnectionParameter>;
 extern template struct SYMBOL_VISIBLE ConnectionRegistry<hxcomm::vx::ARQConnection>;
 
 } // namespace hxcomm
