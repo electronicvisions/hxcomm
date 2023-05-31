@@ -126,9 +126,7 @@ struct Config
 	std::string slurm_partition;
 	std::string slurm_license;
 
-#ifdef WITH_HXCOMM_HOSTARQ
 	bool backend_arq;
-#endif
 	bool backend_sim;
 
 	std::size_t delay_after_connect_ms;
@@ -373,7 +371,7 @@ int main(int argc, const char* argv[])
 
 	if (cfg.backend_arq) {
 #ifndef WITH_HXCOMM_HOSTARQ
-		HXCOMM_LOG_ERROR(log, e.what() << "Support for HostARQ was disabled!");
+		HXCOMM_LOG_ERROR(log, "Support for HostARQ was disabled!");
 		return EXIT_FAILURE;
 #else
 		if (!cfg.mock_mode && cfg.connect_ip.length() == 0) {
