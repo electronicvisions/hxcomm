@@ -27,6 +27,12 @@ namespace hxcomm::vx {
  */
 std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env() SYMBOL_VISIBLE;
 
+
+/**
+ * Unset environment variables of quiggeldy.
+ */
+void unset_quiggeldy_env() SYMBOL_VISIBLE;
+
 #ifdef WITH_HXCOMM_HOSTARQ
 RRWR_GENERATE_UTILITIES(
     ::hxcomm::vx::QuiggeldyWorker<ARQConnection>, quiggeldy_arq, ::hxcomm::vx::I_HXCommQuiggeldyVX)

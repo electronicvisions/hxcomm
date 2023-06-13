@@ -11,6 +11,7 @@ GENPYBIND_MANUAL({
 	parent.def("terminate", &::hxcomm::terminate);
 	parent.def(
 	    "launch_quiggeldy_locally_from_env", &::hxcomm::vx::launch_quiggeldy_locally_from_env);
+	parent.def("unset_quiggeldy_env", &::hxcomm::vx::unset_quiggeldy_env);
 })
 
 } // namespace pyhxcomm::vx

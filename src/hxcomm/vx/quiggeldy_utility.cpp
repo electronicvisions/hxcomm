@@ -42,4 +42,12 @@ std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env()
 	return std::make_tuple(pid, port);
 }
 
+
+void unset_quiggeldy_env()
+{
+	unsetenv(vision_quiggeldy_enabled_env_name);
+	unsetenv(vision_quiggeldy_ip_env_name);
+	unsetenv(vision_quiggeldy_port_env_name);
+}
+
 } // namespace hxcomm::vx
