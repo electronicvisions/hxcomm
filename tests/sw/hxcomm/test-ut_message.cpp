@@ -113,3 +113,18 @@ TYPED_TEST(CommonUTMessageTests, CerealizeCoverage)
 	}
 	ASSERT_EQ(obj1, obj2);
 }
+
+TYPED_TEST(CommonUTMessageTests, TriviallyCopyable)
+{
+	EXPECT_TRUE(std::is_trivially_copyable_v<TypeParam>);
+}
+
+TEST(UTMessageToFPGAVariant, TriviallyCopyable)
+{
+	EXPECT_TRUE(std::is_trivially_copyable_v<UTMessageToFPGAVariant>);
+}
+
+TEST(UTMessageFromFPGAVariant, TriviallyCopyable)
+{
+	EXPECT_TRUE(std::is_trivially_copyable_v<UTMessageFromFPGAVariant>);
+}
