@@ -51,5 +51,5 @@ TEST(TestConnection, ReadoutJtagID)
 	    std::get<UTMessageFromFPGA<jtag_from_hicann::Data>>(responses.front()).decode());
 	EXPECT_TRUE(
 	    (jtag_id == 0x048580AF) || (jtag_id == 0x248580AF) || (jtag_id == 0x348580AF) ||
-	    (jtag_id == 0x448580AF));
+	    (jtag_id == 0x448590AF));
 }
