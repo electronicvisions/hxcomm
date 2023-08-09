@@ -16,9 +16,9 @@ std::tuple<pid_t, hxcomm::port_t> launch_quiggeldy_locally_from_env()
 	pid_t pid = 0;
 	if (std::getenv(vision_slurm_fpga_ips_env_name) != nullptr) {
 		// run with FPGA IP from env
+		auto const fpga_ip = hxcomm::get_fpga_ip();
 		auto conn_args = std::tuple_cat(
-		    base_args,
-		    std::make_tuple("--connect-ip", hxcomm::get_fpga_ip().c_str(), "--connection-arq"));
+		    base_args, std::make_tuple("--connect-ip", fpga_ip.c_str(), "--connection-arq"));
 		pid = std::apply(
 		    [](auto... args) -> pid_t { return hxcomm::setup_quiggeldy(args...); }, conn_args);
 	} else {
