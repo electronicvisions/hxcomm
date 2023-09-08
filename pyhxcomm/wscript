@@ -54,7 +54,6 @@ def build(bld):
         genpybind_num_files=10,
         features='genpybind cxx cxxshlib pyext',
         use=['hxcomm', 'pyhxcomm_inc'],
-        install_path='${PREFIX}/lib',
     )
 
     bld(
