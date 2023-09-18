@@ -354,7 +354,7 @@ def build(bld):
             install_path = 'doc/hxcomm',
             pars = {
                 "PROJECT_NAME": "\"HX Communication\"",
-                "PREDEFINED": "GENPYBIND()= GENPYBIND_TAG_HXCOMM_VX=",
+                "PREDEFINED": "SYMBOL_VISIBLE=",
                 "INCLUDE_PATH": join(get_toplevel_path(), "hxcomm", "include"),
                 "OUTPUT_DIRECTORY": join(get_toplevel_path(), "build", "hxcomm", "doc")
             },
