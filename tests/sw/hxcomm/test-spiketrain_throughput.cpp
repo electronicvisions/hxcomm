@@ -65,7 +65,7 @@ TEST(UTMessage, SpikeTrainEmplaceThroughput)
 		    logger,
 		    num << ": " << timer.print() << ", " << rate_mhz << " MHz, "
 		        << (rate_mhz * 2 * sizeof(UTMessageToFPGAVariant)) << " MB/s, "
-		        << (static_cast<double>(num) * 2 * sizeof(UTMessageToFPGAVariant)) / 1024 / 1204
+		        << (static_cast<double>(num) * 2 * sizeof(UTMessageToFPGAVariant)) / 1024 / 1024
 		        << " MB");
 	}
 	EXPECT_GE(rate_mhz, 25.);
@@ -98,7 +98,7 @@ TEST(UTMessage, SpikeTrainPreallocatedEmplaceThroughput)
 		    logger,
 		    num << ": " << timer.print() << ", " << rate_mhz << " MHz, "
 		        << (rate_mhz * 2 * sizeof(UTMessageToFPGAVariant)) << " MB/s, "
-		        << (static_cast<double>(num) * 2 * sizeof(UTMessageToFPGAVariant)) / 1024 / 1204
+		        << (static_cast<double>(num) * 2 * sizeof(UTMessageToFPGAVariant)) / 1024 / 1024
 		        << " MB");
 	}
 	EXPECT_GE(rate_mhz, 70.);
