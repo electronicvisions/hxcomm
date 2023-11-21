@@ -1,5 +1,6 @@
 #include "hxcomm/common/quiggeldy_utility.h"
 
+#include <algorithm>
 #include <cassert>
 #include <csignal>
 #include <cstdlib>
