@@ -5,9 +5,6 @@
 #include "hxcomm/vx/arqconnection.h"
 #endif
 #include "hxcomm/vx/connection_variant.h"
-#ifdef WITH_HXCOMM_EXTOLL
-#include "hxcomm/vx/extollconnection.h"
-#endif
 #include "hxcomm/vx/quiggeldy_connection.h"
 #include "hxcomm/vx/simconnection.h"
 #include "hxcomm/vx/zeromockconnection.h"
@@ -98,48 +95,6 @@ inline std::vector<ConnectionVariant> get_quiggeldyclient_list_from_env(std::opt
 	return list;
 }
 
-#ifdef WITH_HXCOMM_EXTOLL
-inline std::vector<ConnectionVariant> get_extollconnection_list_from_env(
-    std::optional<size_t> limit = std::nullopt)
-{
-	auto fpga_ip_list = hxcomm::get_fpga_ip_list();
-
-
-	std::vector<ConnectionVariant> connection_list;
-	char const* env_extoll = std::getenv("HXCOMM_USE_EXTOLL");
-	if (env_extoll != nullptr && atoi(env_extoll)) {
-		if (fpga_ip_list.empty()) {
-			throw std::runtime_error("Found no FPGA Node licences in env!");
-		}
-		if (limit && (fpga_ip_list.size() < *limit)) {
-			throw std::runtime_error(
-			    "Found FPGA Node amount (" + std::to_string(fpga_ip_list.size()) +
-			    ") lower than specified limit (" + std::to_string(*limit) +
-			    ") in environment to connect to.");
-		}
-
-		auto const available_nodes = nhtl_extoll::get_fpga_node_ids();
-
-		auto const nodes = hxcomm::convert_ips_to_extollids(fpga_ip_list);
-
-		auto const num_nodes = (limit ? *limit : nodes.size());
-
-		connection_list.reserve(num_nodes);
-
-		for (size_t i = 0; i < num_nodes; i++) {
-			if (std::find(available_nodes.begin(), available_nodes.end(), nodes.at(i)) !=
-			    available_nodes.end()) {
-				connection_list.emplace_back(std::in_place_type<ExtollConnection>, nodes.at(i));
-			} else {
-				throw std::runtime_error(
-				    "The node requested by the licence " + std::to_string(nodes.at(i)) +
-				    " is not present in the network!");
-			}
-		}
-	}
-	return connection_list;
-}
-#endif // WITH_HXCOMM_EXTOLL
 } // namespace detail
 
 std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t> limit)
@@ -148,10 +103,6 @@ std::vector<ConnectionVariant> get_connection_list_from_env(std::optional<size_t
 		return zeromock;
 	} else if (auto qgc = detail::get_quiggeldyclient_list_from_env(limit); !qgc.empty()) {
 		return qgc;
-#ifdef WITH_HXCOMM_EXTOLL
-	} else if (auto ext = detail::get_extollconnection_list_from_env(limit); !ext.empty()) {
-		return ext;
-#endif
 #ifdef WITH_HXCOMM_HOSTARQ
 	} else if (auto arq = detail::get_arqconnection_list_from_env(limit); !arq.empty()) {
 		return arq;

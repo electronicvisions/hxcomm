@@ -5,9 +5,6 @@
 #ifdef WITH_HXCOMM_HOSTARQ
 #include "pyhxcomm/vx/arqconnection.h"
 #endif
-#ifdef WITH_HXCOMM_EXTOLL
-#include "pyhxcomm/vx/extollconnection.h"
-#endif
 #include "pyhxcomm/vx/quiggeldy_connection.h"
 #include "pyhxcomm/vx/simconnection.h"
 #include "pyhxcomm/vx/zeromockconnection.h"

@@ -13,9 +13,6 @@ def depends(dep):
     if getattr(dep.options, 'with_hxcomm_hostarq', True):
         dep('sctrltp')
 
-    if getattr(dep.options, 'with_hxcomm_extoll', True):
-        dep('nhtl-extoll')
-
     dep('rant')
     dep('hate')
     dep('hwdb')
@@ -69,9 +66,6 @@ def options(opt):
     hopts.add_withoption('hxcomm-hostarq', default=True,
                        help='Toggle support for HostARQ-based connections')
 
-    hopts.add_withoption('hxcomm-extoll', default=True,
-                       help='Toggle support for EXTOLL-based connections')
-
 
 def configure(conf):
     conf.load('compiler_c')
@@ -84,7 +78,6 @@ def configure(conf):
     conf.load("doxygen")
 
     conf.env.build_with_hostarq = conf.options.with_hxcomm_hostarq
-    conf.env.build_with_extoll = conf.options.with_hxcomm_extoll
 
     conf.env.DEFINES_HXCOMM = [
         "HXCOMM_LOG_THRESHOLD=" +
@@ -100,8 +93,6 @@ def configure(conf):
     ]
     if conf.env.build_with_hostarq:
         conf.env.DEFINES_HXCOMM.append('WITH_HXCOMM_HOSTARQ')
-    if conf.env.build_with_extoll:
-        conf.env.DEFINES_HXCOMM.append('WITH_HXCOMM_EXTOLL')
 
     conf.env.CXXFLAGS_HXCOMM = [
         '-fvisibility=hidden',
@@ -167,7 +158,6 @@ def build(bld):
 
     use_munge = ["MUNGE"] if bld.env.build_with_munge else []
     use_hostarq = ["arqstream_obj"] if bld.env.build_with_hostarq else []
-    use_extoll = ["nhtl_extoll"] if bld.env.build_with_extoll else []
 
     bld(target          = 'hxcomm_inc',
         export_includes = 'include'
@@ -176,8 +166,6 @@ def build(bld):
     hxcomm_excludes =  []
     if not bld.env.build_with_hostarq:
         hxcomm_excludes.append('src/hxcomm/**/arqconnection.cpp')
-    if not bld.env.build_with_extoll:
-        hxcomm_excludes.append('src/hxcomm/**/extollconnection.cpp')
 
     bld.shlib(
         target       = 'hxcomm',
@@ -186,7 +174,7 @@ def build(bld):
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
-                       ] + use_munge + use_hostarq + use_extoll,
+                       ] + use_munge + use_hostarq,
         uselib       = 'HXCOMM',
         install_path = '${PREFIX}/lib',
         export_defines=bld.env.DEFINES_HXCOMM,
