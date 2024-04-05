@@ -116,7 +116,7 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, MADCSamplePackPayload const& value)
 	{
 		os << hate::full_name<MADCSamplePack<num_samples>>() << "("
-		   << hate::join_string(value.m_samples, ", ") << ")";
+		   << hate::join(value.m_samples, ", ") << ")";
 		return os;
 	}
 
@@ -238,8 +238,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, SpikePackPayload const& value)
 	{
-		os << hate::full_name<SpikePack<num_spikes>>() << "("
-		   << hate::join_string(value.m_spikes, ", ") << ")";
+		os << hate::full_name<SpikePack<num_spikes>>() << "(" << hate::join(value.m_spikes, ", ")
+		   << ")";
 		return os;
 	}
 

@@ -53,8 +53,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, SpikePackPayload const& value)
 	{
-		os << hate::full_name<SpikePack<num_spikes>>() << "("
-		   << hate::join_string(value.m_spikes, ", ") << ")";
+		os << hate::full_name<SpikePack<num_spikes>>() << "(" << hate::join(value.m_spikes, ", ")
+		   << ")";
 		return os;
 	}
 
