@@ -85,7 +85,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     typename QuiggeldyConnection<ConnectionParameter, RcfClient>::connect_parameters_type const&
         params) :
     m_connect_parameters{params},
-    m_connection_attempt_num_max(100),
+    m_connection_attempt_num_max(200),
     m_connection_attempt_wait_after(100ms),
     m_logger(log4cxx::Logger::getLogger("QuiggeldyConnection")),
     m_reinit_uploader{new reinit_uploader_type{
@@ -102,7 +102,8 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
 	m_session_uuid = boost::uuids::random_generator()();
 	try {
 		// Check if remote site has munge enabled.
-		m_use_munge = setup_client(false)->get_use_munge();
+		m_use_munge = retrying_client_invoke(
+		    false, [](auto const& client) { return client->get_use_munge(); });
 	} catch (const RCF::Exception& e) {
 		HXCOMM_LOG_ERROR(m_logger, "Could not request munge status from remote site: " << e.what());
 		m_use_munge = false;
@@ -287,8 +288,9 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::get_reinit_stack() const
 template <typename ConnectionParameter, typename RcfClient>
 void QuiggeldyConnection<ConnectionParameter, RcfClient>::reinit_enforce()
 {
-	setup_client()->reinit_enforce();
+	retrying_client_invoke(true, [](auto const& client) { return client->reinit_enforce(); });
 }
+
 
 template <typename ConnectionParameter, typename RcfClient>
 void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_connection_attempts_max(size_t num)
@@ -401,29 +403,29 @@ template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_identifier(
     std::optional<std::string> hwdb_path) const
 {
-	auto client = setup_client();
-	return client->get_unique_identifier(hwdb_path);
+	return retrying_client_invoke(
+	    true, [hwdb_path](auto const& client) { return client->get_unique_identifier(hwdb_path); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_bitfile_info() const
 {
-	auto client = setup_client();
-	return client->get_bitfile_info();
+	return retrying_client_invoke(
+	    true, [](auto const& client) { return client->get_bitfile_info(); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_remote_repo_state() const
 {
-	auto client = setup_client();
-	return client->get_remote_repo_state();
+	return retrying_client_invoke(
+	    true, [](auto const& client) { return client->get_remote_repo_state(); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_version_string() const
 {
-	auto client = setup_client();
-	return client->get_version_string();
+	return retrying_client_invoke(
+	    true, [](auto const& client) { return client->get_version_string(); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>

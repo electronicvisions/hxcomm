@@ -305,6 +305,12 @@ protected:
 	template <typename Submitter>
 	auto submit(Submitter const&);
 
+	template <typename Function, typename... Args>
+	auto retrying_client_invoke(bool with_user_data, Function&& function, Args&&... args);
+
+	template <typename Function, typename... Args>
+	auto retrying_client_invoke(bool with_user_data, Function&& function, Args&&... args) const;
+
 	/**
 	 * Return function that creates RCF clients with this connection's info.
 	 */

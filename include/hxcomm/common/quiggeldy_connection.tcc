@@ -12,12 +12,35 @@
 #include "hxcomm/common/logger.h"
 #include "hxcomm/common/quiggeldy_common.h"
 #include "hxcomm/common/quiggeldy_connection.h"
+#include "rcf-extensions/retrying-client-invoke.h"
 
 #include "slurm/vision_defines.h"
 
 namespace hxcomm {
 
 using namespace std::literals::chrono_literals;
+
+template <typename ConnectionParameter, typename RcfClient>
+template <typename Function, typename... Args>
+auto QuiggeldyConnection<ConnectionParameter, RcfClient>::retrying_client_invoke(
+    bool with_user_data, Function&& function, Args&&... args)
+{
+	return rcf_extensions::retrying_client_invoke(
+	    [this, with_user_data]() { return setup_client(with_user_data); },
+	    m_connection_attempt_num_max, m_connection_attempt_wait_after, function,
+	    std::forward<Args>(args)...);
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+template <typename Function, typename... Args>
+auto QuiggeldyConnection<ConnectionParameter, RcfClient>::retrying_client_invoke(
+    bool with_user_data, Function&& function, Args&&... args) const
+{
+	return rcf_extensions::retrying_client_invoke(
+	    [this, with_user_data]() { return setup_client(with_user_data); },
+	    m_connection_attempt_num_max, m_connection_attempt_wait_after, function,
+	    std::forward<Args>(args)...);
+}
 
 template <typename ConnectionParameter, typename RcfClient>
 template <typename Submitter>
@@ -27,40 +50,7 @@ auto QuiggeldyConnection<ConnectionParameter, RcfClient>::submit(Submitter const
 	m_reinit_uploader->refresh();
 
 	auto const cur_sequence_num = next_sequence_number();
-
-	auto client = setup_client();
-	size_t attempts_performed = 0;
-
-	auto last_user_notification = std::chrono::system_clock::now();
-	for (attempts_performed = 1; attempts_performed <= m_connection_attempt_num_max;
-	     ++attempts_performed) {
-		// build request and send it to server
-		try {
-			return submitter(client, cur_sequence_num);
-		} catch (const RCF::Exception& e) {
-			if (e.getErrorId() != RCF::RcfError_ClientConnectFail.getErrorId() ||
-			    attempts_performed == m_connection_attempt_num_max) {
-				// reraise if something unexpected happened or we reached the
-				// maximum number of tries
-				throw;
-			}
-		}
-		using namespace std::chrono_literals;
-		// Give the user feedback once per second in order to not spam the
-		// terminal
-		if ((std::chrono::system_clock::now() - last_user_notification) > 1s) {
-			HXCOMM_LOG_INFO(
-			    m_logger, "Server not ready yet, waiting "
-			                  << m_connection_attempt_wait_after.count()
-			                  << " ms in between attempts.. [Attempt: " << attempts_performed << "/"
-			                  << m_connection_attempt_num_max << "]");
-			last_user_notification = std::chrono::system_clock::now();
-		}
-		std::this_thread::sleep_for(m_connection_attempt_wait_after);
-	}
-	// NOTE: Should never be reached.
-	HXCOMM_LOG_FATAL(m_logger, "Could not submit request.");
-	throw std::runtime_error("Error submitting request.");
+	return retrying_client_invoke(true, submitter, cur_sequence_num);
 }
 
 namespace detail {

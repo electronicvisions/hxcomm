@@ -10,6 +10,7 @@
 #include <charconv>
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <thread>
 
 #include <sys/types.h>
@@ -154,4 +155,56 @@ TEST(Quiggeldy, SimpleMockModeReinit)
 	} else {
 		ASSERT_EQ(WEXITSTATUS(status), 0);
 	}
+}
+
+TEST(Quiggeldy, ServerRestart)
+{
+	using namespace hxcomm;
+
+	auto log = log4cxx::Logger::getLogger("TestQuiggeldy");
+	HXCOMM_LOG_TRACE(log, "Starting");
+	int status;
+
+	hxcomm::port_t port = get_unused_port();
+
+	size_t const num_runs = 20;
+
+	int quiggeldy_pid = setup_quiggeldy(
+	    "quiggeldy", port, "--mock-mode", "--timeout", "20",
+	    hxcomm::is_munge_available() ? "" : "--no-munge");
+	using namespace std::literals::chrono_literals;
+	std::this_thread::sleep_for(1s);
+
+	auto const run_client = [port, &log]() -> int {
+		auto client = hxcomm::vx::QuiggeldyConnection("127.0.0.1", port);
+		StreamRC<decltype(client)> stream{client};
+
+		for (size_t i = 0; i < num_runs; ++i) {
+			// calling some remote method
+			auto const version = client.get_version_string();
+			(void) log;
+			HXCOMM_LOG_TRACE(log, "Executed program.");
+			std::this_thread::sleep_for(1s);
+		}
+		return 0;
+	};
+	auto ret = std::async(std::launch::async, run_client);
+
+	std::this_thread::sleep_for(10s);
+	HXCOMM_LOG_TRACE(log, "Killing quiggeldy.");
+	kill(quiggeldy_pid, SIGTERM);
+	std::this_thread::sleep_for(10s);
+
+	HXCOMM_LOG_TRACE(log, "Starting again");
+	quiggeldy_pid = setup_quiggeldy(
+	    "quiggeldy", port, "--mock-mode", "--timeout", "20",
+	    hxcomm::is_munge_available() ? "" : "--no-munge");
+	std::this_thread::sleep_for(10s);
+
+	HXCOMM_LOG_TRACE(log, "Waiting for quiggeldy to terminate.");
+	waitpid(quiggeldy_pid, &status, 0); // wait for the child to exit
+	ASSERT_TRUE(WIFEXITED(status));
+	ASSERT_EQ(WEXITSTATUS(status), 0);
+
+	EXPECT_EQ(ret.get(), 0);
 }
