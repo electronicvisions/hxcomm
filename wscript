@@ -153,7 +153,7 @@ def build_loopbackconnection_test(bld):
 
 
 def build(bld):
-    bld.env.DLSvx_HARDWARE_AVAILABLE = "SLURM_HWDB_YAML" in os.environ
+    bld.env.BBS_HARDWARE_AVAILABLE = "SLURM_HWDB_YAML" in os.environ
     bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
 
     use_munge = ["MUNGE"] if bld.env.build_with_munge else []
@@ -259,7 +259,7 @@ def build(bld):
         target       = 'hxcomm_backendtest',
         features     = 'gtest cxx cxxprogram',
         source       = bld.path.ant_glob('tests/hw/hxcomm/test-*.cpp'),
-        skip_run     = not (bld.env.DLSvx_HARDWARE_AVAILABLE or bld.env.DLSvx_SIM_AVAILABLE),
+        skip_run     = not (bld.env.BBS_HARDWARE_AVAILABLE or bld.env.DLSvx_SIM_AVAILABLE),
         test_main    = 'tests/common/src/main.cpp',
         use          = ['hxcomm', 'hxcomm_tests_helper', 'BOOST4HXCOMMTOOLS'],
         test_timeout = 120,

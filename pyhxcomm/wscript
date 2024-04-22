@@ -34,7 +34,7 @@ def configure(cfg):
 
 
 def build(bld):
-    bld.env.DLSvx_HARDWARE_AVAILABLE = "SLURM_HWDB_YAML" in os.environ
+    bld.env.BBS_HARDWARE_AVAILABLE = "SLURM_HWDB_YAML" in os.environ
     bld.env.DLSvx_SIM_AVAILABLE = "FLANGE_SIMULATION_RCF_PORT" in os.environ
 
     pyhxcomm_defines = [
@@ -88,7 +88,7 @@ def build(bld):
         pythonpath=['tests'],
         pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
         pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
-        skip_run=not (bld.env.DLSvx_SIM_AVAILABLE or bld.env.DLSvx_HARDWARE_AVAILABLE),
+        skip_run=not (bld.env.DLSvx_SIM_AVAILABLE or bld.env.BBS_HARDWARE_AVAILABLE),
         test_timeout=120,
     )
 
