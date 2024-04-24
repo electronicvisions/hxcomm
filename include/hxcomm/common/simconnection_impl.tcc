@@ -45,7 +45,8 @@ SimConnection<ConnectionParameter>::SimConnection(bool enable_terminate_on_destr
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
     m_worker_receive([&]() {
-	    thread_local flange::SimulatorClient local_sim;
+	    thread_local flange::SimulatorClient local_sim(
+	        std::get<0>(m_registry->m_parameters), std::get<1>(m_registry->m_parameters));
 	    work_receive(local_sim);
     }),
     m_runnable_mutex(),
@@ -95,7 +96,8 @@ SimConnection<ConnectionParameter>::SimConnection(SimConnection&& other) :
 	new (&m_decoder) decltype(m_decoder)(other.m_decoder, m_receive_queue, m_listener_halt);
 	//
 	m_worker_receive = std::thread([&]() {
-		thread_local flange::SimulatorClient local_sim;
+		thread_local flange::SimulatorClient local_sim(
+		    std::get<0>(m_registry->m_parameters), std::get<1>(m_registry->m_parameters));
 		work_receive(local_sim);
 	});
 
@@ -138,7 +140,8 @@ SimConnection<ConnectionParameter>& SimConnection<ConnectionParameter>::operator
 		new (&m_encoder) encoder_type(other.m_encoder, m_send_queue);
 		// create and start thread
 		m_worker_receive = std::thread([&]() {
-			thread_local flange::SimulatorClient local_sim;
+			thread_local flange::SimulatorClient local_sim(
+			    std::get<0>(m_registry->m_parameters), std::get<1>(m_registry->m_parameters));
 			work_receive(local_sim);
 		});
 	}
