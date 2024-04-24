@@ -17,7 +17,7 @@ SimConnection<ConnectionParameter>::SimConnection(
     m_listener_halt(),
     m_decoder(m_receive_queue, m_listener_halt),
     m_run_receive(true),
-    m_worker_receive([&]() {
+    m_worker_receive([ip, port, this]() {
 	    thread_local flange::SimulatorClient local_sim(ip, port);
 	    work_receive(local_sim);
     }),
