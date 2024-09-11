@@ -118,7 +118,7 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::handle_unsupporte
 		    m_logger, "Connection does not support upload of reinit program, treating enforced "
 		              "reinit-like regular program to execute.");
 		std::visit(
-		    [&entry](auto& conn) { execute_messages(conn.get(), entry.request); },
+		    [&entry](auto& conn) { execute_messages(conn.get(), entry.request, true); },
 		    m_connection_ref);
 	} else {
 		HXCOMM_LOG_TRACE(

@@ -267,7 +267,7 @@ void QuiggeldyWorker<Connection>::perform_reinit(reinit_type& reinit, bool force
 	try {
 		for (auto& entry : reinit) {
 			if (entry.reinit_pending || force) {
-				execute_messages(*m_connection, entry.request);
+				execute_messages(*m_connection, entry.request, true);
 				entry.reinit_pending = false;
 			}
 		}
