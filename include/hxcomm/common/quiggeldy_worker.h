@@ -82,8 +82,9 @@ public:
 	 * (send data to chip, wait, retrieve response from chip).
 	 *
 	 * @param req FPGA words to be sent to the chip for this job.
+	 * @param session_id Session id of requested work.
 	 */
-	response_type work(request_type const& req);
+	response_type work(request_type const& req, boost::uuids::uuid const& session_id);
 
 	/**
 	 * This function is called whenever we had to relinquish control of our
@@ -93,14 +94,15 @@ public:
 	 * @param reinit_type reinit stack to be executed
 	 * @param enforce execute all reinit stack entries
 	 */
-	void perform_reinit(reinit_type& reinit_type, bool enforce);
+	void perform_reinit(
+	    reinit_type& reinit_type, boost::uuids::uuid const& session_id, bool enforce);
 
 	/**
 	 * This function is called whenever we have to relinquish control of our
 	 * hardware resource and the user specified a reinit-program to be snapshotted
 	 * after the previous work-unit was executed.
 	 */
-	void perform_reinit_snapshot(reinit_type&);
+	void perform_reinit_snapshot(reinit_type&, boost::uuids::uuid const&);
 
 	/**
 	 * This function is run whenever the server releases control (and any
@@ -247,6 +249,8 @@ protected:
 	bool m_use_munge;
 	std::size_t m_max_num_connection_attempts;
 	std::chrono::milliseconds m_delay_after_connection_attempt;
+	std::set<boost::uuids::uuid> m_sessions_with_failed_reinit;
+	std::set<boost::uuids::uuid> m_sessions_with_failed_reinit_schedule_out;
 
 	static constexpr char default_slurm_partition[]{"cube"};
 };

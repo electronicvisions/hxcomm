@@ -10,6 +10,7 @@
 
 #include "slurm/vision_defines.h"
 
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <algorithm>
@@ -17,6 +18,7 @@
 #include <cstdlib>
 #include <functional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -231,8 +233,21 @@ bool QuiggeldyWorker<Connection>::has_slurm_allocation()
 
 template <typename Connection>
 typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>::work(
-    request_type const& req)
+    request_type const& req, boost::uuids::uuid const& session_id)
 {
+	if (m_sessions_with_failed_reinit.contains(session_id)) {
+		// session-user might try again
+		m_sessions_with_failed_reinit.erase(session_id);
+		throw std::runtime_error("User session reinit failed.");
+	}
+
+	if (m_sessions_with_failed_reinit_schedule_out.contains(session_id)) {
+		throw std::runtime_error(
+		    "User session reinit schedule out failed, no further executions using this session id "
+		    "possible. The current hardware state of this session could not be determined after "
+		    "the last execution and can not be recovered. Please establish a new connection.");
+	}
+
 	if (m_mock_mode) {
 		HXCOMM_LOG_DEBUG(m_logger, "Running mock-experiment!");
 		return response_type{};
@@ -255,7 +270,8 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 }
 
 template <typename Connection>
-void QuiggeldyWorker<Connection>::perform_reinit(reinit_type& reinit, bool force)
+void QuiggeldyWorker<Connection>::perform_reinit(
+    reinit_type& reinit, boost::uuids::uuid const& session_id, bool force)
 {
 	if (m_mock_mode) {
 		HXCOMM_LOG_DEBUG(m_logger, "Running mock-reinit!");
@@ -272,15 +288,15 @@ void QuiggeldyWorker<Connection>::perform_reinit(reinit_type& reinit, bool force
 			}
 		}
 	} catch (const std::exception& e) {
-		// TODO: Implement proper exception handling
-		teardown();
 		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
-		throw;
+		m_sessions_with_failed_reinit.insert(session_id);
+		teardown();
 	}
 }
 
 template <typename Connection>
-void QuiggeldyWorker<Connection>::perform_reinit_snapshot(reinit_type& reinit)
+void QuiggeldyWorker<Connection>::perform_reinit_snapshot(
+    reinit_type& reinit, boost::uuids::uuid const& session_id)
 {
 	if (m_mock_mode) {
 		HXCOMM_LOG_DEBUG(m_logger, "Running mock-reinit-snapshot!");
@@ -298,10 +314,9 @@ void QuiggeldyWorker<Connection>::perform_reinit_snapshot(reinit_type& reinit)
 			}
 		}
 	} catch (const std::exception& e) {
-		// TODO: Implement proper exception handling
-		teardown();
 		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
-		throw;
+		m_sessions_with_failed_reinit_schedule_out.insert(session_id);
+		teardown();
 	}
 }
 
