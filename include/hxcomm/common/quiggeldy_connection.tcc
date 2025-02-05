@@ -65,12 +65,8 @@ struct ExecutorMessages<hxcomm::QuiggeldyConnection<ConnectionParameters, RcfCli
 	using response_type = typename connection_type::interface_types::response_type;
 	using request_type = typename connection_type::interface_types::request_type;
 
-	response_type operator()(
-	    connection_type& conn, request_type const& messages, bool const keep_responses)
+	response_type operator()(connection_type& conn, request_type const& messages)
 	{
-		if (keep_responses) {
-			throw std::logic_error("Keeping responses not supported for QuiggeldyConnection.");
-		}
 		StreamRC<connection_type> stream(conn);
 		return stream.submit_blocking(messages);
 	}

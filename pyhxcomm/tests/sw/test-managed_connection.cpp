@@ -55,7 +55,7 @@ struct ExecutorMessages<RefCounter>
 	using return_type = execute_messages_return_t<connection_type>;
 	using messages_type = execute_messages_argument_t<connection_type>;
 
-	return_type operator()(RefCounter&, messages_type const&, bool const)
+	return_type operator()(RefCounter&, messages_type const&)
 	{
 		return return_type();
 	}
