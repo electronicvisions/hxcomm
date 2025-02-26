@@ -5,7 +5,8 @@
 #include "pyhxcomm/common/managed_connection.h"
 #include "pyhxcomm/vx/genpybind.h"
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm {
+namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 GENPYBIND_MANUAL({
 	using ZeroMockConnection = ::hxcomm::vx::ZeroMockConnection;
@@ -14,4 +15,5 @@ GENPYBIND_MANUAL({
 	    parent, BOOST_HANA_STRING("ZeroMockConnection"));
 })
 
-} // namespace pyhxcomm::vx
+} // namespace vx
+} // namespace pyhxcomm

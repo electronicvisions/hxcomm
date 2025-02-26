@@ -7,7 +7,8 @@
 #include <type_traits>
 #include <pybind11/pybind11.h>
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm {
+namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 namespace detail {
 
@@ -61,4 +62,5 @@ GENPYBIND_MANUAL({
 	wrapped.def("set", call_ref, pybind11::arg("entry"));
 })
 
-} // namespace pyhxcomm::vxGENPYBIND_TAG_HXCOMM_VX
+} // namespace vx
+} // namespace pyhxcomm

@@ -6,7 +6,8 @@
 
 #include "hxcomm/common/connection_time_info.h"
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm {
+namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 typedef hxcomm::ConnectionTimeInfo ConnectionTimeInfo GENPYBIND(opaque);
 
@@ -22,4 +23,5 @@ GENPYBIND_MANUAL({
 	attr.attr("__repr__") = parent->py::cpp_function(str, ism);
 })
 
-} // namespace pyhxcomm::vx
+} // namespace vx
+} // namespace pyhxcomm

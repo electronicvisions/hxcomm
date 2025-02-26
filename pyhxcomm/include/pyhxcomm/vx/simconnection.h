@@ -6,7 +6,8 @@
 #include "pyhxcomm/common/managed_connection.h"
 
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm {
+namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 
 GENPYBIND_MANUAL({
@@ -28,4 +29,5 @@ GENPYBIND_MANUAL({
 	    });
 })
 
-} // namespace pyhxcomm::vx
+} // namespace vx
+} // namespace pyhxcomm
