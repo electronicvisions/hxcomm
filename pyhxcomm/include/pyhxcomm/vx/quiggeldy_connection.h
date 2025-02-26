@@ -11,7 +11,7 @@
 
 #include <chrono>
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm { namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 GENPYBIND_MANUAL({
 	using QuiggeldyConnection = ::hxcomm::vx::QuiggeldyConnection;
@@ -63,4 +63,5 @@ GENPYBIND_MANUAL({
 	        });
 })
 
-} // namespace pyhxcomm::vx
+} // namespace vx
+} // namespace pyhxcomm

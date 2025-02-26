@@ -4,7 +4,7 @@
 
 #include "hxcomm/vx/quiggeldy_utility.h"
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm { namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 GENPYBIND_MANUAL({
 	parent.def("get_unused_port", &::hxcomm::get_unused_port);
@@ -14,4 +14,5 @@ GENPYBIND_MANUAL({
 	parent.def("unset_quiggeldy_env", &::hxcomm::vx::unset_quiggeldy_env);
 })
 
-} // namespace pyhxcomm::vx
+} // namespace vx
+} // namespace pyhxcomm

@@ -5,7 +5,7 @@
 #include "pyhxcomm/common/managed_connection.h"
 #include "pyhxcomm/vx/genpybind.h"
 
-namespace pyhxcomm::vx GENPYBIND_TAG_HXCOMM_VX {
+namespace pyhxcomm { namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 GENPYBIND_MANUAL({
 	using ARQConnection = ::hxcomm::vx::ARQConnection;
@@ -13,4 +13,5 @@ GENPYBIND_MANUAL({
 	::pyhxcomm::ManagedPyBind11Helper<ARQConnection>(parent, BOOST_HANA_STRING("ARQConnection"));
 })
 
-} // namespace pyhxcomm::vx
+} // namespace vx
+} // namespace pyhxcomm
