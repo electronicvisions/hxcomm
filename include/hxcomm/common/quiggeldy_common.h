@@ -1,6 +1,10 @@
 #pragma once
 #include "hate/visibility.h"
+#include <chrono>
 #include <cstddef>
+#include <map>
+#include <optional>
+#include <string>
 #ifdef USE_MUNGE_AUTH
 #include <munge.h>
 #endif
@@ -39,5 +43,21 @@ bool is_munge_available() SYMBOL_VISIBLE;
 munge_ctx_t munge_ctx_setup() SYMBOL_VISIBLE;
 
 #endif // USE_MUNGE_AUTH
+
+/**
+ * Helper function to verify a JSON-Web-Token.
+ * @param token JWT to verify.
+ * @param public_key Public key to verify signature.
+ * @param expiration_grace_time Grace time for which a expired token is marked valid.
+ * @param claims Map in which claims are returned.
+ * @param encryption_method Encryption method used for the JWT.
+ * * @throw Throws logic_error if the token is invalid.
+ */
+void verify_jwt(
+    std::string const& token,
+    std::string const& public_key,
+    std::chrono::seconds expiration_grace_time,
+    std::optional<std::map<std::string, std::string>> claims,
+    std::string encryption_method) SYMBOL_VISIBLE;
 
 } // namespace hxcomm

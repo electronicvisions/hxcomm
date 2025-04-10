@@ -108,6 +108,10 @@ struct Config
 	std::string listen_ip, connect_ip;
 	uint16_t listen_port, connect_port;
 
+	std::optional<std::string> public_key;
+	std::optional<std::string> token_encryption;
+	std::optional<std::chrono::seconds> token_expiration_grace_time;
+
 	std::size_t release_seconds;
 	std::size_t timeout_seconds;
 
@@ -289,6 +293,16 @@ int main(int argc, const char* argv[])
 	 "Number of milliseconds after which we switch from one user to another in case "
 	 "there are people waiting.")
 
+	("public-key", po::value<std::string>()->default_value(""),
+	"Public key for token verification of quiggeldy users."
+	"If no public key is provided no token verification is performed.")
+
+	("token-encryption", po::value<std::string>()->default_value(""),
+	"Encryption method for the user token.")
+
+	("token-expiration-grace-time", po::value<size_t>()->default_value(0),
+	"Grace period for which a expired token is marked valid.")
+
 	("version,v", "print version and exit");
 	// clang-format on
 
@@ -310,6 +324,29 @@ int main(int argc, const char* argv[])
 	// them when creating the argument leads to data corruption
 	cfg.listen_ip = vm["listen-ip"].as<std::string>();
 	cfg.connect_ip = vm["connect-ip"].as<std::string>();
+
+	// Set public-key if one is provided.
+	std::string public_key = vm["public-key"].as<std::string>();
+	if (public_key == "") {
+		cfg.public_key = std::nullopt;
+	} else {
+		cfg.public_key = std::make_optional(public_key);
+	}
+
+	// Set token encryption method
+	std::string token_encryption = vm["token-encryption"].as<std::string>();
+	if (token_encryption == "") {
+		cfg.token_encryption = std::nullopt;
+	} else {
+		cfg.token_encryption = std::make_optional(token_encryption);
+	}
+
+	// Set grace period for token expiration if one is provided.
+	size_t token_expiration_grace_time = vm["token-expiration-grace-time"].as<size_t>();
+	cfg.token_expiration_grace_time =
+	    std::make_optional(std::chrono::seconds{token_expiration_grace_time});
+
+
 	cfg.slurm_partition = vm["slurm-partition"].as<std::string>();
 	{
 		std::string slurm_license = vm["slurm-license"].as<std::string>();
@@ -386,7 +423,8 @@ int main(int argc, const char* argv[])
 			}
 		}
 		HXCOMM_LOG_DEBUG(log, "Setting up ARQ-based worker to connect to: " << cfg.connect_ip);
-		auto worker = QuiggeldyWorkerARQ(cfg.connect_ip);
+		auto worker = QuiggeldyWorkerARQ(
+		    cfg.public_key, cfg.token_encryption, cfg.token_expiration_grace_time, cfg.connect_ip);
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerARQ>(server, std::move(worker), cfg);
 #endif
@@ -395,7 +433,9 @@ int main(int argc, const char* argv[])
 		HXCOMM_LOG_DEBUG(
 		    log, "Setting up CoSim-based worker to connect to: " << cfg.connect_ip << ":"
 		                                                         << cfg.connect_port);
-		auto worker = QuiggeldyWorkerSim(cfg.connect_ip, cfg.connect_port);
+		auto worker = QuiggeldyWorkerSim(
+		    cfg.public_key, cfg.token_encryption, cfg.token_expiration_grace_time, cfg.connect_ip,
+		    cfg.connect_port);
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerSim>(server, std::move(worker), cfg);
 	}

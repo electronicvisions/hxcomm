@@ -11,6 +11,7 @@
 #include <boost/uuid/uuid_hash.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include <chrono>
 #include <memory>
 #include <optional>
 #include <set>
@@ -45,9 +46,19 @@ public:
 
 	/**
 	 * Set up the Quick Queue Server.
+	 * The Worker performs a validation of user requests if a public key is provided and only
+	 * executes messanges send by validated users.
+	 * @param public_key Public key for user-validation via JWT.
+	 * @param token_encryption Encryption method used for the JWT.
+	 * @param token_expiration_grace_time Grace time in seconds for which a expired token is
+	 * still accepted.
 	 */
 	template <typename... Args>
-	QuiggeldyWorker(Args&&...);
+	QuiggeldyWorker(
+	    std::optional<std::string> public_key = std::nullopt,
+	    std::optional<std::string> token_encryption = std::nullopt,
+	    std::optional<std::chrono::seconds> token_expiration_grace_time = std::nullopt,
+	    Args&&...);
 
 	QuiggeldyWorker(QuiggeldyWorker&& other) = default;
 	QuiggeldyWorker& operator=(QuiggeldyWorker&& other) = default;
@@ -125,7 +136,7 @@ public:
 	 * Set or unset if the worker should perform its work with a license
 	 * allocation.
 	 *
-	 * @param enable_license_allocj Whether or not to perform work with a
+	 * @param enable_license_alloc Whether or not to perform work with a
 	 * license allocation.
 	 */
 	void set_enable_allocate_license(bool enable_license_alloc);
@@ -151,6 +162,14 @@ public:
 	 * @return Whether worker expects to decode user data via munge.
 	 */
 	bool get_use_munge() const;
+
+
+	/**
+	 * Get wether worker expects user tokens for verification.
+	 *
+	 * @return Wether worker expects user tokens for verification.
+	 */
+	bool get_use_jwt() const;
 
 	/**
 	 * Get unique identifier from hwdb.
@@ -225,6 +244,14 @@ public:
 	 */
 	bool check_for_timeout(typename response_type::first_type const& response);
 
+	/**
+	 * Set JSON-Web-Token for users.
+	 * Called by QuiggeldyServer.
+	 * @param user_data Session-Id of the current session which is used to cache the token.
+	 * @param user_token User-JWT.
+	 */
+	void set_user_token(std::string user_data, std::string const& user_token);
+
 protected:
 	using connection_init_type = typename Connection::init_parameters_type;
 
@@ -246,6 +273,10 @@ protected:
 
 	bool has_slurm_allocation();
 
+	std::optional<std::string> m_public_key;
+	std::optional<std::string> m_token_encryption;
+	std::chrono::seconds m_token_expiration_grace_time;
+
 	connection_init_type m_connection_init; /// Initial parameters for connection
 	std::string m_slurm_partition;          /// Which slurm partition to allocate in.
 	std::string m_slurm_license;            /// Explicit slurm license to use for allocation.
@@ -259,6 +290,10 @@ protected:
 	std::chrono::milliseconds m_delay_after_connection_attempt;
 	std::set<boost::uuids::uuid> m_sessions_with_failed_reinit;
 	std::set<boost::uuids::uuid> m_sessions_with_failed_reinit_schedule_out;
+
+
+	std::map<std::string, std::optional<std::string>> m_session_tokens;
+
 
 	static constexpr char default_slurm_partition[]{"cube"};
 };

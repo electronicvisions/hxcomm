@@ -53,6 +53,8 @@ RCF_METHOD_R0(std::string, get_remote_repo_state)
 RCF_METHOD_R0(std::string, get_version_string)
 RCF_METHOD_R0(hxcomm::HwdbEntry, get_hwdb_entry)
 RCF_METHOD_R0(bool, get_use_munge)
+RCF_METHOD_R0(bool, get_use_jwt)
+RCF_METHOD_V1(void, set_user_token, std::string)
 RCF_END(I_HXCommQuiggeldyVX)
 
 namespace detail {

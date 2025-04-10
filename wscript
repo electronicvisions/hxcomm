@@ -123,6 +123,10 @@ def configure(conf):
     conf.check_cfg(package='yaml-cpp',
                    args=['yaml-cpp >= 0.5.3', '--cflags', '--libs'],
                    uselib_store='YAMLCPP')
+    
+    conf.check_cfg(package='openssl',
+                   args=['--cflags', '--libs'],
+                   uselib_store='OPENSSL')
 
 
 def build_loopbackconnection_test(bld):
@@ -174,6 +178,7 @@ def build(bld):
                         'flange', 'rant', 'hate_inc', 'logger_obj',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
+                        'OPENSSL',
                        ] + use_munge + use_hostarq,
         uselib       = 'HXCOMM',
         install_path = '${PREFIX}/lib',

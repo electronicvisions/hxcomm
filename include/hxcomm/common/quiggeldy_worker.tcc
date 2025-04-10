@@ -14,7 +14,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 
 #include <algorithm>
-#include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <sstream>
@@ -33,7 +32,13 @@ using namespace std::literals::chrono_literals;
 
 template <typename Connection>
 template <typename... Args>
-QuiggeldyWorker<Connection>::QuiggeldyWorker(Args&&... args) :
+QuiggeldyWorker<Connection>::QuiggeldyWorker(
+    std::optional<std::string> public_key,
+    std::optional<std::string> encryption_method,
+    std::optional<std::chrono::seconds> token_expiration_grace_time,
+    Args&&... args) :
+    m_public_key(public_key),
+    m_token_encryption(encryption_method),
     m_connection_init(std::forward<Args>(args)...),
     m_has_slurm_allocation(false),
     m_mock_mode(false),
@@ -42,6 +47,8 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(Args&&... args) :
     m_max_num_connection_attempts{10},
     m_delay_after_connection_attempt{1s}
 {
+	m_token_expiration_grace_time = token_expiration_grace_time.value_or(std::chrono::seconds{0});
+
 	if (m_logger->isEnabledFor(log4cxx::Level::getTrace())) {
 		std::stringstream ss;
 		ss << "Passing " << (sizeof...(Args)) << " arguments to connection:";
@@ -102,6 +109,41 @@ void QuiggeldyWorker<Connection>::setup()
 		HXCOMM_LOG_DEBUG(m_logger, "Operating in mock-mode - no connection allocated.");
 	}
 	HXCOMM_LOG_TRACE(m_logger, "setup() completed!");
+}
+
+template <typename Connection>
+void QuiggeldyWorker<Connection>::set_user_token(
+    std::string session_id, std::string const& user_token)
+{
+	HXCOMM_LOG_DEBUG(m_logger, "Setting user token.");
+
+	// If no public key is provided to the server no token verification is performed and no tokens
+	// need to be set.
+	if (!m_public_key) {
+		return;
+	}
+
+	std::map<std::string, std::string> claims;
+	std::stringstream ss;
+
+	if (!m_token_encryption) {
+		throw std::runtime_error(
+		    "No encryption method for user token specified, but trying to decode.");
+	}
+
+	try {
+		verify_jwt(
+		    user_token, *m_public_key, m_token_expiration_grace_time, std::make_optional(claims),
+		    *m_token_encryption);
+		m_session_tokens[session_id] = std::make_optional<std::string>(user_token);
+		ss << "User token is valid.";
+	} catch (std::logic_error const& e) {
+		m_session_tokens[session_id] = std::nullopt;
+		ss << "User token is invalid.";
+		ss << "(" << e.what() << ")";
+	}
+
+	HXCOMM_LOG_INFO(m_logger, ss.str());
 }
 
 template <typename Connection>
@@ -258,8 +300,8 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 		auto retval = execute_messages(*m_connection, req);
 		if (check_for_timeout(std::get<0>(retval))) {
 			HXCOMM_LOG_WARN(
-				m_logger,
-				"Encountered timeout notifications in response stream -> resetting connection.");
+			    m_logger,
+			    "Encountered timeout notifications in response stream -> resetting connection.");
 			setup_connection();
 		}
 		return retval;
@@ -413,6 +455,24 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 			return std::nullopt;
 		}
 
+		if (m_public_key) {
+			if (!m_session_tokens.contains(session_id) || !m_session_tokens.at(session_id)) {
+				return std::nullopt;
+			} else {
+				if (!m_token_encryption) {
+					throw std::runtime_error(
+					    "No encryption method for user token specified, but trying to decode.");
+				}
+				try {
+					verify_jwt(
+					    *m_session_tokens.at(session_id), *m_public_key,
+					    m_token_expiration_grace_time, std::nullopt, *m_token_encryption);
+				} catch (std::logic_error&) {
+					return std::nullopt;
+				}
+			}
+		}
+
 		uid_like = user_id;
 		HXCOMM_LOG_DEBUG(m_logger, "Verified WITHOUT munge: " << uid_like << "@" << session_uuid);
 	}
@@ -458,6 +518,12 @@ template <typename Connection>
 bool QuiggeldyWorker<Connection>::get_use_munge() const
 {
 	return m_use_munge;
+}
+
+template <typename Connection>
+bool QuiggeldyWorker<Connection>::get_use_jwt() const
+{
+	return static_cast<bool>(m_public_key);
 }
 
 template <typename Connection>

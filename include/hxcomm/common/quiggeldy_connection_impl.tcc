@@ -23,13 +23,15 @@ using namespace std::literals::chrono_literals;
 template <typename ConnectionParameter, typename RcfClient>
 QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection() :
     QuiggeldyConnection(get_connect_params_from_env())
-{}
+{
+}
 
 template <typename ConnectionParameter, typename RcfClient>
 QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     std::string ip, uint16_t port) :
-    QuiggeldyConnection(std::make_tuple(ip, port))
-{}
+    QuiggeldyConnection(std::make_tuple(ip, port, std::optional<std::string>()))
+{
+}
 
 template <typename ConnectionParameter, typename RcfClient>
 typename QuiggeldyConnection<ConnectionParameter, RcfClient>::connect_parameters_type
@@ -70,7 +72,20 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::get_connect_params_from_env
 
 	HXCOMM_LOG_TRACE(
 	    logger, "Extracted quiggeldy connect info from environment: " << ip << ":" << port);
-	return std::make_tuple(std::move(ip), std::move(port));
+
+	// Extract user token from environment
+	char const* env_token = std::getenv(vision_quiggeldy_token_env_name);
+	if (!env_token) {
+		std::stringstream ss;
+		ss << vision_quiggeldy_token_env_name << " is not set and was not explicitly provided.";
+
+		HXCOMM_LOG_DEBUG(logger, ss.str());
+		return std::make_tuple(std::move(ip), std::move(port), std::nullopt);
+	}
+
+	std::string user_token{env_token};
+	HXCOMM_LOG_TRACE(logger, "User token: " + user_token);
+	return std::make_tuple(std::move(ip), std::move(port), std::optional<std::string>{user_token});
 }
 
 template <typename ConnectionParameter, typename RcfClient>
@@ -124,6 +139,12 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
 		throw std::runtime_error(msg);
 	}
 #endif
+
+	// Set user token if one is provided.
+	auto user_token = std::get<2>(params);
+	if (user_token) {
+		set_user_token(*user_token);
+	}
 }
 
 template <typename ConnectionParameter, typename RcfClient>
@@ -451,6 +472,15 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::get_create_client_function(
 		client->getClientStub().setRemoteCallTimeoutMs(24 * 60 * 60 * 7); // have a week to timeout
 		return client;
 	};
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_user_token(
+    std::string const& user_token)
+{
+	HXCOMM_LOG_TRACE(m_logger, "Setting user token " + (user_token));
+	retrying_client_invoke(
+	    true, [user_token](auto const& client) { return client->set_user_token(user_token); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>

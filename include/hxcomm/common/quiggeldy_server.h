@@ -77,6 +77,23 @@ public:
 	}
 
 	/**
+	 * Set JSON-Web-Token for user given by connection in QuiggeldyWorker.
+	 */
+	void set_user_token(std::string const& user_token)
+	{
+		std::string user_data = RCF::getCurrentRcfSession().getRequestUserData();
+		std::string delimiter(":");
+		size_t delimiter_index = user_data.find(delimiter);
+
+		std::string session_id =
+		    user_data.substr(delimiter_index + 1, user_data.length() - delimiter_index - 1);
+
+		return parent_t::visit_worker([session_id, user_token](auto& worker) {
+			worker.set_user_token(session_id, user_token);
+		});
+	}
+
+	/**
 	 * Set version information in human readable string-form.
 	 *
 	 * @param version Currently set version (typically set during compile).
@@ -97,6 +114,17 @@ public:
 	{
 		return parent_t::visit_worker_const(
 		    [](auto const& worker) -> decltype(auto) { return worker.get_use_munge(); });
+	}
+
+	/**
+	 * Get if worker is expecting JWTs for user verification.
+	 *
+	 * @return Wether worker is expecting JWTs for user verification.
+	 */
+	bool get_use_jwt() const
+	{
+		return parent_t::visit_worker_const(
+		    [](auto const& worker) -> decltype(auto) { return worker.get_use_jwt(); });
 	}
 
 private:

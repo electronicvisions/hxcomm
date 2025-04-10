@@ -60,7 +60,9 @@ public:
 	 */
 	QuiggeldyConnection(std::string ip, uint16_t port) SYMBOL_VISIBLE;
 
-	using connect_parameters_type = std::tuple<std::string, uint16_t>;
+	// IP-Adress is required for connection, Port is derived from env if not provided.
+	using connect_parameters_type = std::tuple<std::string, uint16_t, std::optional<std::string>>;
+
 	/**
 	 * Connect via tuple of ip/port.
 	 */
@@ -241,6 +243,12 @@ protected:
 	RCF::RcfInit m_rcf;
 
 	friend StreamRC<QuiggeldyConnection>;
+
+	/**
+	 * Sets user-token on server.
+	 * @param user_token Token to be set.
+	 */
+	void set_user_token(std::string const& user_token);
 
 	/**
 	 * Set up the RCF-client, i.e., establish a connection to the server.
