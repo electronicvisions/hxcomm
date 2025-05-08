@@ -477,6 +477,19 @@ std::string QuiggeldyWorker<Connection>::get_unique_identifier(
 }
 
 template <typename Connection>
+HwdbEntry QuiggeldyWorker<Connection>::get_hwdb_entry() const
+{
+	// TODO (#3964): Make get_hwdb_entry static member function that
+	// can be called without active hardware connection maybe requiring changes
+	// to Connection/HWDB things.
+	if (m_connection) {
+		return m_connection->get_hwdb_entry();
+	} else {
+		throw std::runtime_error("Requested hwdb entry of uninitialized connection.");
+	}
+}
+
+template <typename Connection>
 std::string QuiggeldyWorker<Connection>::get_bitfile_info() const
 {
 	if (m_connection) {

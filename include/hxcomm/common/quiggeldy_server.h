@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hxcomm/common/hwdb_entry.h"
 #include "hxcomm/common/quiggeldy_worker.h"
 
 #include "rcf-extensions/round-robin-reinit-scheduler.h"
@@ -57,6 +58,12 @@ public:
 	{
 		return parent_t::visit_set_up_worker_const(
 		    [](auto const& worker) { return worker.get_remote_repo_state(); });
+	}
+
+	HwdbEntry get_hwdb_entry()
+	{
+		return parent_t::visit_set_up_worker_const(
+		    [](auto const& worker) { return worker.get_hwdb_entry(); });
 	}
 
 	/**

@@ -1,5 +1,6 @@
 #include "hate/timer.h"
 #include "hate/variant.h"
+#include "hxcomm/common/hwdb_entry.h"
 
 namespace hxcomm {
 
@@ -60,6 +61,13 @@ std::string ZeroMockConnection<ConnectionParameter>::get_unique_identifier(
 {
 	// TODO: make unique
 	return "zeromock";
+}
+
+template <typename ConnectionParameter>
+HwdbEntry ZeroMockConnection<ConnectionParameter>::get_hwdb_entry() const
+{
+	// TODO: make unique
+	return ZeroMockEntry();
 }
 
 template <typename ConnectionParameter>

@@ -275,6 +275,13 @@ std::string SimConnection<ConnectionParameter>::get_unique_identifier(
 }
 
 template <typename ConnectionParameter>
+HwdbEntry SimConnection<ConnectionParameter>::get_hwdb_entry() const
+{
+	// TODO: make unique
+	return SimulationEntry{};
+}
+
+template <typename ConnectionParameter>
 std::string SimConnection<ConnectionParameter>::get_bitfile_info() const
 {
 	return "simulation";

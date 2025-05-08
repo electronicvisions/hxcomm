@@ -2,6 +2,7 @@
 #include "hate/visibility.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
+#include "hxcomm/common/hwdb_entry.h"
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/target.h"
 #include "hxcomm/common/utmessage.h"
@@ -70,6 +71,12 @@ public:
 	 */
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const
 	    SYMBOL_VISIBLE;
+
+	/**
+	 * Get hwdb entry.
+	 * @return Hwdb entry
+	 */
+	HwdbEntry get_hwdb_entry() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.

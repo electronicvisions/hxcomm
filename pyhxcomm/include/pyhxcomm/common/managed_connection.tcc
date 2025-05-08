@@ -203,6 +203,7 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
 		    return h.get().get_unique_identifier(hwdb_path);
 	    },
 	    pybind11::arg("hwdb_path") = std::nullopt);
+	handle.def("get_hwdb_entry", [](handle_type const& h) { return h.get().get_hwdb_entry(); });
 }
 
 } // namespace pyhxcomm

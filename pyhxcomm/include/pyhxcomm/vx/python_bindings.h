@@ -1,5 +1,12 @@
-#include "pyhxcomm/common/managed_connection.h"
+#include "pyhxcomm/vx/genpybind.h"
 
+GENPYBIND_TAG_HXCOMM_VX
+GENPYBIND_MANUAL({
+	parent.attr("__variant__") = "pybind11";
+	parent->py::module::import("pyhwdb");
+})
+
+#include "pyhxcomm/common/managed_connection.h"
 // connections need to go first, otherwise the bindings will not have the
 // alias-names
 #ifdef WITH_HXCOMM_HOSTARQ
@@ -16,3 +23,4 @@
 #include "pyhxcomm/vx/connection_handle_binding.h"
 #include "pyhxcomm/vx/connection_time_info.h"
 #include "pyhxcomm/vx/get_repo_state.h"
+#include "pyhxcomm/vx/hwdb_entry.h"

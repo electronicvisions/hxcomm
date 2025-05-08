@@ -9,6 +9,8 @@
 #include "hate/visibility.h"
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/connection_time_info.h"
+#include "hxcomm/common/hwdb_entry.h"
+#include "hxcomm/common/quiggeldy_rcf.h"
 #include "hxcomm/common/sf_serialization.h"
 #include "hxcomm/vx/connection_parameter.h"
 #include "hxcomm/vx/quiggeldy_interface_types.h"
@@ -49,6 +51,7 @@ RCF_METHOD_R1(std::string, get_unique_identifier, std::optional<std::string>)
 RCF_METHOD_R0(std::string, get_bitfile_info)
 RCF_METHOD_R0(std::string, get_remote_repo_state)
 RCF_METHOD_R0(std::string, get_version_string)
+RCF_METHOD_R0(hxcomm::HwdbEntry, get_hwdb_entry)
 RCF_METHOD_R0(bool, get_use_munge)
 RCF_END(I_HXCommQuiggeldyVX)
 

@@ -327,6 +327,51 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 }
 
 template <typename ConnectionParameter>
+HwdbEntry ARQConnection<ConnectionParameter>::get_hwdb_entry() const
+{
+	if (!m_arq_stream) {
+		throw std::runtime_error("Unexpected access to empty instance.");
+	}
+	auto const ip = boost::asio::ip::make_address_v4(m_arq_stream->get_remote_ip());
+
+	hwdb4cpp::database hwdb;
+	hwdb.load(hwdb4cpp::database::get_default_path());
+	std::optional<std::variant<hwdb4cpp::HXCubeSetupEntry, hwdb4cpp::JboaSetupEntry>> entry;
+	size_t fcp = 0;
+	auto const hxcube_ids = hwdb.get_hxcube_ids();
+	for (auto const id : hxcube_ids) {
+		auto const& local_entry = hwdb.get_hxcube_setup_entry(id);
+		for (auto const& [f, e] : local_entry.fpgas) {
+			if (e.ip == ip) {
+				fcp = f;
+				entry = local_entry;
+				break;
+			}
+		}
+	}
+	auto const jboa_ids = hwdb.get_jboa_ids();
+	for (auto const id : jboa_ids) {
+		auto const& local_entry = hwdb.get_jboa_setup_entry(id);
+		for (auto const& [f, e] : local_entry.fpgas) {
+			if (e.ip == ip) {
+				fcp = f;
+				entry = local_entry;
+				break;
+			}
+		}
+	}
+	if (!entry) {
+		throw std::out_of_range("Setup not found in hwdb.");
+	}
+	return std::visit(
+	    [fcp](auto& entry) -> HwdbEntry {
+		    entry.fpgas = {{fcp, entry.fpgas.at(fcp)}};
+		    return entry;
+	    },
+	    *entry);
+}
+
+template <typename ConnectionParameter>
 std::string ARQConnection<ConnectionParameter>::get_bitfile_info() const
 {
 	if (!m_arq_stream) {

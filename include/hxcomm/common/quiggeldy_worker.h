@@ -4,6 +4,7 @@
 #include <munge.h>
 #endif
 
+#include "hxcomm/common/hwdb_entry.h"
 #include "hxcomm/common/quiggeldy_interface_types.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -157,6 +158,12 @@ public:
 	 * @return Unique identifier
 	 */
 	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
+
+	/**
+	 * Get hwdb entry.
+	 * @return Hwdb entry
+	 */
+	HwdbEntry get_hwdb_entry() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.

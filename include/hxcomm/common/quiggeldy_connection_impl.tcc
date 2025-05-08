@@ -408,6 +408,13 @@ std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_iden
 }
 
 template <typename ConnectionParameter, typename RcfClient>
+HwdbEntry QuiggeldyConnection<ConnectionParameter, RcfClient>::get_hwdb_entry() const
+{
+	return retrying_client_invoke(
+	    true, [](auto const& client) { return client->get_hwdb_entry(); });
+}
+
+template <typename ConnectionParameter, typename RcfClient>
 std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_bitfile_info() const
 {
 	return retrying_client_invoke(
