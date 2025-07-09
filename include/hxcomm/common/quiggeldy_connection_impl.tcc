@@ -360,13 +360,12 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::next_sequence_number()
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-typename QuiggeldyConnection<ConnectionParameter, RcfClient>::interface_types::response_type
+typename QuiggeldyConnection<ConnectionParameter, RcfClient>::interface_types::return_type
 QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
     typename interface_types::request_type const& request)
 {
 	return submit([&request, this](auto& client, auto& sequence_num) {
-		typename interface_types::response_type response =
-		    client->submit_work(request, sequence_num);
+		typename interface_types::return_type response = client->submit_work(request, sequence_num);
 		accumulate_time_info(response.second);
 
 		// quiggeldy server done with execution, current reinit stack can be set to done
@@ -386,11 +385,11 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_async(
 		// RCF::Future, however, it would create an asymmetry between the
 		// client and future instance.
 		auto rcf_future_ptr =
-		    std::make_unique<RCF::Future<typename interface_types::response_type>>();
+		    std::make_unique<RCF::Future<typename interface_types::return_type>>();
 
 		*rcf_future_ptr = client->submit_work(
 		    RCF::AsyncTwoway([this, rcf_future(*rcf_future_ptr)]() mutable {
-			    typename interface_types::response_type& response = rcf_future;
+			    typename interface_types::return_type& response = rcf_future;
 			    // track time
 			    accumulate_time_info(response.second);
 		    }),

@@ -32,8 +32,7 @@ namespace SF {
 void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::request_type& qcr)
     SYMBOL_VISIBLE;
 
-void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::response_type& qcr)
-    SYMBOL_VISIBLE;
+void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::return_type& qcr) SYMBOL_VISIBLE;
 
 void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::reinit_entry_type& qcr)
     SYMBOL_VISIBLE;
@@ -44,7 +43,7 @@ namespace hxcomm::vx {
 
 RRWR_GENERATE_INTERFACE_EXPLICIT_TYPES(
     I_HXCommQuiggeldyVX,
-    typename quiggeldy_interface_types::response_type,
+    typename quiggeldy_interface_types::return_type,
     typename quiggeldy_interface_types::request_type,
     typename quiggeldy_interface_types::reinit_type)
 RCF_METHOD_R1(std::string, get_unique_identifier, std::optional<std::string>)

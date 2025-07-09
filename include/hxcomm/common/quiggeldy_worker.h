@@ -38,6 +38,7 @@ public:
 	using interface_types = quiggeldy_interface_types<typename Connection::message_types>;
 
 	using request_type = typename interface_types::request_type;
+	using return_type = typename interface_types::return_type;
 	using response_type = typename interface_types::response_type;
 	using reinit_type = typename interface_types::reinit_type;
 
@@ -97,7 +98,7 @@ public:
 	 * @param req FPGA words to be sent to the chip for this job.
 	 * @param session_id Session id of requested work.
 	 */
-	response_type work(request_type const& req, boost::uuids::uuid const& session_id);
+	return_type work(request_type const& req, boost::uuids::uuid const& session_id);
 
 	/**
 	 * This function is called whenever we had to relinquish control of our
@@ -242,7 +243,7 @@ public:
 	 * @param response to check for timeouts.
 	 * @return True if timeout was encountered, false otherwise.
 	 */
-	bool check_for_timeout(typename response_type::first_type const& response);
+	bool check_for_timeout(response_type const& response);
 
 	/**
 	 * Set JSON-Web-Token for users.

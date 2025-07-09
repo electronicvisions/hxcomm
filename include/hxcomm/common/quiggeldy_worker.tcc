@@ -180,7 +180,7 @@ void QuiggeldyWorker<Connection>::setup_connection()
 
 template <typename Connection>
 bool QuiggeldyWorker<Connection>::check_for_timeout(
-    typename QuiggeldyWorker<Connection>::response_type::first_type const& response)
+    QuiggeldyWorker<Connection>::response_type const& response)
 {
 	HXCOMM_LOG_DEBUG(m_logger, "Checking for timeout.");
 
@@ -274,7 +274,7 @@ bool QuiggeldyWorker<Connection>::has_slurm_allocation()
 }
 
 template <typename Connection>
-typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>::work(
+typename QuiggeldyWorker<Connection>::return_type QuiggeldyWorker<Connection>::work(
     request_type const& req, boost::uuids::uuid const& session_id)
 {
 	if (m_sessions_with_failed_reinit.contains(session_id)) {
@@ -292,7 +292,7 @@ typename QuiggeldyWorker<Connection>::response_type QuiggeldyWorker<Connection>:
 
 	if (m_mock_mode) {
 		HXCOMM_LOG_DEBUG(m_logger, "Running mock-experiment!");
-		return response_type{};
+		return return_type{};
 	}
 
 	HXCOMM_LOG_TRACE(m_logger, "Executing program!");

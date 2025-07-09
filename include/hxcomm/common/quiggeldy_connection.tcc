@@ -62,10 +62,10 @@ struct ExecutorMessages<hxcomm::QuiggeldyConnection<ConnectionParameters, RcfCli
 	using receive_message_type = typename connection_type::receive_message_type;
 	using send_message_type = typename connection_type::send_message_type;
 
-	using response_type = typename connection_type::interface_types::response_type;
+	using return_type = typename connection_type::interface_types::return_type;
 	using request_type = typename connection_type::interface_types::request_type;
 
-	response_type operator()(connection_type& conn, request_type const& messages)
+	return_type operator()(connection_type& conn, request_type const& messages)
 	{
 		StreamRC<connection_type> stream(conn);
 		return stream.submit_blocking(messages);

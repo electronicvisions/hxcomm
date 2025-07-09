@@ -99,7 +99,7 @@ public:
 
 	using rcf_client_type = RcfClient;
 
-	using future_type = QuiggeldyFuture<typename interface_types::response_type, rcf_client_type>;
+	using future_type = QuiggeldyFuture<typename interface_types::return_type, rcf_client_type>;
 
 	using reinit_uploader_type =
 	    rcf_extensions::OnDemandUpload<rcf_client_type, typename interface_types::reinit_type>;
@@ -268,7 +268,7 @@ protected:
 	 * @param req Request which is sent to the server.
 	 * @return Response containing FPGA words from the connection.
 	 */
-	typename interface_types::response_type submit_blocking(
+	typename interface_types::return_type submit_blocking(
 	    typename interface_types::request_type const& req) SYMBOL_VISIBLE;
 
 	/**

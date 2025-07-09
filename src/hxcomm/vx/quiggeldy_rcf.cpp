@@ -24,7 +24,7 @@ void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::request_type&
 	translate_sf_cereal(ar, qcr);
 }
 
-void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::response_type& qcr)
+void serialize(Archive& ar, hxcomm::vx::quiggeldy_interface_types::return_type& qcr)
 {
 	translate_sf_cereal(ar, qcr);
 }
