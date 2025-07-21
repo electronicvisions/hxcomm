@@ -26,9 +26,8 @@ struct HighspeedLinkNotification
 /** Instruction timeout notification. */
 struct TimeoutNotification
 {
-	typedef uint32_t value_type;
-	constexpr static size_t size = sizeof(value_type) * CHAR_BIT;
-	typedef hxcomm::instruction::detail::payload::Number<TimeoutNotification, value_type> Payload;
+	constexpr static size_t size = 45;
+	typedef hxcomm::instruction::detail::payload::Bitset<TimeoutNotification, size> Payload;
 };
 
 /** Dictionary of all FPGA system response instructions. */

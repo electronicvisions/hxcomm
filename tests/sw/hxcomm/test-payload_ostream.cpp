@@ -40,7 +40,8 @@ std::unordered_map<std::type_index, std::string> expected_string_representation 
     {typeid(from_fpga_system::HighspeedLinkNotification),
      "hxcomm::vx::instruction::from_fpga_system::HighspeedLinkNotification(00000000)"},
     {typeid(from_fpga_system::TimeoutNotification),
-     "hxcomm::vx::instruction::from_fpga_system::TimeoutNotification(0)"},
+     "hxcomm::vx::instruction::from_fpga_system::TimeoutNotification("
+     "000000000000000000000000000000000000000000000)"},
     {typeid(timing_from_fpga::Sysdelta),
      "hxcomm::vx::instruction::timing_from_fpga::Sysdelta(00000000)"},
     {typeid(timing_from_fpga::Systime), "hxcomm::vx::instruction::timing_from_fpga::Systime("
