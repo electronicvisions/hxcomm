@@ -5,6 +5,12 @@
 namespace hxcomm {
 
 template <typename ConnectionParameter>
+ZeroMockConnection<ConnectionParameter>::ZeroMockConnection(init_parameters_type const& params) :
+    ZeroMockConnection(std::get<0>(params))
+{
+}
+
+template <typename ConnectionParameter>
 ZeroMockConnection<ConnectionParameter>::ZeroMockConnection(long const ns_per_message) :
     m_send_queue(),
     m_receive_queue(),
@@ -14,7 +20,8 @@ ZeroMockConnection<ConnectionParameter>::ZeroMockConnection(long const ns_per_me
     m_time_info(),
     m_last_time_info(),
     m_last_message_count(0)
-{}
+{
+}
 
 
 template <typename ConnectionParameter>
@@ -27,7 +34,8 @@ ZeroMockConnection<ConnectionParameter>::ZeroMockConnection(ZeroMockConnection&&
     m_time_info(other.m_time_info),
     m_last_time_info(other.m_last_time_info),
     m_last_message_count(other.m_last_message_count)
-{}
+{
+}
 
 template <typename ConnectionParameter>
 ZeroMockConnection<ConnectionParameter>& ZeroMockConnection<ConnectionParameter>::operator=(

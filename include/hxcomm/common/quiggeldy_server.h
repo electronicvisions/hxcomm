@@ -42,28 +42,34 @@ public:
 		parent_t::m_server->template bind<RcfInterface>(*this);
 	}
 
-	std::string get_unique_identifier(std::optional<std::string> hwdb_path)
+	std::vector<std::string> get_unique_identifier(std::optional<std::string> hwdb_path)
 	{
 		return parent_t::visit_set_up_worker_const(
 		    [&hwdb_path](auto const& worker) { return worker.get_unique_identifier(hwdb_path); });
 	}
 
-	std::string get_bitfile_info()
+	std::vector<std::string> get_bitfile_info()
 	{
 		return parent_t::visit_set_up_worker_const(
 		    [](auto const& worker) { return worker.get_bitfile_info(); });
 	}
 
-	std::string get_remote_repo_state()
+	std::vector<std::string> get_remote_repo_state()
 	{
 		return parent_t::visit_set_up_worker_const(
 		    [](auto const& worker) { return worker.get_remote_repo_state(); });
 	}
 
-	HwdbEntry get_hwdb_entry()
+	std::vector<HwdbEntry> get_hwdb_entry()
 	{
 		return parent_t::visit_set_up_worker_const(
 		    [](auto const& worker) { return worker.get_hwdb_entry(); });
+	}
+
+	size_t size()
+	{
+		return parent_t::visit_set_up_worker_const(
+		    [](auto const& worker) { return worker.size(); });
 	}
 
 	/**

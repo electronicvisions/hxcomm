@@ -170,6 +170,7 @@ def build(bld):
     hxcomm_excludes =  []
     if not bld.env.build_with_hostarq:
         hxcomm_excludes.append('src/hxcomm/**/arqconnection.cpp')
+        hxcomm_excludes.append('src/hxcomm/**/multi_arqconnection.cpp')
 
     bld.shlib(
         target       = 'hxcomm',

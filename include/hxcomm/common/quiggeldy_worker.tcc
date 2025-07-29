@@ -31,15 +31,14 @@ namespace hxcomm {
 using namespace std::literals::chrono_literals;
 
 template <typename Connection>
-template <typename... Args>
 QuiggeldyWorker<Connection>::QuiggeldyWorker(
+    init_parameters_type connection_init,
     std::optional<std::string> public_key,
     std::optional<std::string> encryption_method,
-    std::optional<std::chrono::seconds> token_expiration_grace_time,
-    Args&&... args) :
+    std::optional<std::chrono::seconds> token_expiration_grace_time) :
     m_public_key(public_key),
     m_token_encryption(encryption_method),
-    m_connection_init(std::forward<Args>(args)...),
+    m_connection_init(connection_init),
     m_has_slurm_allocation(false),
     m_mock_mode(false),
     m_logger(log4cxx::Logger::getLogger("hxcomm.QuiggeldyWorker")),
@@ -47,14 +46,21 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(
     m_max_num_connection_attempts{10},
     m_delay_after_connection_attempt{1s}
 {
+	if (m_logger->isEnabledFor(log4cxx::Level::getTrace())) {
+		assert(std::tuple_size<init_parameters_type>::value == 1);
+		std::stringstream msg;
+		msg << "Passing " << std::get<0>(connection_init).size() << " arguments to connection:";
+		for (auto& single_connection_init : std::get<0>(connection_init)) {
+			std::apply(
+			    [&msg](auto&&... args) { ((msg << " " << args), ...); }, single_connection_init);
+		}
+		msg << ".";
+		HXCOMM_LOG_TRACE(m_logger, msg.str());
+	}
+
 	m_token_expiration_grace_time = token_expiration_grace_time.value_or(std::chrono::seconds{0});
 
-	if (m_logger->isEnabledFor(log4cxx::Level::getTrace())) {
-		std::stringstream ss;
-		ss << "Passing " << (sizeof...(Args)) << " arguments to connection:";
-		((ss << " " << args), ...);
-		HXCOMM_LOG_TRACE(m_logger, ss.str());
-	}
+
 	char const* env_partition = std::getenv(vision_quiggeldy_partition_env_name);
 	if (env_partition == nullptr) {
 		m_slurm_partition = default_slurm_partition;
@@ -66,7 +72,9 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(
 		std::stringstream ss;
 		ss << "quiggeldy";
 		auto paste = [&ss](auto&& arg) { ss << "_" << arg; };
-		std::apply([&ss, &paste](auto&&... arg) { (..., paste(arg)); }, m_connection_init);
+		for (auto& single_connection_init : std::get<0>(m_connection_init)) {
+			std::apply([&ss, &paste](auto&&... arg) { (..., paste(arg)); }, single_connection_init);
+		}
 		m_slurm_license = ss.str();
 	}
 }
@@ -147,17 +155,25 @@ void QuiggeldyWorker<Connection>::set_user_token(
 }
 
 template <typename Connection>
+size_t QuiggeldyWorker<Connection>::size() const
+{
+	if (!m_connection) {
+		return 0;
+	}
+	return m_connection->size();
+}
+
+template <typename Connection>
 void QuiggeldyWorker<Connection>::setup_connection()
 {
-	HXCOMM_LOG_TRACE(m_logger, "Setting up local connection.");
+	HXCOMM_LOG_TRACE(m_logger, "Setting up local connections.");
 	// Release old connection first because otherwise we might block ourselves.
 	m_connection.reset();
 	// TODO: have the experiment control timeout (e.g. when the board is unresponsive)
 	std::size_t num_attempts = 0;
 	while (true) {
 		try {
-			auto new_connection =
-			    hate::memory::make_unique_from_tuple<Connection>(m_connection_init);
+			auto new_connection = std::make_unique<MultiConnection<Connection>>(m_connection_init);
 			m_connection.swap(new_connection);
 			break;
 		} catch (std::exception& e) {
@@ -179,25 +195,28 @@ void QuiggeldyWorker<Connection>::setup_connection()
 }
 
 template <typename Connection>
-bool QuiggeldyWorker<Connection>::check_for_timeout(
-    QuiggeldyWorker<Connection>::response_type const& response)
+bool QuiggeldyWorker<Connection>::check_for_timeout(return_type const& return_value)
 {
 	HXCOMM_LOG_DEBUG(m_logger, "Checking for timeout.");
 
 	bool timeout = false;
 
 	// if any msg is a receive timeout trigger a reconnection
-	if (std::any_of(response.cbegin(), response.cend(), [this](auto const& m) {
-		    return std::visit(
-		        [this](auto const& mm) {
-			        return std::is_same_v<
-			            typename std::remove_cvref_t<decltype(mm)>::instruction_type,
-			            typename Connection::message_types::connection_parameter_type::
-			                ReceiveTimeout>;
-		        },
-		        m);
-	    })) {
-		timeout = true;
+	for (auto single_return : return_value) {
+		auto& single_response = single_return.first;
+		if (std::any_of(single_response.cbegin(), single_response.cend(), [this](auto const& m) {
+			    return std::visit(
+			        [this](auto const& mm) {
+				        return std::is_same_v<
+				            typename std::remove_cvref_t<decltype(mm)>::instruction_type,
+				            typename Connection::message_types::connection_parameter_type::
+				                ReceiveTimeout>;
+			        },
+			        m);
+		    })) {
+			timeout = true;
+			break;
+		}
 	}
 	HXCOMM_LOG_DEBUG(m_logger, "Checked for timeout.");
 	return timeout;
@@ -275,7 +294,7 @@ bool QuiggeldyWorker<Connection>::has_slurm_allocation()
 
 template <typename Connection>
 typename QuiggeldyWorker<Connection>::return_type QuiggeldyWorker<Connection>::work(
-    request_type const& req, boost::uuids::uuid const& session_id)
+    request_type const& requests, boost::uuids::uuid const& session_id)
 {
 	if (m_sessions_with_failed_reinit.contains(session_id)) {
 		// session-user might try again
@@ -285,8 +304,10 @@ typename QuiggeldyWorker<Connection>::return_type QuiggeldyWorker<Connection>::w
 
 	if (m_sessions_with_failed_reinit_schedule_out.contains(session_id)) {
 		throw std::runtime_error(
-		    "User session reinit schedule out failed, no further executions using this session id "
-		    "possible. The current hardware state of this session could not be determined after "
+		    "User session reinit schedule out failed, no further executions using this session "
+		    "id "
+		    "possible. The current hardware state of this session could not be determined "
+		    "after "
 		    "the last execution and can not be recovered. Please establish a new connection.");
 	}
 
@@ -297,13 +318,16 @@ typename QuiggeldyWorker<Connection>::return_type QuiggeldyWorker<Connection>::w
 
 	HXCOMM_LOG_TRACE(m_logger, "Executing program!");
 	try {
-		auto retval = execute_messages(*m_connection, req);
-		if (check_for_timeout(std::get<0>(retval))) {
+		auto retval =
+		    detail::ExecutorMessages<MultiConnection<Connection>>{}(*m_connection, requests);
+
+		if (check_for_timeout(retval)) {
 			HXCOMM_LOG_WARN(
-			    m_logger,
-			    "Encountered timeout notifications in response stream -> resetting connection.");
+			    m_logger, "Encountered timeout notifications in response stream -> resetting "
+			              "connection.");
 			setup_connection();
 		}
+
 		return retval;
 	} catch (const std::exception& e) {
 		HXCOMM_LOG_ERROR(m_logger, "Error during word execution: " << e.what());
@@ -325,7 +349,8 @@ void QuiggeldyWorker<Connection>::perform_reinit(
 	try {
 		for (auto& entry : reinit) {
 			if (entry.reinit_pending || force) {
-				execute_messages(*m_connection, entry.request);
+				detail::ExecutorMessages<MultiConnection<Connection>>{}(
+				    *m_connection, entry.request);
 				entry.reinit_pending = false;
 			}
 		}
@@ -350,7 +375,15 @@ void QuiggeldyWorker<Connection>::perform_reinit_snapshot(
 	try {
 		for (auto& entry : reinit) {
 			if (entry.snapshot) {
-				auto const [response, _] = execute_messages(*m_connection, *(entry.snapshot));
+				auto retval = detail::ExecutorMessages<MultiConnection<Connection>>{}(
+				    *m_connection, entry.request);
+
+				response_type response;
+
+				for (auto& value : retval) {
+					response.push_back(value.first);
+				}
+
 				entry.request = typename std::decay_t<decltype(entry)>::transform_type{}(
 				    response, *(entry.snapshot));
 			}
@@ -433,7 +466,8 @@ QuiggeldyWorker<Connection>::verify_user(std::string const& user_data)
 	}
 #endif
 	else {
-		// If we de not use munge, the client sends user-id and session-name separated by a colon.
+		// If we de not use munge, the client sends user-id and session-name separated by a
+		// colon.
 		std::string delimiter(":");
 		auto session_idx = user_data.find(delimiter);
 
@@ -527,7 +561,7 @@ bool QuiggeldyWorker<Connection>::get_use_jwt() const
 }
 
 template <typename Connection>
-std::string QuiggeldyWorker<Connection>::get_unique_identifier(
+std::vector<std::string> QuiggeldyWorker<Connection>::get_unique_identifier(
     std::optional<std::string> hwdb_path) const
 {
 	// TODO (#3964): Make get_unique_identifier static member function that
@@ -535,7 +569,12 @@ std::string QuiggeldyWorker<Connection>::get_unique_identifier(
 	// to Connection/HWDB things.
 	if (m_connection) {
 		auto unique_identifier = m_connection->get_unique_identifier(hwdb_path);
-		HXCOMM_LOG_DEBUG(m_logger, "Requested unique identifier: " << unique_identifier);
+		std::stringstream msg;
+		msg << "Requested unique identifier: ";
+		for (auto id : unique_identifier) {
+			msg << id;
+		}
+		HXCOMM_LOG_DEBUG(m_logger, msg.str());
 		return unique_identifier;
 	} else {
 		throw std::runtime_error("Requested unique identifier of uninitialized connection.");
@@ -543,7 +582,7 @@ std::string QuiggeldyWorker<Connection>::get_unique_identifier(
 }
 
 template <typename Connection>
-HwdbEntry QuiggeldyWorker<Connection>::get_hwdb_entry() const
+std::vector<HwdbEntry> QuiggeldyWorker<Connection>::get_hwdb_entry() const
 {
 	// TODO (#3964): Make get_hwdb_entry static member function that
 	// can be called without active hardware connection maybe requiring changes
@@ -556,11 +595,16 @@ HwdbEntry QuiggeldyWorker<Connection>::get_hwdb_entry() const
 }
 
 template <typename Connection>
-std::string QuiggeldyWorker<Connection>::get_bitfile_info() const
+std::vector<std::string> QuiggeldyWorker<Connection>::get_bitfile_info() const
 {
 	if (m_connection) {
 		auto bitfile_info = m_connection->get_bitfile_info();
-		HXCOMM_LOG_DEBUG(m_logger, "Requested bitfile info: " << bitfile_info);
+		std::stringstream msg;
+		msg << "Requested bitfile info: ";
+		for (auto info : bitfile_info) {
+			msg << info;
+		}
+		HXCOMM_LOG_DEBUG(m_logger, msg.str());
 		return bitfile_info;
 	} else {
 		throw std::runtime_error("Requested bitfile info of uninitialized connection.");
@@ -568,10 +612,15 @@ std::string QuiggeldyWorker<Connection>::get_bitfile_info() const
 }
 
 template <typename Connection>
-std::string QuiggeldyWorker<Connection>::get_remote_repo_state() const
+std::vector<std::string> QuiggeldyWorker<Connection>::get_remote_repo_state() const
 {
-	auto const repo_state = get_remote_repo_state();
-	HXCOMM_LOG_DEBUG(m_logger, "Requested remote repo state: " << repo_state);
+	auto const repo_state = m_connection->get_remote_repo_state();
+	std::stringstream msg;
+	msg << "Requested remote repo state: ";
+	for (auto state : repo_state) {
+		msg << state;
+	}
+	HXCOMM_LOG_DEBUG(m_logger, msg.str());
 	return repo_state;
 }
 

@@ -34,7 +34,7 @@ struct reinit_stack_entry_unroll_helper<Wrapped, std::variant<ConnectionHandle, 
 
 	constexpr reinit_stack_entry_unroll_helper(wrapped_t& wrapped) : parent_t({wrapped})
 	{
-		wrapped.def(pybind11::init([](ConnectionHandle & handle) -> typename wrapped_t::type {
+		wrapped.def(pybind11::init([](ConnectionHandle& handle) -> typename wrapped_t::type {
 			typename ConnectionHandle::connection_type& connection = handle.get();
 			return typename wrapped_t::type{connection};
 		}));

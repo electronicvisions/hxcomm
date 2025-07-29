@@ -44,6 +44,12 @@ void ARQConnection<ConnectionParameter>::SendQueue::flush()
 }
 
 template <typename ConnectionParameter>
+ARQConnection<ConnectionParameter>::ARQConnection(init_parameters_type const& params) :
+    ARQConnection(std::get<0>(params))
+{
+}
+
+template <typename ConnectionParameter>
 ARQConnection<ConnectionParameter>::ARQConnection() :
     m_registry(std::make_unique<Registry>(std::tuple{get_fpga_ip()})),
     m_arq_stream(std::make_unique<arq_stream_type>(std::get<0>(m_registry->m_parameters))),

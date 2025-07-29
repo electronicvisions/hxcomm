@@ -2,6 +2,7 @@
 
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/execute_messages_types.h"
+#include "hxcomm/common/quiggeldy_connection.h"
 
 #include <type_traits>
 #include <typeinfo>
@@ -27,8 +28,8 @@ struct StreamRC
 		template <typename C>
 		struct submit_async_return
 		{
-			using type =
-			    decltype(std::declval<C&>().submit_async(std::declval<submit_arg_type const&>()));
+			using type = decltype(std::declval<C&>().submit_async(
+			    std::declval<std::vector<submit_arg_type> const&>()));
 		};
 
 		/**
@@ -37,8 +38,8 @@ struct StreamRC
 		template <typename C>
 		struct submit_blocking_return
 		{
-			using type = decltype(
-			    std::declval<C&>().submit_blocking(std::declval<submit_arg_type const&>()));
+			using type = decltype(std::declval<C&>().submit_blocking(
+			    std::declval<submit_arg_type const&>()));
 		};
 
 		template <typename, typename = std::void_t<>>
@@ -95,27 +96,14 @@ struct StreamRC
 		{};
 	};
 
-	static_assert(
-	    Check::template has_required_interface<connection_type>::value,
-	    "Connection does not adhere to required StreamRC-Interface.");
-	static_assert(
-	    Check::template has_method_submit_async<connection_type>::value,
-	    "Connection does not have submit_async-method");
-	static_assert(
-	    Check::template has_method_submit_blocking<connection_type>::value,
-	    "Connection does not have submit_blocking-method");
-
-	/**
-	 * Construct a Stream for the given connection handle which it manages.
-	 */
 	StreamRC(connection_type& conn) : m_connection(conn){};
 
-	auto submit_async(submit_arg_type const& message)
+	auto submit_async(auto const& message)
 	{
 		return m_connection.submit_async(message);
 	}
 
-	auto submit_blocking(submit_arg_type const& message)
+	auto submit_blocking(auto const& message)
 	{
 		return m_connection.submit_blocking(message);
 	}

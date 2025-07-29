@@ -5,6 +5,7 @@
 #endif
 
 #include "hxcomm/common/hwdb_entry.h"
+#include "hxcomm/common/multiconnection.h"
 #include "hxcomm/common/quiggeldy_interface_types.h"
 
 #include <boost/uuid/uuid.hpp>
@@ -35,12 +36,16 @@ template <typename Connection>
 class QuiggeldyWorker
 {
 public:
+	// Interface types for MultiConnection
 	using interface_types = quiggeldy_interface_types<typename Connection::message_types>;
 
 	using request_type = typename interface_types::request_type;
 	using return_type = typename interface_types::return_type;
 	using response_type = typename interface_types::response_type;
 	using reinit_type = typename interface_types::reinit_type;
+
+	// Init parameters for MultiConnection.
+	using init_parameters_type = typename MultiConnection<Connection>::init_parameters_type;
 
 	// pair encoding uid and UUID of the session to differentiate them (one per QuiggeldyConnection)
 	using user_session_type = std::pair<std::string, boost::uuids::uuid>;
@@ -54,12 +59,11 @@ public:
 	 * @param token_expiration_grace_time Grace time in seconds for which a expired token is
 	 * still accepted.
 	 */
-	template <typename... Args>
 	QuiggeldyWorker(
+	    init_parameters_type connection_init,
 	    std::optional<std::string> public_key = std::nullopt,
 	    std::optional<std::string> token_encryption = std::nullopt,
-	    std::optional<std::chrono::seconds> token_expiration_grace_time = std::nullopt,
-	    Args&&...);
+	    std::optional<std::chrono::seconds> token_expiration_grace_time = std::nullopt);
 
 	QuiggeldyWorker(QuiggeldyWorker&& other) = default;
 	QuiggeldyWorker& operator=(QuiggeldyWorker&& other) = default;
@@ -98,25 +102,28 @@ public:
 	 * @param req FPGA words to be sent to the chip for this job.
 	 * @param session_id Session id of requested work.
 	 */
-	return_type work(request_type const& req, boost::uuids::uuid const& session_id);
+	return_type work(request_type const& requests, boost::uuids::uuid const& session_id);
 
 	/**
 	 * This function is called whenever we had to relinquish control of our
 	 * hardware resource and the user specified a reinit-program to be loaded
 	 * prior to the next work-unit being executed.
 	 *
-	 * @param reinit_type reinit stack to be executed
+	 * @param reinit reinit stacks to be executed
+	 * @param session_id Unique session specific ID
 	 * @param enforce execute all reinit stack entries
 	 */
-	void perform_reinit(
-	    reinit_type& reinit_type, boost::uuids::uuid const& session_id, bool enforce);
+	void perform_reinit(reinit_type& reinit, boost::uuids::uuid const& session_id, bool enforce);
 
 	/**
 	 * This function is called whenever we have to relinquish control of our
 	 * hardware resource and the user specified a reinit-program to be snapshotted
 	 * after the previous work-unit was executed.
+	 *
+	 * @param reinit reinit stacks to be executed
+	 * @param session_id Unique session specific ID
 	 */
-	void perform_reinit_snapshot(reinit_type&, boost::uuids::uuid const&);
+	void perform_reinit_snapshot(reinit_type& reinit, boost::uuids::uuid const& session_id);
 
 	/**
 	 * This function is run whenever the server releases control (and any
@@ -164,7 +171,6 @@ public:
 	 */
 	bool get_use_munge() const;
 
-
 	/**
 	 * Get wether worker expects user tokens for verification.
 	 *
@@ -177,25 +183,26 @@ public:
 	 * @param hwdb_path Optional path to hwdb
 	 * @return Unique identifier
 	 */
-	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const;
+	std::vector<std::string> get_unique_identifier(
+	    std::optional<std::string> hwdb_path = std::nullopt) const;
 
 	/**
 	 * Get hwdb entry.
 	 * @return Hwdb entry
 	 */
-	HwdbEntry get_hwdb_entry() const SYMBOL_VISIBLE;
+	std::vector<HwdbEntry> get_hwdb_entry() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.
 	 * @return Bitfile info
 	 */
-	std::string get_bitfile_info() const;
+	std::vector<std::string> get_bitfile_info() const;
 
 	/**
 	 * Get repository state info of quiggeldy server side build.
 	 * @return Repository state info
 	 */
-	std::string get_remote_repo_state() const;
+	std::vector<std::string> get_remote_repo_state() const;
 
 	/**
 	 * Set the amount of time to wait, if connecting to the "real" backend fails.
@@ -240,10 +247,10 @@ public:
 	/**
 	 * Check if response contains a timeout response.
 	 *
-	 * @param response to check for timeouts.
+	 * @param return_value Return value which response is checked for timeouts.
 	 * @return True if timeout was encountered, false otherwise.
 	 */
-	bool check_for_timeout(response_type const& response);
+	bool check_for_timeout(return_type const& return_value);
 
 	/**
 	 * Set JSON-Web-Token for users.
@@ -253,13 +260,17 @@ public:
 	 */
 	void set_user_token(std::string user_data, std::string const& user_token);
 
-protected:
-	using connection_init_type = typename Connection::init_parameters_type;
+	/**
+	 * Return size of handled MultiConnection.
+	 */
+	size_t size() const;
 
+protected:
 	/**
 	 * Create a new connection, closing the old one in the process.
 	 */
 	void setup_connection();
+
 
 	std::string get_slurm_jobname() const;
 
@@ -278,13 +289,15 @@ protected:
 	std::optional<std::string> m_token_encryption;
 	std::chrono::seconds m_token_expiration_grace_time;
 
-	connection_init_type m_connection_init; /// Initial parameters for connection
+	init_parameters_type m_connection_init; /// Initial parameters for connection
 	std::string m_slurm_partition;          /// Which slurm partition to allocate in.
 	std::string m_slurm_license;            /// Explicit slurm license to use for allocation.
 	bool m_has_slurm_allocation;
 	bool m_allocate_license;
 	bool m_mock_mode;
-	std::unique_ptr<Connection> m_connection; /// Wrapped connection object.
+
+	std::unique_ptr<MultiConnection<Connection>> m_connection; // Vectorized connections.
+
 	log4cxx::LoggerPtr m_logger;
 	bool m_use_munge;
 	std::size_t m_max_num_connection_attempts;

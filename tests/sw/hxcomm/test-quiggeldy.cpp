@@ -103,8 +103,10 @@ TEST(Quiggeldy, SimpleMockModeSynchronous)
 
 	// synchronous call
 
-	auto response = stream.submit_blocking(decltype(client)::interface_types::request_type());
-	ASSERT_EQ(response.first.size(), 0);
+	auto result = stream.submit_blocking(decltype(client)::interface_types::request_type());
+	for (auto single_result : result) {
+		ASSERT_EQ(single_result.first.size(), 0);
+	}
 
 	HXCOMM_LOG_TRACE(log, "Killing quiggeldy.");
 	kill(quiggeldy_pid, SIGTERM);
@@ -143,7 +145,10 @@ TEST(Quiggeldy, SimpleMockModeAsynchronous)
 	std::size_t idx = 0;
 	for (auto& future : futures) {
 		HXCOMM_LOG_TRACE(log, "Asserting future #" << idx);
-		ASSERT_EQ((*future).first.size(), 0);
+		auto result = *future;
+		for (auto single_result : result) {
+			ASSERT_EQ(single_result.first.size(), 0);
+		}
 		++idx;
 	}
 
@@ -196,7 +201,10 @@ TEST(Quiggeldy, SimpleMockModeReinit)
 	std::size_t idx = 0;
 	for (auto& future : futures) {
 		HXCOMM_LOG_TRACE(log, "Asserting future #" << idx);
-		ASSERT_EQ((*future).first.size(), 0);
+		auto result = *future;
+		for (auto single_result : result) {
+			ASSERT_EQ(single_result.first.size(), 0);
+		}
 		++idx;
 	}
 

@@ -28,13 +28,13 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection() :
 
 template <typename ConnectionParameter, typename RcfClient>
 QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
-    std::string ip, uint16_t port) :
-    QuiggeldyConnection(std::make_tuple(ip, port, std::optional<std::string>()))
+    std::string ip, uint16_t port, std::optional<std::string> user_token) :
+    QuiggeldyConnection(std::make_tuple(ip, port, user_token))
 {
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-typename QuiggeldyConnection<ConnectionParameter, RcfClient>::connect_parameters_type
+typename QuiggeldyConnection<ConnectionParameter, RcfClient>::init_parameters_type
 QuiggeldyConnection<ConnectionParameter, RcfClient>::get_connect_params_from_env()
 {
 	// This function is called when QuiggeldyConnection is not yet initialized
@@ -97,7 +97,7 @@ std::lock_guard<std::mutex> QuiggeldyConnection<ConnectionParameter, RcfClient>:
 
 template <typename ConnectionParameter, typename RcfClient>
 QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
-    typename QuiggeldyConnection<ConnectionParameter, RcfClient>::connect_parameters_type const&
+    typename QuiggeldyConnection<ConnectionParameter, RcfClient>::init_parameters_type const&
         params) :
     m_connect_parameters{params},
     m_connection_attempt_num_max(200),
@@ -139,6 +139,9 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
 		throw std::runtime_error(msg);
 	}
 #endif
+	// Set size of underlying multiconnection
+	m_size = retrying_client_invoke(false, [](auto const& client) { return client->size(); });
+	m_time_info.assign(m_size, ConnectionTimeInfo());
 
 	// Set user token if one is provided.
 	auto user_token = std::get<2>(params);
@@ -159,7 +162,8 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::QuiggeldyConnection(
     m_reinit_uploader(std::move(other.m_reinit_uploader)),
     m_sequence_num(std::move(other.m_sequence_num)),
     m_reinit_stack(std::move(other.m_reinit_stack)),
-    m_custom_user(std::move(other.m_custom_user))
+    m_custom_user(std::move(other.m_custom_user)),
+    m_size(std::move(other.m_size))
 {
 	RCF::init();
 	HXCOMM_LOG_TRACE(m_logger, "Moving QuiggeldyConnection!");
@@ -366,12 +370,29 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 {
 	return submit([&request, this](auto& client, auto& sequence_num) {
 		typename interface_types::return_type response = client->submit_work(request, sequence_num);
-		accumulate_time_info(response.second);
-
+		std::vector<ConnectionTimeInfo> time_info;
+		for (auto res : response) {
+			time_info.push_back(res.second);
+		}
+		accumulate_time_info(time_info);
 		// quiggeldy server done with execution, current reinit stack can be set to done
 		this->m_reinit_stack->set_all_done();
 		return response;
 	});
+}
+
+template <typename ConnectionParameter, typename RcfClient>
+typename QuiggeldyConnection<ConnectionParameter, RcfClient>::interface_types::return_type
+QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
+    typename interface_types::request_wrapped_type const& request)
+{
+	// TO-DO: This coyping can be removed if the serialization in the submission is changed so that
+	// a vector of references can be entered.
+	typename interface_types::request_type request_unwrapped;
+	for (auto& req : request) {
+		request_unwrapped.push_back(req.get());
+	}
+	return submit_blocking(request_unwrapped);
 }
 
 template <typename ConnectionParameter, typename RcfClient>
@@ -391,7 +412,11 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_async(
 		    RCF::AsyncTwoway([this, rcf_future(*rcf_future_ptr)]() mutable {
 			    typename interface_types::return_type& response = rcf_future;
 			    // track time
-			    accumulate_time_info(response.second);
+			    std::vector<ConnectionTimeInfo> time_info;
+			    for (auto res : response) {
+				    time_info.push_back(res.second);
+			    }
+			    accumulate_time_info(time_info);
 		    }),
 		    request, sequence_num);
 		return future_type{std::move(client), std::move(rcf_future_ptr)};
@@ -405,7 +430,8 @@ bool QuiggeldyConnection<ConnectionParameter, RcfClient>::is_out_of_order() cons
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-ConnectionTimeInfo QuiggeldyConnection<ConnectionParameter, RcfClient>::get_time_info() const
+std::vector<ConnectionTimeInfo> QuiggeldyConnection<ConnectionParameter, RcfClient>::get_time_info()
+    const
 {
 	auto const lk = lock_time_info();
 	return m_time_info;
@@ -413,14 +439,27 @@ ConnectionTimeInfo QuiggeldyConnection<ConnectionParameter, RcfClient>::get_time
 
 template <typename ConnectionParameter, typename RcfClient>
 void QuiggeldyConnection<ConnectionParameter, RcfClient>::accumulate_time_info(
-    ConnectionTimeInfo const& delta)
+    std::vector<ConnectionTimeInfo> const& delta)
 {
+	if (delta.size() != size()) {
+		throw std::length_error(
+		    "Size of delta time information " + std::to_string(delta.size()) +
+		    " and Quiggeldy-Connection-Size " + std::to_string(size()) + " do not match.");
+	}
+	if (delta.size() != m_time_info.size()) {
+		throw std::length_error(
+		    "Size of delta time information " + std::to_string(delta.size()) +
+		    " and connection time information " + std::to_string(m_time_info.size()) +
+		    " do not match.");
+	}
 	auto const lk = lock_time_info();
-	m_time_info += delta;
+	for (size_t i = 0; i < delta.size(); i++) {
+		m_time_info.at(i) += delta.at(i);
+	}
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_identifier(
+std::vector<std::string> QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_identifier(
     std::optional<std::string> hwdb_path) const
 {
 	return retrying_client_invoke(
@@ -428,21 +467,23 @@ std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_unique_iden
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-HwdbEntry QuiggeldyConnection<ConnectionParameter, RcfClient>::get_hwdb_entry() const
+std::vector<HwdbEntry> QuiggeldyConnection<ConnectionParameter, RcfClient>::get_hwdb_entry() const
 {
 	return retrying_client_invoke(
 	    true, [](auto const& client) { return client->get_hwdb_entry(); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_bitfile_info() const
+std::vector<std::string> QuiggeldyConnection<ConnectionParameter, RcfClient>::get_bitfile_info()
+    const
 {
 	return retrying_client_invoke(
 	    true, [](auto const& client) { return client->get_bitfile_info(); });
 }
 
 template <typename ConnectionParameter, typename RcfClient>
-std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_remote_repo_state() const
+std::vector<std::string>
+QuiggeldyConnection<ConnectionParameter, RcfClient>::get_remote_repo_state() const
 {
 	return retrying_client_invoke(
 	    true, [](auto const& client) { return client->get_remote_repo_state(); });
@@ -454,6 +495,13 @@ std::string QuiggeldyConnection<ConnectionParameter, RcfClient>::get_version_str
 	return retrying_client_invoke(
 	    true, [](auto const& client) { return client->get_version_string(); });
 }
+
+template <typename ConnectionParameter, typename RcfClient>
+size_t QuiggeldyConnection<ConnectionParameter, RcfClient>::size() const
+{
+	return m_size;
+}
+
 
 template <typename ConnectionParameter, typename RcfClient>
 void QuiggeldyConnection<ConnectionParameter, RcfClient>::set_out_of_order()

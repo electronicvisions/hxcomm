@@ -46,11 +46,12 @@ RRWR_GENERATE_INTERFACE_EXPLICIT_TYPES(
     typename quiggeldy_interface_types::return_type,
     typename quiggeldy_interface_types::request_type,
     typename quiggeldy_interface_types::reinit_type)
-RCF_METHOD_R1(std::string, get_unique_identifier, std::optional<std::string>)
-RCF_METHOD_R0(std::string, get_bitfile_info)
-RCF_METHOD_R0(std::string, get_remote_repo_state)
+RCF_METHOD_R1(std::vector<std::string>, get_unique_identifier, std::optional<std::string>)
+RCF_METHOD_R0(std::vector<std::string>, get_bitfile_info)
+RCF_METHOD_R0(std::vector<std::string>, get_remote_repo_state)
+RCF_METHOD_R0(size_t, size)
 RCF_METHOD_R0(std::string, get_version_string)
-RCF_METHOD_R0(hxcomm::HwdbEntry, get_hwdb_entry)
+RCF_METHOD_R0(std::vector<hxcomm::HwdbEntry>, get_hwdb_entry)
 RCF_METHOD_R0(bool, get_use_munge)
 RCF_METHOD_R0(bool, get_use_jwt)
 RCF_METHOD_V1(void, set_user_token, std::string)

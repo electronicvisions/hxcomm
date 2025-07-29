@@ -33,6 +33,9 @@ typedef std::shared_ptr<Logger> LoggerPtr;
 
 namespace hxcomm {
 
+template <typename Connection>
+struct StreamRC;
+
 /**
  * QuiggeldyConnection class.
  * Establish and hold connection to a remote quiggeldy instance that itself
@@ -58,15 +61,18 @@ public:
 	 * @param ip Target ip address.
 	 * @param port Target port.
 	 */
-	QuiggeldyConnection(std::string ip, uint16_t port) SYMBOL_VISIBLE;
+	QuiggeldyConnection(
+	    std::string ip,
+	    uint16_t port,
+	    std::optional<std::string> user_token = std::nullopt) SYMBOL_VISIBLE;
 
 	// IP-Adress is required for connection, Port is derived from env if not provided.
-	using connect_parameters_type = std::tuple<std::string, uint16_t, std::optional<std::string>>;
+	using init_parameters_type = std::tuple<std::string, uint16_t, std::optional<std::string>>;
 
 	/**
 	 * Connect via tuple of ip/port.
 	 */
-	QuiggeldyConnection(connect_parameters_type const& params) SYMBOL_VISIBLE;
+	QuiggeldyConnection(init_parameters_type const& params) SYMBOL_VISIBLE;
 
 	/**
 	 * Move constructor.
@@ -190,33 +196,33 @@ public:
 	 * Get time information.
 	 * @return Time information
 	 */
-	ConnectionTimeInfo get_time_info() const SYMBOL_VISIBLE;
+	std::vector<ConnectionTimeInfo> get_time_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get unique identifier from hwdb.
 	 * @param hwdb_path Optional path to hwdb
 	 * @return Unique identifier
 	 */
-	std::string get_unique_identifier(std::optional<std::string> hwdb_path = std::nullopt) const
-	    SYMBOL_VISIBLE;
+	std::vector<std::string> get_unique_identifier(
+	    std::optional<std::string> hwdb_path = std::nullopt) const SYMBOL_VISIBLE;
 
 	/**
 	 * Get hwdb entry.
 	 * @return Hwdb entry
 	 */
-	HwdbEntry get_hwdb_entry() const SYMBOL_VISIBLE;
+	std::vector<HwdbEntry> get_hwdb_entry() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get bitfile information.
 	 * @return Bitfile info
 	 */
-	std::string get_bitfile_info() const SYMBOL_VISIBLE;
+	std::vector<std::string> get_bitfile_info() const SYMBOL_VISIBLE;
 
 	/**
 	 * Get quiggeldy server repository state info.
 	 * @return Repository state info
 	 */
-	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
+	std::vector<std::string> get_remote_repo_state() const SYMBOL_VISIBLE;
 
 	/**
 	 * Set custom username.
@@ -238,6 +244,11 @@ public:
 	 * @return Human-readable form of version information.
 	 */
 	std::string get_version_string() const SYMBOL_VISIBLE;
+
+	/**
+	 * Return size of MultiConnection handled by the server which this connection is connected to.
+	 */
+	size_t size() const;
 
 protected:
 	RCF::RcfInit m_rcf;
@@ -270,6 +281,19 @@ protected:
 	 */
 	typename interface_types::return_type submit_blocking(
 	    typename interface_types::request_type const& req) SYMBOL_VISIBLE;
+
+	/**
+	 * Send the given request to the server and block until response is ready.
+	 * The request has the form of a vector over all underlying connections which contains reference
+	 * wrapped messages.
+	 *
+	 * This function is reentrant.
+	 *
+	 * @param req Request which is sent to the server.
+	 * @return Response containing FPGA words from the connection.
+	 */
+	typename interface_types::return_type submit_blocking(
+	    typename interface_types::request_wrapped_type const& request) SYMBOL_VISIBLE;
 
 	/**
 	 * Send the given request to the server and block until response is ready.
@@ -309,14 +333,14 @@ protected:
 	 */
 	rcf_extensions::SequenceNumber next_sequence_number() SYMBOL_VISIBLE;
 
-	static connect_parameters_type get_connect_params_from_env() SYMBOL_VISIBLE;
+	static init_parameters_type get_connect_params_from_env() SYMBOL_VISIBLE;
 
 	/**
 	 * Lock guard for time info.
 	 */
 	std::lock_guard<std::mutex> lock_time_info() const SYMBOL_VISIBLE;
 
-	void accumulate_time_info(ConnectionTimeInfo const& delta) SYMBOL_VISIBLE;
+	void accumulate_time_info(std::vector<ConnectionTimeInfo> const& delta) SYMBOL_VISIBLE;
 
 	template <typename Submitter>
 	auto submit(Submitter const&);
@@ -332,7 +356,7 @@ protected:
 	 */
 	f_create_client_shared_ptr_t get_create_client_function();
 
-	connect_parameters_type m_connect_parameters;
+	init_parameters_type m_connect_parameters;
 	size_t m_connection_attempt_num_max;
 	std::chrono::milliseconds m_connection_attempt_wait_after;
 	log4cxx::LoggerPtr m_logger;
@@ -345,7 +369,9 @@ protected:
 	std::optional<std::string> m_custom_user;
 
 	mutable std::mutex m_mutex_time_info;
-	ConnectionTimeInfo m_time_info;
+	std::vector<ConnectionTimeInfo> m_time_info;
+
+	size_t m_size;
 };
 
 namespace detail {
@@ -353,7 +379,7 @@ namespace detail {
 template <typename ConnectionParameters, typename RcfClient>
 struct ExecutorMessages<QuiggeldyConnection<ConnectionParameters, RcfClient>>;
 
-// Indiate that QuiggeldyConnection is not expected to support full stream interface.
+// Indicate that QuiggeldyConnection is not expected to support full stream interface.
 template <typename ConnectionParameter, typename RcfClient>
 struct supports_full_stream_interface<QuiggeldyConnection<ConnectionParameter, RcfClient>>
     : std::false_type

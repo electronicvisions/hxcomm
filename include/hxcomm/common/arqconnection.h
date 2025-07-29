@@ -30,6 +30,9 @@ typedef std::shared_ptr<Logger> LoggerPtr;
 
 namespace hxcomm {
 
+template <typename Connection>
+struct MultiConnection;
+
 /**
  * HostARQ connection class.
  * Establish and hold HostARQ connection to FPGA.
@@ -53,6 +56,12 @@ public:
 	 * @throws std::runtime_error On no or more than one FPGA IP address available in environment
 	 */
 	ARQConnection() SYMBOL_VISIBLE;
+
+	/**
+	 * Create connection to FPGA
+	 * @param params Connection parameters.
+	 */
+	ARQConnection(init_parameters_type const& params);
 
 	/**
 	 * Create connection to FPGA.
@@ -123,6 +132,7 @@ public:
 	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
 
 private:
+	friend MultiConnection<ARQConnection<ConnectionParameter>>;
 	/**
 	 * Registry of open ARQConnections.
 	 */

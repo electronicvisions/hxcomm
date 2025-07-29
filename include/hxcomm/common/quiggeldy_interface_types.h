@@ -15,7 +15,7 @@ namespace detail {
 template <typename ConnectionParameter>
 struct ReinitEntryType
 {
-	using request_type = detail::execute_messages_argument_t<ConnectionParameter>;
+	using request_type = std::vector<detail::execute_messages_argument_t<ConnectionParameter>>;
 
 	request_type request;
 	std::optional<request_type> snapshot;
@@ -33,10 +33,12 @@ struct quiggeldy_interface_types
 {
 	using message_types = MessageTypes<ConnectionParameter>;
 
-	using request_type = detail::execute_messages_argument_t<ConnectionParameter>;
-	using return_type = detail::execute_messages_return_t<ConnectionParameter>;
+	using request_type = std::vector<detail::execute_messages_argument_t<ConnectionParameter>>;
+	using request_wrapped_type =
+	    std::vector<detail::execute_messages_argument_reference_wrapped_t<ConnectionParameter>>;
+	using return_type = std::vector<detail::execute_messages_return_t<ConnectionParameter>>;
 	using response_type =
-	    typename detail::execute_messages_return_t<ConnectionParameter>::first_type;
+	    std::vector<typename detail::execute_messages_return_t<ConnectionParameter>::first_type>;
 	using reinit_entry_type = detail::ReinitEntryType<ConnectionParameter>;
 	using reinit_type = std::vector<reinit_entry_type>;
 };

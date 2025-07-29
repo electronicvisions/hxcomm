@@ -6,11 +6,15 @@
 #include "hxcomm/common/stream.h"
 #include "hxcomm/common/target.h"
 #include "hxcomm/common/utmessage.h"
+#include <cstddef>
 #include <mutex>
 #include <optional>
 #include <vector>
 
 namespace hxcomm {
+
+template <typename Connection>
+struct MultiConnection;
 
 namespace detail {
 
@@ -36,7 +40,17 @@ class ZeroMockConnection
 public:
 	HXCOMM_EXPOSE_MESSAGE_TYPES(ConnectionParameter)
 
+	// Needs to be specified for each connection type to be able to construct a MultiConnection of
+	// that type.
+	using init_parameters_type = std::tuple<long>;
+
 	static constexpr char name[] = "ZeroMockConnection";
+
+	/**
+	 * Construct zero mock connection from parameter tuple.
+	 * @param params Connection parameters.
+	 */
+	ZeroMockConnection(init_parameters_type const& params);
 
 	/**
 	 * Construct zero mock connection.
@@ -93,6 +107,8 @@ public:
 	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
 
 private:
+	friend MultiConnection<ZeroMockConnection<ConnectionParameter>>;
+
 	friend Stream<ZeroMockConnection>;
 	/**
 	 * Add a single UT message to the send queue.

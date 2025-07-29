@@ -1,5 +1,6 @@
 
 #include "hxcomm/common/execute_messages.h"
+#include "hxcomm/common/multiconnection.h" // To make ExecutorMessages specialization visible
 #include "hxcomm/common/reinit_stack_entry.h"
 #include "hxcomm/common/stream_rc.h"
 #include <limits>

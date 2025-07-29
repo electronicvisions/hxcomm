@@ -5,51 +5,65 @@
 namespace hxcomm::vx::detail {
 
 QuiggeldyScheduleOutToInTransform::request_type QuiggeldyScheduleOutToInTransform::operator()(
-    response_type const& response, request_type const& snapshot)
+    response_type const& responses, request_type const& snapshots)
 {
 	// simple unchecked transform from Omnibus reads to Omnibus writes
 
 	// filter all read requests
 	request_type addresses;
-	for (auto const& ins : snapshot) {
-		if (!std::holds_alternative<UTMessageToFPGA<instruction::omnibus_to_fpga::Address>>(ins)) {
-			continue;
-		}
-		auto address = std::get<UTMessageToFPGA<instruction::omnibus_to_fpga::Address>>(ins);
-		auto address_payload = address.decode();
-		if (address_payload.get_is_read()) {
-			address_payload.set_is_read(false);
-			address.encode(address_payload);
-			addresses.push_back(address);
+	for (size_t i = 0; i < snapshots.size(); i++) {
+		auto& snapshot = snapshots[i];
+		addresses.push_back(request_type::value_type{});
+		for (auto const& ins : snapshot) {
+			if (!std::holds_alternative<UTMessageToFPGA<instruction::omnibus_to_fpga::Address>>(
+			        ins)) {
+				continue;
+			}
+			auto address = std::get<UTMessageToFPGA<instruction::omnibus_to_fpga::Address>>(ins);
+			auto address_payload = address.decode();
+			if (address_payload.get_is_read()) {
+				address_payload.set_is_read(false);
+				address.encode(address_payload);
+				addresses.back().push_back(address);
+			}
 		}
 	}
 
 	// filter all read responses
 	request_type data;
-	for (auto const& resp : response) {
-		if (!std::holds_alternative<UTMessageFromFPGA<instruction::omnibus_from_fpga::Data>>(
-		        resp)) {
-			continue;
+	for (size_t i = 0; i < responses.size(); i++) {
+		auto& response = responses[i];
+		data.push_back(request_type::value_type{});
+		for (auto const& resp : response) {
+			if (!std::holds_alternative<UTMessageFromFPGA<instruction::omnibus_from_fpga::Data>>(
+			        resp)) {
+				continue;
+			}
+			data.back().push_back(UTMessageToFPGA<instruction::omnibus_to_fpga::Data>(
+			    std::get<UTMessageFromFPGA<instruction::omnibus_from_fpga::Data>>(resp)
+			        .decode()
+			        .value()));
 		}
-		data.push_back(UTMessageToFPGA<instruction::omnibus_to_fpga::Data>(
-		    std::get<UTMessageFromFPGA<instruction::omnibus_from_fpga::Data>>(resp)
-		        .decode()
-		        .value()));
 	}
 
 	// combine addresses and data to write accesses
-	if (addresses.size() != data.size()) {
-		throw std::runtime_error("Transform to Omnibus writes unsuccessful, mismatch in number "
-		                         "of read requests to responses.");
-	}
 	request_type ret;
-	for (size_t i = 0; i < addresses.size(); ++i) {
-		ret.push_back(addresses.at(i));
-		ret.push_back(data.at(i));
+	for (size_t i = 0; i < responses.size(); i++) {
+		ret.push_back(request_type::value_type{});
+
+		if (addresses.size() != data.size()) {
+			throw std::runtime_error("Transform to Omnibus writes unsuccessful, mismatch in number "
+			                         "of read requests to responses.");
+		}
+
+		for (size_t j = 0; j < addresses.size(); ++j) {
+			ret.back().push_back(addresses.at(i).at(j));
+			ret.back().push_back(data.at(i).at(j));
+		}
+		// ensure writes are successful
+		ret.back().push_back(
+		    UTMessageToFPGA<instruction::timing::Barrier>(instruction::timing::Barrier::omnibus));
 	}
-	// ensure writes are successful
-	ret.push_back(
-	    UTMessageToFPGA<instruction::timing::Barrier>(instruction::timing::Barrier::omnibus));
 	return ret;
 }
 

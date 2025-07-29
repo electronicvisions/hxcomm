@@ -8,7 +8,7 @@ class HwTestPyhxcomm(unittest.TestCase):
     def test_get_time_info(self):
         with hxcomm.ManagedConnection() as connection:
             time_info = connection.time_info
-            reference = hxcomm.ConnectionTimeInfo()
+            reference = [hxcomm.ConnectionTimeInfo()]
             self.assertEqual(time_info, reference)
 
 

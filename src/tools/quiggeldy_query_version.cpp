@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 	po::notify(vm);
 
 	std::string ip = vm["ip"].as<std::string>();
-	auto connection = hxcomm::vx::QuiggeldyConnection(ip, port);
+	auto connection = hxcomm::vx::QuiggeldyConnection(ip, port, std::nullopt);
 
 	std::cout << "quiggeldy running at " << ip << ":" << port << " "
 	          << connection.get_version_string() << std::endl;

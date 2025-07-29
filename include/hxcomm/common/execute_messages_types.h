@@ -31,4 +31,15 @@ struct ExecuteMessagesArgumentType
 template <typename Connection>
 using execute_messages_argument_t = typename ExecuteMessagesArgumentType<Connection>::type;
 
+template <typename Connection>
+struct ExecuteMessagesArgumentReferenceWrappedType
+{
+	using type = std::reference_wrapper<std::vector<
+	    typename GetMessageTypes<std::remove_cvref_t<Connection>>::type::send_type> const>;
+};
+
+template <typename Connection>
+using execute_messages_argument_reference_wrapped_t =
+    typename ExecuteMessagesArgumentReferenceWrappedType<Connection>::type;
+
 } // namespace hxcomm::detail

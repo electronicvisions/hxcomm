@@ -16,6 +16,7 @@
 
 #include "cereal/types/hxcomm/common/utmessage.h"
 #include "hxcomm/common/fpga_ip_list.h"
+#include "hxcomm/common/multiconnection.h"
 #include "hxcomm/common/quiggeldy_utility.h"
 #ifdef WITH_HXCOMM_HOSTARQ
 #include "hxcomm/vx/arqconnection.h"
@@ -205,10 +206,12 @@ namespace po = boost::program_options;
 #ifdef WITH_HXCOMM_HOSTARQ
 using QuiggeldyWorkerARQ = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::ARQConnection>;
 using QuiggeldyServerARQ = hxcomm::vx::QuiggeldyServer<hxcomm::vx::ARQConnection>;
+using ConnectionInitARQ = std::vector<hxcomm::vx::ARQConnection::init_parameters_type>;
 #endif
 
 using QuiggeldyWorkerSim = hxcomm::vx::QuiggeldyWorker<hxcomm::vx::SimConnection>;
 using QuiggeldyServerSim = hxcomm::vx::QuiggeldyServer<hxcomm::vx::SimConnection>;
+using ConnectionInitSim = std::vector<hxcomm::vx::SimConnection::init_parameters_type>;
 
 using quiggeldy_server_t = std::variant<
 #ifdef WITH_HXCOMM_HOSTARQ
@@ -423,19 +426,29 @@ int main(int argc, const char* argv[])
 			}
 		}
 		HXCOMM_LOG_DEBUG(log, "Setting up ARQ-based worker to connect to: " << cfg.connect_ip);
+
+		ConnectionInitARQ connection_init_parameters;
+		connection_init_parameters.push_back(std::make_tuple(cfg.connect_ip));
+
 		auto worker = QuiggeldyWorkerARQ(
-		    cfg.public_key, cfg.token_encryption, cfg.token_expiration_grace_time, cfg.connect_ip);
+		    connection_init_parameters, cfg.public_key, cfg.token_encryption,
+		    cfg.token_expiration_grace_time);
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerARQ>(server, std::move(worker), cfg);
+
 #endif
 
 	} else if (cfg.backend_sim) {
 		HXCOMM_LOG_DEBUG(
 		    log, "Setting up CoSim-based worker to connect to: " << cfg.connect_ip << ":"
 		                                                         << cfg.connect_port);
+
+		ConnectionInitSim connection_init_parameters;
+		connection_init_parameters.push_back(std::make_tuple(cfg.connect_ip, cfg.connect_port));
+
 		auto worker = QuiggeldyWorkerSim(
-		    cfg.public_key, cfg.token_encryption, cfg.token_expiration_grace_time, cfg.connect_ip,
-		    cfg.connect_port);
+		    connection_init_parameters, cfg.public_key, cfg.token_encryption,
+		    cfg.token_expiration_grace_time);
 		quiggeldy::configure(worker, cfg);
 		quiggeldy::allocate<QuiggeldyServerSim>(server, std::move(worker), cfg);
 	}

@@ -7,7 +7,8 @@ namespace hxcomm {
 
 template <typename CP>
 ReinitStack<CP>::ReinitStack() : m_logger(log4cxx::Logger::getLogger("ReinitStack"))
-{}
+{
+}
 
 template <typename CP>
 void ReinitStack<CP>::pop_entry(std::size_t idx)

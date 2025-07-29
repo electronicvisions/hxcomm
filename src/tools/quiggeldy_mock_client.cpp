@@ -22,13 +22,14 @@ int main(int argc, char* argv[])
 
 	using namespace hxcomm;
 
-	auto client = hxcomm::vx::QuiggeldyConnection("127.0.0.1", port);
+	auto client = hxcomm::vx::QuiggeldyConnection("127.0.0.1", port, std::nullopt);
 
 	hxcomm::StreamRC<decltype(client)> stream_rc{client};
-	auto response = stream_rc.submit_blocking(decltype(client)::interface_types::request_type());
-	if (response.first.size() == 0) {
-		return 0;
-	} else {
-		return 1;
+	auto result = stream_rc.submit_blocking(decltype(client)::interface_types::request_type());
+	for (auto single_result : result) {
+		if (single_result.first.size() != 0) {
+			return 1;
+		}
 	}
+	return 0;
 }

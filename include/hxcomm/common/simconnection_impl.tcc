@@ -6,6 +6,12 @@
 namespace hxcomm {
 
 template <typename ConnectionParameter>
+SimConnection<ConnectionParameter>::SimConnection(init_parameters_type const& params) :
+    SimConnection(std::get<0>(params), std::get<1>(params))
+{
+}
+
+template <typename ConnectionParameter>
 SimConnection<ConnectionParameter>::SimConnection(
     ip_t ip, port_t port, bool enable_terminate_on_destruction) :
     m_registry(std::make_unique<Registry>(std::tuple{ip, port})),

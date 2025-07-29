@@ -1,17 +1,8 @@
 #include "hxcomm/common/connection.h"
+
 #include "hxcomm/common/logger.h"
 #include "pyhxcomm/common/handle_connection.h"
 #include <boost/hana/string.hpp>
-
-namespace hxcomm {
-
-template <typename C>
-struct GetMessageTypes<pyhxcomm::Handle<C>>
-{
-	using type = typename GetMessageTypes<C>::type;
-};
-
-} // namespace hxcomm
 
 
 namespace pyhxcomm {
@@ -94,4 +85,4 @@ std::unique_ptr<Connection> Handle<Connection>::release()
 	}
 }
 
-} // namespace pyhxcomm
+} // namespace::pyhxcomm

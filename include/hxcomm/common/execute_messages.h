@@ -54,15 +54,20 @@ struct ExecutorMessages
 
 		auto const responses = stream.receive_all();
 		auto const time_difference = conn.get_time_info() - time_begin;
+
+		log4cxx::LoggerPtr log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
+		HXCOMM_LOG_INFO(
+		    log, "Executed messages(" << messages.size() << ") and got responses("
+		                              << responses.size()
+		                              << ") with time expenditure: " << std::endl
+		                              << time_difference << ".");
+
 		return {responses, time_difference};
 	}
 };
-
 } // namespace detail
 
 /**
- * Execute the given messages on the given connection.
- *
  * This function is specialized for each architecture in the corresponding
  * `hxcomm/<architecture>/execute_messages.h` header or - if needed - in the
  * connection-header itself.
@@ -73,25 +78,17 @@ struct ExecutorMessages
  * @tparam Sequence In which sequential container should the messages be stored.
  */
 template <typename Connection, ConnectionIsPlainGuard<Connection> = 0>
-detail::execute_messages_return_t<Connection> execute_messages(
-    Connection& connection, detail::execute_messages_argument_t<Connection> const& messages)
+auto execute_messages(Connection& connection, auto const& messages)
 {
-	auto const [res, time] = detail::ExecutorMessages<Connection>()(connection, messages);
-	[[maybe_unused]] log4cxx::LoggerPtr log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
-	HXCOMM_LOG_INFO(
-	    log, "Executed messages(" << messages.size() << ") and got responses(" << res.size()
-	                              << ") with time expenditure: " << std::endl
-	                              << time << ".");
-	return std::pair{res, time};
+	return detail::ExecutorMessages<Connection>()(connection, messages);
 }
 
 template <typename Connection, ConnectionIsWrappedGuard<Connection> = 0>
-detail::execute_messages_return_t<Connection> execute_messages(
-    Connection&& connection, detail::execute_messages_argument_t<Connection> const& messages)
+auto execute_messages(Connection& connection, auto const& messages)
 {
 	return hxcomm::visit_connection(
 	    [&messages](auto& conn) -> decltype(auto) { return execute_messages(conn, messages); },
-	    std::forward<Connection>(connection));
+	    connection);
 }
 
 } // namespace hxcomm

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hxcomm/vx/zeromockconnection.h"
+#include "hxcomm/vx/multi_zeromockconnection.h"
 
 #include "pyhxcomm/common/managed_connection.h"
 #include "pyhxcomm/vx/genpybind.h"
@@ -9,10 +9,10 @@ namespace pyhxcomm {
 namespace vx GENPYBIND_TAG_HXCOMM_VX {
 
 GENPYBIND_MANUAL({
-	using ZeroMockConnection = ::hxcomm::vx::ZeroMockConnection;
+	using MultiZeroMockConnection = ::hxcomm::vx::MultiZeroMockConnection;
 
-	::pyhxcomm::ManagedPyBind11Helper<ZeroMockConnection>(
-	    parent, BOOST_HANA_STRING("ZeroMockConnection"));
+	::pyhxcomm::ManagedPyBind11Helper<MultiZeroMockConnection>(
+	    parent, BOOST_HANA_STRING("MultiZeroMockConnection"));
 })
 
 } // namespace vx

@@ -33,6 +33,9 @@ typedef std::shared_ptr<Logger> LoggerPtr;
 
 namespace hxcomm {
 
+template <typename Connection>
+struct MultiConnection;
+
 /**
  * Simulation connection class.
  * Establish and hold Simulation connection to FPGA.
@@ -50,6 +53,14 @@ public:
 	static constexpr char name[] = "SimConnection";
 
 	typedef std::vector<receive_message_type> receive_queue_type;
+
+
+	/**
+	 * Create and start connection to simulation server.
+	 * @param params Connection parameters.
+	 */
+	SimConnection(init_parameters_type const& params);
+
 
 	/**
 	 * Create and start connection to simulation server.
@@ -147,6 +158,7 @@ public:
 	std::string get_remote_repo_state() const SYMBOL_VISIBLE;
 
 private:
+	friend MultiConnection<SimConnection<ConnectionParameter>>;
 	/**
 	 * Registry of open SimConnections.
 	 */

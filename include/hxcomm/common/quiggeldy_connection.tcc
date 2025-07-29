@@ -55,22 +55,51 @@ auto QuiggeldyConnection<ConnectionParameter, RcfClient>::submit(Submitter const
 
 namespace detail {
 
-template <typename ConnectionParameters, typename RcfClient>
-struct ExecutorMessages<hxcomm::QuiggeldyConnection<ConnectionParameters, RcfClient>>
+template <typename ConnectionParameter, typename RcfClient>
+struct ExecutorMessages<hxcomm::QuiggeldyConnection<ConnectionParameter, RcfClient>>
 {
-	using connection_type = QuiggeldyConnection<ConnectionParameters, RcfClient>;
+	using connection_type = QuiggeldyConnection<ConnectionParameter, RcfClient>;
 	using receive_message_type = typename connection_type::receive_message_type;
 	using send_message_type = typename connection_type::send_message_type;
 
 	using return_type = typename connection_type::interface_types::return_type;
 	using request_type = typename connection_type::interface_types::request_type;
+	using request_wrapped_type = typename connection_type::interface_types::request_wrapped_type;
 
 	return_type operator()(connection_type& conn, request_type const& messages)
 	{
 		StreamRC<connection_type> stream(conn);
 		return stream.submit_blocking(messages);
 	}
+
+	return_type operator()(connection_type& conn, request_wrapped_type const& messages)
+	{
+		StreamRC<connection_type> stream(conn);
+		return stream.submit_blocking(messages);
+	}
 };
+
+template <typename ConnectionParameter, typename RcfClient>
+struct ExecuteMessagesReturnType<QuiggeldyConnection<ConnectionParameter, RcfClient>>
+{
+	using type = std::vector<execute_messages_return_t<ConnectionParameter>>;
+};
+
+
+template <typename ConnectionParameter, typename RcfClient>
+struct ExecuteMessagesArgumentType<QuiggeldyConnection<ConnectionParameter, RcfClient>>
+{
+	using type = std::vector<execute_messages_argument_t<ConnectionParameter>>;
+};
+
+template <typename ConnectionParameter, typename RcfClient>
+struct ExecuteMessagesArgumentReferenceWrappedType<
+    QuiggeldyConnection<ConnectionParameter, RcfClient>>
+{
+	using type =
+	    std::vector<std::reference_wrapper<const execute_messages_argument_t<ConnectionParameter>>>;
+};
+
 
 } // namespace detail
 

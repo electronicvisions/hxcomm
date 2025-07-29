@@ -24,10 +24,10 @@ class PyBindings(unittest.TestCase):
     @property
     def connections(self):
         return ["Connection",
-                "ARQConnection",
-                "SimConnection",
+                "MultiARQConnection",
+                "MultiSimConnection",
                 "QuiggeldyConnection",
-                "ZeroMockConnection"]
+                "MultiZeroMockConnection"]
 
     @property
     def all_objects(self):
