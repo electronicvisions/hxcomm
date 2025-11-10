@@ -1,7 +1,6 @@
 #include "hate/memory.h"
 #include "hxcomm/common/execute_messages.h"
 #include "hxcomm/common/logger.h"
-#include "pyhxcomm/common/getname.h"
 #include "pyhxcomm/common/handle_connection.h"
 #include "pyhxcomm/common/managed_connection.h"
 #include <tuple>
@@ -63,7 +62,7 @@ template <typename Connection>
 void Managed<Connection>::setup_logger()
 {
 	m_logger =
-	    log4cxx::Logger::getLogger(("pyhxcomm.Managed"_s + GetName<Connection>::name()).c_str());
+	    log4cxx::Logger::getLogger(("pyhxcomm.Managed" + std::string(Connection::name)).c_str());
 }
 
 template <typename Connection>

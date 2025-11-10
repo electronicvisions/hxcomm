@@ -15,15 +15,6 @@ namespace pyhxcomm {
 
 using namespace boost::hana::literals;
 
-template <>
-struct GetName<pyhxcomm::vx::ConnectionHandle>
-{
-	static constexpr auto name()
-	{
-		return "Connection"_s;
-	}
-};
-
 namespace detail {
 template <typename>
 struct add_shared

@@ -1,6 +1,5 @@
 #include "hxcomm/common/connection.h"
 #include "hxcomm/common/logger.h"
-#include "pyhxcomm/common/getname.h"
 #include "pyhxcomm/common/handle_connection.h"
 #include <boost/hana/string.hpp>
 
@@ -50,7 +49,7 @@ template <typename Connection>
 void Handle<Connection>::setup_logger()
 {
 	m_logger = log4cxx::Logger::getLogger(
-	    ("pyhxcomm."_s + GetName<Connection>::name() + "Handle"_s).c_str());
+	    ("pyhxcomm." + std::string(Connection::name) + "Handle").c_str());
 }
 
 template <typename Connection>
