@@ -412,16 +412,30 @@ void ARQConnection<ConnectionParameter>::check_compatibility() const
 		    "Bitfile protocol version " + std::to_string(version) + " too old. Must be at least " +
 		    std::to_string(oldest_supported_version));
 	}
-	if (compat_until > newest_supported_compatible_until) {
+	if (compat_until > get_newest_supported_compatible_until()) {
 		throw std::runtime_error(
 		    "Software too old. Bitfile needs at least " + std::to_string(compat_until) +
-		    ". Software only supports " + std::to_string(newest_supported_compatible_until));
+		    ". Software only supports " + std::to_string(get_newest_supported_compatible_until()));
 	}
 	HXCOMM_LOG_INFO(
 	    m_logger, "check_compatibility():\n\tFPGA:\tversion: "
 	                  << version << "\t compat_until: " << compat_until
 	                  << "\tSW:\tversion: " << oldest_supported_version
-	                  << "\t compat_until: " << newest_supported_compatible_until);
+	                  << "\t compat_until: " << get_newest_supported_compatible_until());
+}
+
+template <typename ConnectionParameter>
+size_t ARQConnection<ConnectionParameter>::get_newest_supported_compatible_until() const
+{
+	auto hwdb_entry = get_hwdb_entry();
+	if (std::holds_alternative<hwdb4cpp::HXCubeSetupEntry>(hwdb_entry)) {
+		return bss_hw_params::cube_ethernet::bitfile_compatible_until;
+	} else if (std::holds_alternative<hwdb4cpp::JboaSetupEntry>(hwdb_entry)) {
+		return bss_hw_params::jboa_ethernet::bitfile_compatible_until;
+	} else {
+		throw std::runtime_error(
+		    "Unknown hwdb_entry. Can not get get required software version information.");
+	}
 }
 
 } // namespace hxcomm

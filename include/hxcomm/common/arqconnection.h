@@ -1,5 +1,6 @@
 #pragma once
 #include "bss_hw_params/cube_ethernet/constants.h"
+#include "bss_hw_params/jboa_ethernet/constants.h"
 #include "hate/visibility.h"
 #include "hxcomm/common/connect_to_remote_parameter_defs.h"
 #include "hxcomm/common/connection.h"
@@ -192,6 +193,11 @@ private:
 	void check_compatibility() const;
 
 	/**
+	 * Get newest compatible bitfile version.
+	 */
+	size_t get_newest_supported_compatible_until() const;
+
+	/**
 	 * Numbers to compare against bitfile protocol version
 	 *
 	 * There are 5 scenarios (newer covers new changes as well as outdated partners)
@@ -214,8 +220,6 @@ private:
 	 * Cases 1, 3 and 5 fulfill these conditions whereas 2 and 4 do not
 	 */
 	static constexpr size_t oldest_supported_version = 0;
-	static constexpr size_t newest_supported_compatible_until =
-	    bss_hw_params::cube_ethernet::bitfile_compatible_until;
 
 	static constexpr uint16_t pid = 0x0010; // HostARQ UT packet type
 	typedef sctrltp::ARQStream<sctrltp::ParametersFcpBss2Cube> arq_stream_type;
