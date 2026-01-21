@@ -16,11 +16,12 @@ namespace hxcomm::vx {
  * Order of precedence is ZeroMockConnection > QuiggeldyConnection >
  * HostARQ-connected hardware > CoSim right now if several are available.
  *
- * @param number_connections Number of connections of same type that are selected.
+ * @param connection_size Number of connections of same type that are selected. Per default you
+ * get all connections that are found, grouped in one multiconnection.
  *
  * @return An already allocated MultiConnection object.
  */
-hxcomm::vx::ConnectionVariant get_connection_from_env(size_t number_connections = 1) SYMBOL_VISIBLE;
+hxcomm::vx::ConnectionVariant get_connection_from_env(size_t connection_size = 0) SYMBOL_VISIBLE;
 
 /**
  * Automatically determine from environment what connection type to use and

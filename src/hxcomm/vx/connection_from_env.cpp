@@ -98,9 +98,9 @@ inline std::vector<QuiggeldyConnection> get_quiggeldyclient_list_from_env(std::o
 } // namespace detail
 
 
-ConnectionVariant get_connection_from_env(size_t number_connections)
+ConnectionVariant get_connection_from_env(size_t connection_size)
 {
-	return std::move(get_connection_list_from_env(number_connections).at(0));
+	return std::move(get_connection_list_from_env(connection_size).at(0));
 }
 
 
@@ -109,13 +109,25 @@ std::vector<ConnectionVariant> get_connection_list_from_env(size_t number_connec
 	std::vector<ConnectionVariant> result;
 	if (auto env_connections = detail::get_zeromockconnection_list_from_env();
 	    !env_connections.empty()) {
+		// If not further specified all connections are packed in a single MultiConnection.
+		if (number_connections_per_multi == 0) {
+			number_connections_per_multi = env_connections.size();
+		}
+		// If not on a JBOA setup the resulting MultiConnections only wrapp a single connection.
+		if (!std::all_of(env_connections.begin(), env_connections.end(), [](auto const& conn) {
+			    return std::holds_alternative<hwdb4cpp::JboaSetupEntry>(conn.get_hwdb_entry());
+		    })) {
+			number_connections_per_multi = 1;
+		}
+
 		std::vector<ZeroMockConnection> selection;
 
 		for (size_t i = 0; i < env_connections.size(); i += number_connections_per_multi) {
 			selection.insert(
 			    selection.end(), std::make_move_iterator(env_connections.begin() + i),
 			    std::make_move_iterator(
-			        env_connections.begin() + i + number_connections_per_multi));
+			        env_connections.begin() + i +
+			        std::min(number_connections_per_multi, env_connections.size())));
 			result.emplace_back(std::move(MultiZeroMockConnection(std::move(selection))));
 			selection.clear();
 		}
@@ -126,13 +138,25 @@ std::vector<ConnectionVariant> get_connection_list_from_env(size_t number_connec
 #ifdef WITH_HXCOMM_HOSTARQ
 	} else if (auto env_connections = detail::get_arqconnection_list_from_env();
 	           !env_connections.empty()) {
+		// If not further specified all connections are packed in a single MultiConnection.
+		if (number_connections_per_multi == 0) {
+			number_connections_per_multi = env_connections.size();
+		}
+		// If not on a JBOA setup the resulting MultiConnections only wrapp a single connection.
+		if (!std::all_of(env_connections.begin(), env_connections.end(), [](auto const& conn) {
+			    return std::holds_alternative<hwdb4cpp::JboaSetupEntry>(conn.get_hwdb_entry());
+		    })) {
+			number_connections_per_multi = 1;
+		}
+
 		std::vector<ARQConnection> selection;
 
 		for (size_t i = 0; i < env_connections.size(); i += number_connections_per_multi) {
 			selection.insert(
 			    selection.end(), std::make_move_iterator(env_connections.begin() + i),
 			    std::make_move_iterator(
-			        env_connections.begin() + i + number_connections_per_multi));
+			        env_connections.begin() + i +
+			        std::min(number_connections_per_multi, env_connections.size())));
 			result.emplace_back(std::move(MultiARQConnection(std::move(selection))));
 			selection.clear();
 		}
@@ -140,13 +164,25 @@ std::vector<ConnectionVariant> get_connection_list_from_env(size_t number_connec
 #endif
 	} else if (auto env_connections = detail::get_simconnection_list_from_env();
 	           !env_connections.empty()) {
+		// If not further specified all connections are packed in a single MultiConnection.
+		if (number_connections_per_multi == 0) {
+			number_connections_per_multi = env_connections.size();
+		}
+		// If not on a JBOA setup the resulting MultiConnections only wrapp a single connection.
+		if (!std::all_of(env_connections.begin(), env_connections.end(), [](auto const& conn) {
+			    return std::holds_alternative<hwdb4cpp::JboaSetupEntry>(conn.get_hwdb_entry());
+		    })) {
+			number_connections_per_multi = 1;
+		}
+
 		std::vector<SimConnection> selection;
 
 		for (size_t i = 0; i < env_connections.size(); i += number_connections_per_multi) {
 			selection.insert(
 			    selection.end(), std::make_move_iterator(env_connections.begin() + i),
 			    std::make_move_iterator(
-			        env_connections.begin() + i + number_connections_per_multi));
+			        env_connections.begin() + i +
+			        std::min(number_connections_per_multi, env_connections.size())));
 			result.emplace_back(std::move(MultiSimConnection(std::move(selection))));
 			selection.clear();
 		}
