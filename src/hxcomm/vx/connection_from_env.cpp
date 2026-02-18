@@ -120,16 +120,13 @@ std::vector<ConnectionVariant> get_connection_list_from_env(size_t number_connec
 			number_connections_per_multi = 1;
 		}
 
-		std::vector<ZeroMockConnection> selection;
-
 		for (size_t i = 0; i < env_connections.size(); i += number_connections_per_multi) {
-			selection.insert(
-			    selection.end(), std::make_move_iterator(env_connections.begin() + i),
+			std::vector<ZeroMockConnection> selection(
+			    std::make_move_iterator(env_connections.begin() + i),
 			    std::make_move_iterator(
 			        env_connections.begin() + i +
 			        std::min(number_connections_per_multi, env_connections.size())));
 			result.emplace_back(std::move(MultiZeroMockConnection(std::move(selection))));
-			selection.clear();
 		}
 		return result;
 	} else if (auto qgc = detail::get_quiggeldyclient_list_from_env(1); !qgc.empty()) {
@@ -149,16 +146,14 @@ std::vector<ConnectionVariant> get_connection_list_from_env(size_t number_connec
 			number_connections_per_multi = 1;
 		}
 
-		std::vector<ARQConnection> selection;
 
 		for (size_t i = 0; i < env_connections.size(); i += number_connections_per_multi) {
-			selection.insert(
-			    selection.end(), std::make_move_iterator(env_connections.begin() + i),
+			std::vector<ARQConnection> selection(
+			    std::make_move_iterator(env_connections.begin() + i),
 			    std::make_move_iterator(
 			        env_connections.begin() + i +
 			        std::min(number_connections_per_multi, env_connections.size())));
 			result.emplace_back(std::move(MultiARQConnection(std::move(selection))));
-			selection.clear();
 		}
 		return result;
 #endif
@@ -175,21 +170,18 @@ std::vector<ConnectionVariant> get_connection_list_from_env(size_t number_connec
 			number_connections_per_multi = 1;
 		}
 
-		std::vector<SimConnection> selection;
 
 		for (size_t i = 0; i < env_connections.size(); i += number_connections_per_multi) {
-			selection.insert(
-			    selection.end(), std::make_move_iterator(env_connections.begin() + i),
+			std::vector<SimConnection> selection(
+			    std::make_move_iterator(env_connections.begin() + i),
 			    std::make_move_iterator(
 			        env_connections.begin() + i +
 			        std::min(number_connections_per_multi, env_connections.size())));
 			result.emplace_back(std::move(MultiSimConnection(std::move(selection))));
-			selection.clear();
 		}
 		return result;
-	} else {
-		throw std::runtime_error("No executor backend found to connect to.");
 	}
+	throw std::runtime_error("No executor backend found to connect to.");
 }
 
 
