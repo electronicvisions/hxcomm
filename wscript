@@ -176,7 +176,7 @@ def build(bld):
         target       = 'hxcomm',
         source       = bld.path.ant_glob('src/hxcomm/**/*.cpp', excl=hxcomm_excludes),
         use          = ['hxcomm_inc',
-                        'flange', 'rant', 'hate_inc', 'logger_obj',
+                        'flange', 'rant', 'hate_inc', 'logger',
                         'visions-slurm_inc', 'hwdb4cpp', 'YAMLCPP',
                         'bss-hw-params_inc', 'rcf-sf-only', 'rcf_extensions',
                         'OPENSSL',
@@ -232,7 +232,7 @@ def build(bld):
         target       = 'hxcomm_tests_helper',
         features     = 'cxx',
         source       = bld.path.ant_glob('tests/common/src/test-*.cpp'),
-        use          = ['hxcomm', 'hxcomm_tests_inc', 'logger_obj'],
+        use          = ['hxcomm', 'hxcomm_tests_inc', 'logger'],
     )
 
     loopbackconnection_obj_targets = build_loopbackconnection_test(bld)

@@ -5,8 +5,8 @@
 #include <boost/program_options.hpp>
 
 
-#include "logger.h"
-#include "logging_ctrl.h"
+#include "logger/log4cxx/logger.h"
+#include "logger/log4cxx/logging_ctrl.h"
 
 #include <iostream>
 

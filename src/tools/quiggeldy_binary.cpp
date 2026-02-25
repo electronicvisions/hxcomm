@@ -11,8 +11,8 @@
 #include "signal.h"
 #include "sys/prctl.h"
 
-#include "logger.h"
-#include "logging_ctrl.h"
+#include "logger/log4cxx/logger.h"
+#include "logger/log4cxx/logging_ctrl.h"
 
 #include "cereal/types/hxcomm/common/utmessage.h"
 #include "hxcomm/common/fpga_ip_list.h"
