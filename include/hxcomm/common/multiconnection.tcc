@@ -51,6 +51,11 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 	{
 		log4cxx::LoggerPtr log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
 
+		if (messages.size() != multi_connection.size()) {
+			throw std::invalid_argument(
+			    "Supplied number of message lists doesn't match multi-connection size.");
+		}
+
 		std::vector<std::future<sub_return_type>> futures;
 
 		auto execute_message_sub_connection = [&multi_connection, messages, log](size_t index) {
@@ -97,6 +102,11 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 	return_type operator()(connection_type& multi_connection, message_type_wrapped const& messages)
 	{
 		log4cxx::LoggerPtr log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
+
+		if (messages.size() != multi_connection.size()) {
+			throw std::invalid_argument(
+			    "Supplied number of message lists doesn't match multi-connection size.");
+		}
 
 		std::vector<std::future<sub_return_type>> futures;
 
