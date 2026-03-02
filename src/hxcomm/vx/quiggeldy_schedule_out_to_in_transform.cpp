@@ -56,7 +56,7 @@ QuiggeldyScheduleOutToInTransform::request_type QuiggeldyScheduleOutToInTransfor
 			                         "of read requests to responses.");
 		}
 
-		for (size_t j = 0; j < addresses.size(); ++j) {
+		for (size_t j = 0; j < addresses.at(i).size(); ++j) {
 			ret.back().push_back(addresses.at(i).at(j));
 			ret.back().push_back(data.at(i).at(j));
 		}

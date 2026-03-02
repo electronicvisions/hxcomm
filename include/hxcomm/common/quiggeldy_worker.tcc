@@ -376,7 +376,7 @@ void QuiggeldyWorker<Connection>::perform_reinit_snapshot(
 		for (auto& entry : reinit) {
 			if (entry.snapshot) {
 				auto retval = detail::ExecutorMessages<MultiConnection<Connection>>{}(
-				    *m_connection, entry.request);
+				    *m_connection, *(entry.snapshot));
 
 				response_type response;
 
