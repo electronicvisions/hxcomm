@@ -70,7 +70,7 @@ def build(bld):
     bld(
         target='pyhxcomm_swtests_vx_py',
         tests=bld.path.ant_glob('tests/sw/*.py'),
-        features='use pytest',
+        features='use pytest pycodestyle pylint',
         use='pyhxcomm_vx',
         install_path='${PREFIX}/bin',
         pythonpath=['tests'],
@@ -86,10 +86,18 @@ def build(bld):
         use='pyhxcomm_vx',
         install_path='${PREFIX}/bin',
         pythonpath=['tests'],
-        pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
-        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle"),
         skip_run=not (bld.env.DLSvx_SIM_AVAILABLE or bld.env.BBS_HARDWARE_AVAILABLE),
         test_timeout=120,
+    )
+
+    bld(
+        target='pyhxcomm_hwtests_vx_py_pylint',
+        tests=bld.path.ant_glob('tests/hw/*.py'),
+        features='use pycodestyle pylint',
+        use='pyhxcomm_vx',
+        pythonpath=['tests'],
+        pylint_config=join(get_toplevel_path(), "code-format", "pylintrc"),
+        pycodestyle_config=join(get_toplevel_path(), "code-format", "pycodestyle")
     )
 
     bld.add_post_fun(summary)

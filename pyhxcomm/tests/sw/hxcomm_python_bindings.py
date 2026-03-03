@@ -9,6 +9,7 @@ import itertools as it
 
 class PyBindings(unittest.TestCase):
     def setUp(self):
+        # pylint: disable=import-outside-toplevel
         import pyhxcomm_vx
         self.hxcomm = pyhxcomm_vx
 
@@ -49,9 +50,9 @@ class PyBindings(unittest.TestCase):
         c.deque(map(self.get_from_toplevel, self.all_objects), maxlen=0)
 
     def test_handle_not_constructable(self):
-        for Handle in map(self.get_from_toplevel, self.handles):
+        for handle in map(self.get_from_toplevel, self.handles):
             with self.assertRaises(TypeError):
-                Handle()
+                handle()
 
     def check_arg_exists(self, parent, arg):
         retrieved = getattr(parent, arg, None)
