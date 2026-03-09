@@ -58,7 +58,7 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 
 		std::vector<std::future<sub_return_type>> futures;
 
-		auto execute_message_sub_connection = [&multi_connection, messages, log](size_t index) {
+		auto execute_message_sub_connection = [&multi_connection, &messages, &log](size_t index) {
 			auto& connection = multi_connection[index];
 
 			Stream<sub_connection_type> stream(connection);
@@ -110,7 +110,7 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 
 		std::vector<std::future<sub_return_type>> futures;
 
-		auto execute_message_sub_connection = [&multi_connection, messages, log](size_t index) {
+		auto execute_message_sub_connection = [&multi_connection, &messages, &log](size_t index) {
 			auto& connection = multi_connection[index];
 
 			Stream<sub_connection_type> stream(connection);
