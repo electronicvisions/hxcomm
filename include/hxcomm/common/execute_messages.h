@@ -52,7 +52,7 @@ struct ExecutorMessages
 
 		stream.run_until_halt();
 
-		auto const responses = stream.receive_all();
+		auto responses = stream.receive_all();
 		auto const time_difference = conn.get_time_info() - time_begin;
 
 		log4cxx::LoggerPtr log = log4cxx::Logger::getLogger("hxcomm.execute_messages");
@@ -62,7 +62,7 @@ struct ExecutorMessages
 		                              << ") with time expenditure: " << std::endl
 		                              << time_difference << ".");
 
-		return {responses, time_difference};
+		return {std::move(responses), time_difference};
 	}
 };
 } // namespace detail

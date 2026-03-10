@@ -64,16 +64,14 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 			Stream<sub_connection_type> stream(connection);
 			auto const time_begin = connection.get_time_info();
 
-
 			stream.add(messages.at(index).begin(), messages.at(index).end());
 			stream.add(sub_send_halt_message_type());
 			stream.commit();
 
 			stream.run_until_halt();
 
-			auto const responses = stream.receive_all();
+			auto responses = stream.receive_all();
 			auto const time_difference = connection.get_time_info() - time_begin;
-
 
 			HXCOMM_LOG_INFO(
 			    log, "Executed messages(" << messages.size() << ") and got responses("
@@ -81,7 +79,7 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 			                              << ") with time expenditure: " << std::endl
 			                              << time_difference << " on connection " << index << ".");
 
-			return std::make_pair(responses, time_difference);
+			return std::make_pair(std::move(responses), time_difference);
 		};
 
 		for (size_t i = 0; i < multi_connection.size(); i++) {
@@ -116,14 +114,13 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 			Stream<sub_connection_type> stream(connection);
 			auto const time_begin = connection.get_time_info();
 
-
 			stream.add(messages.at(index).get().begin(), messages.at(index).get().end());
 			stream.add(sub_send_halt_message_type());
 			stream.commit();
 
 			stream.run_until_halt();
 
-			auto const responses = stream.receive_all();
+			auto responses = stream.receive_all();
 			auto const time_difference = connection.get_time_info() - time_begin;
 
 			HXCOMM_LOG_INFO(
@@ -132,7 +129,7 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 			                              << ") with time expenditure: " << std::endl
 			                              << time_difference << " on connection " << index << ".");
 
-			return std::make_pair(responses, time_difference);
+			return std::make_pair(std::move(responses), time_difference);
 		};
 
 		for (size_t i = 0; i < multi_connection.size(); i++) {
@@ -147,7 +144,6 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 		return result;
 	}
 };
-
 
 } // namespace detail
 
