@@ -297,7 +297,7 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 	std::optional<std::variant<hwdb4cpp::HXCubeSetupEntry, hwdb4cpp::JboaSetupEntry>> entry;
 	size_t fcp = 0;
 	auto const hxcube_ids = hwdb.get_hxcube_ids();
-	for (auto const id : hxcube_ids) {
+	for (auto const& id : hxcube_ids) {
 		auto const& local_entry = hwdb.get_hxcube_setup_entry(id);
 		for (auto const& [f, e] : local_entry.fpgas) {
 			if (e.ip == ip) {
@@ -308,7 +308,7 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 		}
 	}
 	auto const jboa_ids = hwdb.get_jboa_ids();
-	for (auto const id : jboa_ids) {
+	for (auto const& id : jboa_ids) {
 		auto const& local_entry = hwdb.get_jboa_setup_entry(id);
 		for (auto const& [f, e] : local_entry.fpgas) {
 			if (e.ip == ip) {
@@ -345,7 +345,7 @@ HwdbEntry ARQConnection<ConnectionParameter>::get_hwdb_entry() const
 	std::optional<std::variant<hwdb4cpp::HXCubeSetupEntry, hwdb4cpp::JboaSetupEntry>> entry;
 	size_t fcp = 0;
 	auto const hxcube_ids = hwdb.get_hxcube_ids();
-	for (auto const id : hxcube_ids) {
+	for (auto const& id : hxcube_ids) {
 		auto const& local_entry = hwdb.get_hxcube_setup_entry(id);
 		for (auto const& [f, e] : local_entry.fpgas) {
 			if (e.ip == ip) {
@@ -356,7 +356,7 @@ HwdbEntry ARQConnection<ConnectionParameter>::get_hwdb_entry() const
 		}
 	}
 	auto const jboa_ids = hwdb.get_jboa_ids();
-	for (auto const id : jboa_ids) {
+	for (auto const& id : jboa_ids) {
 		auto const& local_entry = hwdb.get_jboa_setup_entry(id);
 		for (auto const& [f, e] : local_entry.fpgas) {
 			if (e.ip == ip) {

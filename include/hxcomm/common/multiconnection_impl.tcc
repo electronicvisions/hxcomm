@@ -21,7 +21,7 @@ MultiConnection<Connection>::MultiConnection(std::vector<Connection>&& connectio
 template <typename Connection>
 MultiConnection<Connection>::MultiConnection(init_parameters_type const& connection_inits)
 {
-	for (auto connection_init : get<0>(connection_inits)) {
+	for (auto const& connection_init : get<0>(connection_inits)) {
 		m_connections.emplace_back(std::move(Connection(connection_init)));
 	}
 }

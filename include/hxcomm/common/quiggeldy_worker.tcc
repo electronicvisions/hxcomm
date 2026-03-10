@@ -50,7 +50,7 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(
 		assert(std::tuple_size<init_parameters_type>::value == 1);
 		std::stringstream msg;
 		msg << "Passing " << std::get<0>(connection_init).size() << " arguments to connection:";
-		for (auto& single_connection_init : std::get<0>(connection_init)) {
+		for (auto const& single_connection_init : std::get<0>(connection_init)) {
 			std::apply(
 			    [&msg](auto&&... args) { ((msg << " " << args), ...); }, single_connection_init);
 		}
@@ -72,7 +72,7 @@ QuiggeldyWorker<Connection>::QuiggeldyWorker(
 		std::stringstream ss;
 		ss << "quiggeldy";
 		auto paste = [&ss](auto&& arg) { ss << "_" << arg; };
-		for (auto& single_connection_init : std::get<0>(m_connection_init)) {
+		for (auto const& single_connection_init : std::get<0>(m_connection_init)) {
 			std::apply([&ss, &paste](auto&&... arg) { (..., paste(arg)); }, single_connection_init);
 		}
 		m_slurm_license = ss.str();
@@ -202,8 +202,8 @@ bool QuiggeldyWorker<Connection>::check_for_timeout(return_type const& return_va
 	bool timeout = false;
 
 	// if any msg is a receive timeout trigger a reconnection
-	for (auto single_return : return_value) {
-		auto& single_response = single_return.first;
+	for (auto const& single_return : return_value) {
+		auto const& single_response = single_return.first;
 		if (std::any_of(single_response.cbegin(), single_response.cend(), [this](auto const& m) {
 			    return std::visit(
 			        [this](auto const& mm) {
@@ -380,8 +380,8 @@ void QuiggeldyWorker<Connection>::perform_reinit_snapshot(
 
 				response_type response;
 
-				for (auto& value : retval) {
-					response.push_back(value.first);
+				for (auto const& value : retval) {
+					response.push_back(std::move(value.first));
 				}
 
 				entry.request = typename std::decay_t<decltype(entry)>::transform_type{}(
@@ -571,7 +571,7 @@ std::vector<std::string> QuiggeldyWorker<Connection>::get_unique_identifier(
 		auto unique_identifier = m_connection->get_unique_identifier(hwdb_path);
 		std::stringstream msg;
 		msg << "Requested unique identifier: ";
-		for (auto id : unique_identifier) {
+		for (auto const& id : unique_identifier) {
 			msg << id;
 		}
 		HXCOMM_LOG_DEBUG(m_logger, msg.str());
@@ -601,7 +601,7 @@ std::vector<std::string> QuiggeldyWorker<Connection>::get_bitfile_info() const
 		auto bitfile_info = m_connection->get_bitfile_info();
 		std::stringstream msg;
 		msg << "Requested bitfile info: ";
-		for (auto info : bitfile_info) {
+		for (auto const& info : bitfile_info) {
 			msg << info;
 		}
 		HXCOMM_LOG_DEBUG(m_logger, msg.str());
@@ -617,7 +617,7 @@ std::vector<std::string> QuiggeldyWorker<Connection>::get_remote_repo_state() co
 	auto const repo_state = m_connection->get_remote_repo_state();
 	std::stringstream msg;
 	msg << "Requested remote repo state: ";
-	for (auto state : repo_state) {
+	for (auto const& state : repo_state) {
 		msg << state;
 	}
 	HXCOMM_LOG_DEBUG(m_logger, msg.str());

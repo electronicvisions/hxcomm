@@ -371,7 +371,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 	return submit([&request, this](auto& client, auto& sequence_num) {
 		typename interface_types::return_type response = client->submit_work(request, sequence_num);
 		std::vector<ConnectionTimeInfo> time_info;
-		for (auto res : response) {
+		for (auto const& res : response) {
 			time_info.push_back(res.second);
 		}
 		accumulate_time_info(time_info);
@@ -389,7 +389,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_blocking(
 	// TO-DO: This coyping can be removed if the serialization in the submission is changed so that
 	// a vector of references can be entered.
 	typename interface_types::request_type request_unwrapped;
-	for (auto& req : request) {
+	for (auto const& req : request) {
 		request_unwrapped.push_back(req.get());
 	}
 	return submit_blocking(request_unwrapped);
@@ -413,7 +413,7 @@ QuiggeldyConnection<ConnectionParameter, RcfClient>::submit_async(
 			    typename interface_types::return_type& response = rcf_future;
 			    // track time
 			    std::vector<ConnectionTimeInfo> time_info;
-			    for (auto res : response) {
+			    for (auto const& res : response) {
 				    time_info.push_back(res.second);
 			    }
 			    accumulate_time_info(time_info);

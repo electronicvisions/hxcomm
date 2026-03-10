@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
 	hxcomm::StreamRC<decltype(client)> stream_rc{client};
 	auto result = stream_rc.submit_blocking(decltype(client)::interface_types::request_type());
-	for (auto single_result : result) {
+	for (auto const& single_result : result) {
 		if (single_result.first.size() != 0) {
 			return 1;
 		}
