@@ -74,7 +74,7 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 			auto const time_difference = connection.get_time_info() - time_begin;
 
 			HXCOMM_LOG_INFO(
-			    log, "Executed messages(" << messages.size() << ") and got responses("
+			    log, "Executed messages(" << messages.at(index).size() << ") and got responses("
 			                              << responses.size()
 			                              << ") with time expenditure: " << std::endl
 			                              << time_difference << " on connection " << index << ".");
@@ -124,8 +124,8 @@ struct ExecutorMessages<hxcomm::MultiConnection<Connection>>
 			auto const time_difference = connection.get_time_info() - time_begin;
 
 			HXCOMM_LOG_INFO(
-			    log, "Executed messages(" << messages.size() << ") and got responses("
-			                              << responses.size()
+			    log, "Executed messages(" << messages.at(index).get().size()
+			                              << ") and got responses(" << responses.size()
 			                              << ") with time expenditure: " << std::endl
 			                              << time_difference << " on connection " << index << ".");
 
