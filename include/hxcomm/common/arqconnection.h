@@ -17,6 +17,7 @@
 #include "sctrltp/ARQStream.h"
 #include <array>
 #include <atomic>
+#include <filesystem>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -284,6 +285,14 @@ private:
 	duration_type m_decode_duration{};
 	duration_type m_commit_duration{};
 	duration_type m_execution_duration{};
+
+	// cached for performance reasons
+	mutable std::map<
+	    std::optional<std::string>,
+	    std::pair<std::filesystem::file_time_type, hwdb4cpp::database>>
+	    m_last_hwdb;
+
+	hwdb4cpp::database const& get_last_hwdb(std::optional<std::string> const& hwdb_path) const;
 };
 
 } // namespace hxcomm

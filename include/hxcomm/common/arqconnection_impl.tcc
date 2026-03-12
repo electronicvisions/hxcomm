@@ -8,6 +8,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include <chrono>
+#include <filesystem>
 
 namespace hxcomm {
 
@@ -98,7 +99,8 @@ ARQConnection<ConnectionParameter>::ARQConnection(ARQConnection&& other) :
     m_decoder(m_receive_queue, m_listener_halt), // temporary
     m_run_receive(true),
     m_logger(log4cxx::Logger::getLogger("hxcomm.ARQConnection")),
-    m_worker_receive()
+    m_worker_receive(),
+    m_last_hwdb(std::move(other.m_last_hwdb))
 {
 	// shutdown other threads
 	other.m_run_receive = false;
@@ -159,6 +161,7 @@ ARQConnection<ConnectionParameter>& ARQConnection<ConnectionParameter>::operator
 		new (&m_encoder) encoder_type(other.m_encoder, m_send_queue);
 		// create and start thread
 		m_worker_receive = std::thread(&ARQConnection<ConnectionParameter>::work_receive, this);
+		m_last_hwdb = std::move(other.m_last_hwdb);
 	}
 	return *this;
 }
@@ -292,8 +295,7 @@ std::string ARQConnection<ConnectionParameter>::get_unique_identifier(
 	}
 	auto const ip = boost::asio::ip::make_address_v4(m_arq_stream->get_remote_ip());
 
-	hwdb4cpp::database hwdb;
-	hwdb.load(hwdb_path ? *hwdb_path : hwdb4cpp::database::get_default_path());
+	auto const& hwdb = get_last_hwdb(hwdb_path);
 	std::optional<std::variant<hwdb4cpp::HXCubeSetupEntry, hwdb4cpp::JboaSetupEntry>> entry;
 	size_t fcp = 0;
 	auto const hxcube_ids = hwdb.get_hxcube_ids();
@@ -340,8 +342,7 @@ HwdbEntry ARQConnection<ConnectionParameter>::get_hwdb_entry() const
 	}
 	auto const ip = boost::asio::ip::make_address_v4(m_arq_stream->get_remote_ip());
 
-	hwdb4cpp::database hwdb;
-	hwdb.load(hwdb4cpp::database::get_default_path());
+	auto const& hwdb = get_last_hwdb(std::nullopt);
 	std::optional<std::variant<hwdb4cpp::HXCubeSetupEntry, hwdb4cpp::JboaSetupEntry>> entry;
 	size_t fcp = 0;
 	auto const hxcube_ids = hwdb.get_hxcube_ids();
@@ -436,6 +437,22 @@ size_t ARQConnection<ConnectionParameter>::get_newest_supported_compatible_until
 		throw std::runtime_error(
 		    "Unknown hwdb_entry. Can not get get required software version information.");
 	}
+}
+
+template <typename ConnectionParameter>
+hwdb4cpp::database const& ARQConnection<ConnectionParameter>::get_last_hwdb(
+    std::optional<std::string> const& hwdb_path) const
+{
+	auto const current_hwdb_write_time =
+	    std::filesystem::last_write_time(hwdb4cpp::database::get_default_path());
+	if (!m_last_hwdb.contains(hwdb_path) ||
+	    current_hwdb_write_time != m_last_hwdb.at(hwdb_path).first) {
+		auto& last_hwdb = m_last_hwdb[hwdb_path];
+		last_hwdb.second = hwdb4cpp::database();
+		last_hwdb.second.load(hwdb_path ? *hwdb_path : hwdb4cpp::database::get_default_path());
+		last_hwdb.first = current_hwdb_write_time;
+	}
+	return m_last_hwdb.at(hwdb_path).second;
 }
 
 } // namespace hxcomm
