@@ -190,6 +190,7 @@ constexpr ManagedPyBind11Helper<Connection>::ManagedPyBind11Helper(
     pybind11::module& parent, HanaString const& name) :
     parent_type(parent, name), handle(parent, (name + "Handle"_s).c_str())
 {
+	handle.def("__len__", [](handle_type const& h) { return h.get().size(); });
 	handle.def_property_readonly(
 	    "time_info", [](handle_type const& h) { return h.get().get_time_info(); });
 	handle.def_property_readonly(
