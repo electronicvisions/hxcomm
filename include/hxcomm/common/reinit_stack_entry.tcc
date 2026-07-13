@@ -23,7 +23,9 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::setup(Connection&
 		StreamRC<quiggeldy_connection_type> const stream{connection};
 		m_reinit_uploader = stream.get_reinit_upload();
 		m_reinit_stack = stream.get_reinit_stack();
-		m_idx_in_stack = std::make_optional(m_reinit_stack.lock()->push(reinit_entry_type{}));
+		reinit_entry_type entry;
+		entry.request.resize(connection.size());
+		m_idx_in_stack = std::make_optional(m_reinit_stack.lock()->push(std::move(entry)));
 	}
 }
 

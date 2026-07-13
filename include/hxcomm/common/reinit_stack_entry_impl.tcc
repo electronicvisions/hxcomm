@@ -3,6 +3,7 @@
 #include "hxcomm/common/multiconnection.h" // To make ExecutorMessages specialization visible
 #include "hxcomm/common/reinit_stack_entry.h"
 #include "hxcomm/common/stream_rc.h"
+#include "hxcomm/common/visit_connection.h"
 #include <limits>
 #include <sstream>
 
@@ -41,7 +42,12 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::pop()
 			} catch (std::exception& e) {
 				HXCOMM_LOG_ERROR(m_logger, e.what());
 				// In case of an error, we replace the removed entry with an empy pbmem
-				stack->update_at(*m_idx_in_stack, reinit_entry_type{});
+				// for each item on the connection
+				reinit_entry_type entry;
+				size_t n_conns = visit_connection(
+				    [](auto& conn) { return conn.get().size(); }, m_connection_ref);
+				entry.request.resize(n_conns);
+				stack->update_at(*m_idx_in_stack, std::move(entry));
 			}
 			m_idx_in_stack.reset();
 		} else {
