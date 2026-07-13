@@ -27,4 +27,17 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::setup(Connection&
 	}
 }
 
+template <typename QuiggeldyConnection, typename ConnectionVariant>
+template <typename Connection>
+void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::update_connection(
+    Connection& connection)
+{
+	if constexpr (std::is_same_v<std::remove_cvref_t<Connection>, ConnectionVariant>) {
+		std::visit([this](auto& c) { m_connection_ref = std::ref(c); }, connection);
+	} else {
+		m_connection_ref = std::ref(connection);
+	}
+}
+
+
 } // namespace hxcomm

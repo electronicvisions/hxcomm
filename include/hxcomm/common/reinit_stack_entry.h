@@ -63,6 +63,12 @@ public:
 	~ReinitStackEntry() SYMBOL_VISIBLE;
 
 	/**
+	 * Update the reference to the connection.
+	 */
+	template <typename Connection>
+	void update_connection(Connection& connection);
+
+	/**
 	 * Register a reinit program to be used on the remote site.
 	 *
 	 * Takes ownership of the program.
