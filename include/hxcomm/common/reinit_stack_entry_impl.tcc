@@ -55,6 +55,14 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::pop()
 template <typename QuiggeldyConnection, typename ConnectionVariant>
 void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(reinit_entry_type&& entry)
 {
+	size_t n_conns =
+	    visit_connection([](auto& conn) { return conn.get().size(); }, m_connection_ref);
+	if (entry.request.size() != n_conns) {
+		std::stringstream ss;
+		ss << "Entry size (" << entry.request.size() << ") does not match connection size ("
+		   << n_conns << ").";
+		throw std::runtime_error(ss.str());
+	}
 	if (!m_connection_supports_reinit) {
 		handle_unsupported_connection(entry);
 	} else if (!m_idx_in_stack) {
@@ -82,6 +90,14 @@ void ReinitStackEntry<QuiggeldyConnection, ConnectionVariant>::set(reinit_entry_
 {
 	// Runtime check because ReinitStackEntry is exposed via Python bindings
 	// and has to be valid for all connections.
+	size_t n_conns =
+	    visit_connection([](auto& conn) { return conn.get().size(); }, m_connection_ref);
+	if (entry.request.size() != n_conns) {
+		std::stringstream ss;
+		ss << "Entry size (" << entry.request.size() << ") does not match connection size ("
+		   << n_conns << ").";
+		throw std::runtime_error(ss.str());
+	}
 	if (!m_connection_supports_reinit) {
 		handle_unsupported_connection(entry);
 	} else if (auto uploader = m_reinit_uploader.lock()) {
