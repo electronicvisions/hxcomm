@@ -18,6 +18,7 @@
 #include "hxcomm/common/fpga_ip_list.h"
 #include "hxcomm/common/multiconnection.h"
 #include "hxcomm/common/quiggeldy_utility.h"
+#include "hxcomm/common/zero_mock_mode.h"
 #ifdef WITH_HXCOMM_HOSTARQ
 #include "hxcomm/vx/arqconnection.h"
 #endif
@@ -327,6 +328,10 @@ int main(int argc, const char* argv[])
 	// them when creating the argument leads to data corruption
 	cfg.listen_ip = vm["listen-ip"].as<std::string>();
 	cfg.connect_ip = vm["connect-ip"].as<std::string>();
+
+	if (!cfg.mock_mode) {
+		cfg.mock_mode = hxcomm::get_enable_zero_mock_mode();
+	}
 
 	// Set public-key if one is provided.
 	std::string public_key = vm["public-key"].as<std::string>();
